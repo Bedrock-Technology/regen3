@@ -1,0 +1,9 @@
+/.idea
+.DS_Store
+.vscode
+.build
+.vimprojects
+*.swp
+nohup.out
+logs/
+.env
