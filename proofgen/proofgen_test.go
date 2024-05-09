@@ -137,7 +137,7 @@ func TestVerifyWithdrawalCredentialsGen(t *testing.T) {
 //
 // npx hardhat node
 func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
-	oracleSteteFile := "../data/holesky_slot_1603985.json"
+	oracleStateFile := "../data/holesky_slot_1603985.json"
 	oracleHeaderFile := "../data/holesky_block_header_1603985.json"
 
 	chainClient, err := txsubmitter.NewChainClient(provider, "", "", 0, 0)
@@ -157,7 +157,7 @@ func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
 		*eigenPodProofs,
 	)
 	t.Logf("do verify")
-	tx, err := VerifyWithdrawalCredentialsGen2(submitter, oracleSteteFile, oracleHeaderFile, common.HexToAddress(PodAddress), []uint64{1702059})
+	tx, err := VerifyWithdrawalCredentialsGen2(submitter, oracleStateFile, oracleHeaderFile, common.HexToAddress(PodAddress), []uint64{1702059, 1702060})
 	if err != nil {
 		t.Logf("%v", err)
 		return
@@ -165,8 +165,10 @@ func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
 	t.Logf("fake:%v", tx.Hash())
 	//send to chain
 	opts := getTransOpts("HOLESKY_ACCOUNT_0")
-	tipCap, _ := big.NewInt(0).SetString("1000000000", 0)
-	opts.GasTipCap = tipCap
+	//tipCap, _ := big.NewInt(0).SetString("1000000000", 0)
+	//opts.GasTipCap = tipCap
+	gasPrice, _ := big.NewInt(0).SetString("20000000000", 0)
+	opts.GasPrice = gasPrice
 	opts.GasLimit = 1000000
 	caller := bind.NewBoundContract(*tx.To(), abi.ABI{}, provider, provider, provider)
 	realTx, err := caller.RawTransact(opts, tx.Data())
@@ -180,6 +182,8 @@ func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
 		t.Logf("txReceipt err:%v", err)
 		return
 	}
+	gasFee := big.NewInt(0).Mul(big.NewInt(int64(txReceipt.GasUsed)), txReceipt.EffectiveGasPrice)
+	t.Logf("gasFee:%v", gasFee)
 	egAbi, err := EigenPod.EigenPodMetaData.GetAbi()
 	if err != nil {
 		t.Error("GetAbi err:", err)
