@@ -63,6 +63,33 @@ func VerifyWithdrawalCredentialsGen(chainId uint64, provider *ethclient.Client, 
 	return submitter.GenerateVerifyWithdrawalCredentialsTx(eigenPod, &versionedOracleState, &oracleBeaconBlockHeader, validatorIndices)
 }
 
+func VerifyWithdrawalCredentialsGen2(submitter *txsubmitter.EigenPodProofTxSubmitter, oracleStake, oracleHeader string,
+	eigenPod common.Address, validatorIndices []uint64) (*types.Transaction, error) {
+	oracleBeaconBlockHeader, err := commonutils.ExtractBlockHeader(oracleHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	oracleStateJSON, err := commonutils.ParseDenebStateJSONFile(oracleStake)
+	var oracleState deneb.BeaconState
+	if err != nil {
+		return nil, err
+	}
+
+	err = commonutils.ParseDenebBeaconStateFromJSON(*oracleStateJSON, &oracleState)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedOracleState, err := beacon.CreateVersionedState(&oracleState)
+	if err != nil {
+		return nil, err
+	}
+
+	return submitter.GenerateVerifyWithdrawalCredentialsTx(eigenPod, &versionedOracleState,
+		&oracleBeaconBlockHeader, validatorIndices)
+}
+
 func extractBlockHeader(blockHeader []byte) (phase0.BeaconBlockHeader, error) {
 	// Decode JSON
 	var inputData commonutils.InputDataBlockHeader

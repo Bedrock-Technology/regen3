@@ -1,6 +1,7 @@
 package proofgen
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math/big"
@@ -9,6 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
+	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
@@ -118,6 +122,82 @@ func TestVerifyWithdrawalCredentialsGen(t *testing.T) {
 	   proofgen_test.go:104: fake:0x39037cf8d6456c8dbfcaa84e84b97b73b06b14d4411d52f9b78709c3c1a73b49
 	   proofgen_test.go:113: raw tx:0x57f8588d3e24d12ceb5196dd214e892b321e1462ae1480afbe76a8143d66d0d8
 	*/
+}
+
+// Using hardhat fork holesky to test
+//
+//	 hardhat: {
+//	  chainId: 17000,
+//	  forking: {
+//	    enabled: true,
+//	    url: process.env.HOLESKY_ARCHIVE_URL!,
+//	    blockNumber: 1502050,
+//	  },
+//	},
+//
+// npx hardhat node
+func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
+	oracleSteteFile := "../data/holesky_slot_1603985.json"
+	oracleHeaderFile := "../data/holesky_block_header_1603985.json"
+
+	chainClient, err := txsubmitter.NewChainClient(provider, "", "", 0, 0)
+	if err != nil {
+		t.Logf("%v", err)
+		return
+	}
+
+	eigenPodProofs, err := eigenpodproofs.NewEigenPodProofs(uint64(ChainId), 60)
+	if err != nil {
+		t.Logf("%v", err)
+		return
+	}
+
+	submitter := txsubmitter.NewEigenPodProofTxSubmitter(
+		*chainClient,
+		*eigenPodProofs,
+	)
+	t.Logf("do verify")
+	tx, err := VerifyWithdrawalCredentialsGen2(submitter, oracleSteteFile, oracleHeaderFile, common.HexToAddress(PodAddress), []uint64{1702059})
+	if err != nil {
+		t.Logf("%v", err)
+		return
+	}
+	t.Logf("fake:%v", tx.Hash())
+	//send to chain
+	opts := getTransOpts("HOLESKY_ACCOUNT_0")
+	tipCap, _ := big.NewInt(0).SetString("1000000000", 0)
+	opts.GasTipCap = tipCap
+	opts.GasLimit = 1000000
+	caller := bind.NewBoundContract(*tx.To(), abi.ABI{}, provider, provider, provider)
+	realTx, err := caller.RawTransact(opts, tx.Data())
+	if err != nil {
+		t.Logf("RawTransact err:%v", err)
+		return
+	}
+	t.Logf("raw tx:%v", realTx.Hash())
+	txReceipt, err := bind.WaitMined(context.Background(), provider, realTx)
+	if err != nil {
+		t.Logf("txReceipt err:%v", err)
+		return
+	}
+	egAbi, err := EigenPod.EigenPodMetaData.GetAbi()
+	if err != nil {
+		t.Error("GetAbi err:", err)
+		return
+	}
+	for _, log := range txReceipt.Logs {
+		if log.Address == common.HexToAddress(PodAddress) {
+			e, _ := egAbi.EventByID(log.Topics[0])
+			if e.Name == "ValidatorRestaked" {
+				r, err := contract.ParseValidatorRestaked(*log)
+				if err != nil {
+					t.Logf("ParseValidatorRestaked err:%v", err)
+					return
+				}
+				t.Logf("r:%v", r.ValidatorIndex)
+			}
+		}
+	}
 }
 
 func getTransOpts(account string) *bind.TransactOpts {
