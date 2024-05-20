@@ -224,6 +224,7 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 	//t.Log("logs:", string(logsJson))
 	for _, log := range logs {
 		t.Log("topic:", log.Topics[0].Hex())
+		t.Log("txHash:", log.TxHash.String())
 		event, err := dmAbi.EventByID(log.Topics[0])
 		if err != nil {
 			t.Error("EventByID err:", err)
