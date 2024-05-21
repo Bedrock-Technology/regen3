@@ -20,7 +20,8 @@ func TestModelsInit(t *testing.T) {
 		log.Fatalf("Failed to connect database: %v", err)
 	}
 
-	err = db.AutoMigrate(&Validator{}, &Pod{}, &CheckPoint{}, &QueueWithdrawals{})
+	err = db.AutoMigrate(&Validator{}, &Pod{}, &CheckPoint{},
+		&QueueWithdrawals{}, &Cursor{}, &Transaction{})
 	if err != nil {
 		log.Fatalf("Failed to auto migrate database: %v", err)
 	}

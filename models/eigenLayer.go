@@ -56,3 +56,18 @@ type QueueWithdrawals struct {
 	StartBlock uint64 `gorm:"not null;default:0" json:"startBlock"`
 	Completed  uint8  `gorm:"not null;default:0" json:"completed"`
 }
+
+type Cursor struct {
+	gorm.Model
+	//last processed BeaconSlot
+	Slot uint64 `gorm:"not null;default:0" json:"slot"`
+}
+
+// Transaction record transaction fee that we spent
+type Transaction struct {
+	gorm.Model
+	TxHash string `gorm:"type:varchar(128);not null;default:''" json:"txHash"`
+	Status uint8  `gorm:"not null;default:0" json:"status"`
+	TxType string `gorm:"type:varchar(128);not null;default:''" json:"txType"`
+	Fee    string `gorm:"type:varchar(128);not null;default:''" json:"fee"`
+}

@@ -15,7 +15,7 @@ func NewClient(url string) (service *http.Service, err error) {
 		http.WithAddress(url),
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	service = client.(*http.Service)
 	return

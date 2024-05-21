@@ -22,6 +22,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
 	url := os.Getenv("HOLESKY_BEACON_URL")
 	client, _ = NewClient(url)
 }
@@ -165,4 +166,14 @@ func TestGetVoluntaryExitInBlock(t *testing.T) {
 	for _, vv := range v {
 		t.Logf("block:%v,vv:%v", Block, vv.Message.ValidatorIndex)
 	}
+}
+
+func TestHeader(t *testing.T) {
+	header, err := client.BeaconBlockHeader(context.Background(), &api.BeaconBlockHeaderOpts{
+		Block: "finalized",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("header:%v", header)
 }
