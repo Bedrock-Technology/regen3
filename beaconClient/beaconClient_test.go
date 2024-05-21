@@ -9,13 +9,12 @@ import (
 	"testing"
 
 	"github.com/attestantio/go-eth2-client/api"
-	"github.com/attestantio/go-eth2-client/http"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/joho/godotenv"
 )
 
-var client *http.Service
+var client *Client
 
 func init() {
 	err := godotenv.Load("../.env")

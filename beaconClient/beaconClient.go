@@ -8,7 +8,11 @@ import (
 	"github.com/attestantio/go-eth2-client/http"
 )
 
-func NewClient(url string) (service *http.Service, err error) {
+type Client struct {
+	*http.Service
+}
+
+func NewClient(url string) (newClient *Client, err error) {
 	client, err := http.New(context.Background(),
 		// WithAddress supplies the address of the beacon node, as a URL.
 		http.WithLogLevel(zerolog.InfoLevel),
@@ -17,6 +21,9 @@ func NewClient(url string) (service *http.Service, err error) {
 	if err != nil {
 		return nil, err
 	}
-	service = client.(*http.Service)
+	service := client.(*http.Service)
+	newClient = &Client{
+		service,
+	}
 	return
 }
