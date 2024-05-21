@@ -169,8 +169,26 @@ func TestGetVoluntaryExitInBlock(t *testing.T) {
 
 func TestHeader(t *testing.T) {
 	header, err := client.BeaconBlockHeader(context.Background(), &api.BeaconBlockHeaderOpts{
-		Block: "finalized",
+		Block: "head",
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("header:%v", header)
+}
+
+func TestEmptyHeader(t *testing.T) {
+	header, err := client.BeaconBlockHeader(context.Background(), &api.BeaconBlockHeaderOpts{
+		Block: fmt.Sprintf("%d", 1662790),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("header:%v", header)
+}
+
+func TestNewClient(t *testing.T) {
+	header, err := client.GetLatestSlotNumber()
 	if err != nil {
 		t.Fatal(err)
 	}

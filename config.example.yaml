@@ -1,6 +1,7 @@
 network: ""
 ethClient: ""
 beaconClient: ""
+mysqlDsn: ""
 logLevel: ""
 slackUrl: ""
 checkVerifyWithdrawCredential:

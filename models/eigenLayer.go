@@ -59,7 +59,7 @@ type QueueWithdrawals struct {
 
 type Cursor struct {
 	gorm.Model
-	//last processed BeaconSlot
+	//slot start to process
 	Slot uint64 `gorm:"not null;default:0" json:"slot"`
 }
 

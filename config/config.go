@@ -27,6 +27,7 @@ type Config struct {
 	Network                        string    `yaml:"network"`
 	EthClient                      string    `yaml:"ethClient"`
 	BeaconClient                   string    `yaml:"beaconClient"`
+	MysqlDsn                       string    `yaml:"mysqlDsn"`
 	LogLevel                       string    `yaml:"logLevel"`
 	SlackUrl                       string    `yaml:"slackUrl"`
 	StakingContract                string    `yaml:"-"`
