@@ -1,12 +1,11 @@
+/*
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+
+*/
 package main
 
-import (
-	"fmt"
-
-	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
-)
+import "github.com/Bedrock-Technology/regen3/cmd"
 
 func main() {
-	a := EigenPod.EigenPod{}
-	fmt.Println("s", a)
+	cmd.Execute()
 }

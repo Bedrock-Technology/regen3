@@ -1,0 +1,8 @@
+network: ""
+ethClient: ""
+beaconClient: ""
+logLevel: ""
+slackUrl: ""
+checkVerifyWithdrawCredential:
+  intervalBlock: 0
+  firstRun: 0

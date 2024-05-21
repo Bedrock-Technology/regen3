@@ -8,3 +8,7 @@ nohup.out
 logs/
 .env
 data/
+configHolesky.yaml
+LICENSE
+regen3
+regen3.exe
