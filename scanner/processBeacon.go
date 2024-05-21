@@ -17,8 +17,14 @@ func (s *Scanner) processBeacon(beaconBlock *api.Response[*spec.VersionedSignedB
 	if err != nil {
 		return err
 	}
-	//process VoluntaryExit
-	//process WithdrawnOnChain
+	err = s.processVoluntaryExit(beaconBlock, orm)
+	if err != nil {
+		return err
+	}
+	err = s.processWithdrawnOnChain(beaconBlock, orm)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -72,8 +78,69 @@ func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSigned
 				}
 			}
 		}
-		logrus.Infof("find Deposit len(%d)", len(blsPubKey))
+		logrus.Infof("find Deposit len(%d), slot[%d]", len(blsPubKey), slot)
 		return orm.Create(&modelValidators).Error
+	}
+	return nil
+}
+
+func (s *Scanner) processVoluntaryExit(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
+	//holesky 1663671 slot 1511574
+	voluntaryExits, err := beaconBlock.Data.VoluntaryExits()
+	if err != nil {
+		return err
+	}
+	vExitValidators := make([]uint64, 0)
+	for _, voluntaryExit := range voluntaryExits {
+		vExitValidators = append(vExitValidators, uint64(voluntaryExit.Message.ValidatorIndex))
+	}
+	validators := make([]uint64, 0)
+	res := orm.Model(&models.Validator{}).Select("validator_index").
+		Where("validator_index in ?", vExitValidators).Find(&validators)
+	if res.Error != nil {
+		return res.Error
+	}
+	if len(validators) != 0 {
+		//Update
+		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
+			UpdateColumn("voluntary_exit", uint8(1))
+
+		if res.Error != nil {
+			return res.Error
+		}
+		slot, _ := beaconBlock.Data.Slot()
+		logrus.Infof("find VoluntaryExit len(%d), slot[%d]", len(validators), slot)
+	}
+	return nil
+}
+
+func (s *Scanner) processWithdrawnOnChain(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
+	withdrawals, err := beaconBlock.Data.Withdrawals()
+	if err != nil {
+		return err
+	}
+	vWithdraws := make([]uint64, 0)
+	for _, withdraw := range withdrawals {
+		if withdraw.Amount > 29000000000 {
+			vWithdraws = append(vWithdraws, uint64(withdraw.ValidatorIndex))
+		}
+	}
+	validators := make([]uint64, 0)
+	res := orm.Model(&models.Validator{}).Select("validator_index").
+		Where("validator_index in ?", vWithdraws).Find(&validators)
+	if res.Error != nil {
+		return res.Error
+	}
+	if len(validators) != 0 {
+		//Update
+		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
+			UpdateColumn("withdrawn_on_chain", uint8(1))
+
+		if res.Error != nil {
+			return res.Error
+		}
+		slot, _ := beaconBlock.Data.Slot()
+		logrus.Infof("find WithdrawnOnChain len(%d), slot[%d]", len(validators), slot)
 	}
 	return nil
 }
