@@ -5,6 +5,8 @@ import (
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/Bedrock-Technology/regen3/proofgen"
+	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
+	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -92,7 +94,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					return
 				}
 				tx, err := v.scanner.getVerifyWithdrawCredentialTx(statefilePath, headerfilePath,
-					common.HexToAddress(pod.Address), validators)
+					common.HexToAddress(pod.Address), pod.Owner, validators)
 				if err != nil {
 					logrus.Errorln("getVerifyWithdrawCredentialTx err:", err)
 					return
@@ -104,10 +106,25 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 }
 
 func (s *Scanner) getVerifyWithdrawCredentialTx(oracleStateFile, oracleHeaderFile string,
-	podAddress common.Address,
+	podAddress common.Address, podOwner string,
 	validators []uint64) (*types.Transaction, error) {
 
-	tx, err := proofgen.VerifyWithdrawalCredentialsGen2(s.Submitter, oracleStateFile, oracleHeaderFile, podAddress, validators)
+	chainClient, err := txsubmitter.NewChainClient(s.EthClient, "", podOwner, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	eigenPodProofs, err := eigenpodproofs.NewEigenPodProofs(s.Config.ChainId, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	submitter := txsubmitter.NewEigenPodProofTxSubmitter(
+		*chainClient,
+		*eigenPodProofs,
+	)
+
+	tx, err := proofgen.VerifyWithdrawalCredentialsGen2(submitter, oracleStateFile, oracleHeaderFile, podAddress, validators)
 	if err != nil {
 		return nil, err
 	}

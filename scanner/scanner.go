@@ -7,7 +7,6 @@ import (
 	"github.com/Bedrock-Technology/regen3/blockTimer"
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/Bedrock-Technology/regen3/models"
-	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
 	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/ethereum/go-ethereum/common"
@@ -68,11 +67,7 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 	if err != nil {
 		panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
 	}
-	//Init submitter
-	scanner.Submitter, err = InitSubmitter(scanner.EthClient, scanner.Config.ChainId)
-	if err != nil {
-		panic(fmt.Sprintf("Get all Pods err:%v", err))
-	}
+
 	return scanner
 }
 
@@ -181,22 +176,4 @@ LOOP:
 		}
 	}
 	return start, nil
-}
-
-func InitSubmitter(client *ethclient.Client, chainId uint64) (*txsubmitter.EigenPodProofTxSubmitter, error) {
-	chainClient, err := txsubmitter.NewChainClient(client, "", "", 0, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	eigenPodProofs, err := eigenpodproofs.NewEigenPodProofs(chainId, 60)
-	if err != nil {
-		return nil, err
-	}
-
-	submitter := txsubmitter.NewEigenPodProofTxSubmitter(
-		*chainClient,
-		*eigenPodProofs,
-	)
-	return submitter, nil
 }
