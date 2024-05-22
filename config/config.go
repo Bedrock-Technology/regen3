@@ -28,11 +28,13 @@ var HoleskyAddresses = Addresses{
 
 type Config struct {
 	Network                        string    `yaml:"network"`
+	ChainId                        uint64    `yaml:"-"`
 	EthClient                      string    `yaml:"ethClient"`
 	BeaconClient                   string    `yaml:"beaconClient"`
 	MysqlDsn                       string    `yaml:"mysqlDsn"`
 	LogLevel                       string    `yaml:"logLevel"`
 	SlackUrl                       string    `yaml:"slackUrl"`
+	DataPath                       string    `yaml:"dataPath"`
 	StakingContract                string    `yaml:"-"`
 	RestakingContract              string    `yaml:"-"`
 	EigenDelegationManagerContract string    `yaml:"-"`
@@ -59,11 +61,13 @@ func LoadConfig(path string) (config *Config) {
 		config.RestakingContract = HoleskyAddresses.restakingContract
 		config.EigenDelegationManagerContract = HoleskyAddresses.eigenDelegationManagerContract
 		config.EigenOracleContract = HoleskyAddresses.eigenOracleContract
+		config.ChainId = 17000
 	} else if config.Network == "mainnet" {
 		config.StakingContract = MainnetAddresses.stakingContract
 		config.RestakingContract = MainnetAddresses.restakingContract
 		config.EigenDelegationManagerContract = MainnetAddresses.eigenDelegationManagerContract
 		config.EigenOracleContract = MainnetAddresses.eigenOracleContract
+		config.ChainId = 1
 	} else {
 		panic("invalid network")
 	}
