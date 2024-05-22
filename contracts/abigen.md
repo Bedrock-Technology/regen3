@@ -12,3 +12,6 @@ abigen --abi ./contracts/EigenPod/EigenPod.json \
 
 abigen --abi ./contracts/EigenPodManager/EigenPodManager.json \
 --pkg EigenPodManager --out ./contracts/EigenPodManager/EigenPodManager.go
+
+abigen --abi ./contracts/EigenLayerBeaconOracle/EigenLayerBeaconOracle.json \
+--pkg EigenLayerBeaconOracle --out ./contracts/EigenLayerBeaconOracle/EigenLayerBeaconOracle.go

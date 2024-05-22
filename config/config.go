@@ -9,18 +9,21 @@ type Addresses struct {
 	stakingContract                string
 	restakingContract              string
 	eigenDelegationManagerContract string
+	eigenOracleContract            string
 }
 
 var MainnetAddresses = Addresses{
 	stakingContract:                "",
 	restakingContract:              "",
 	eigenDelegationManagerContract: "",
+	eigenOracleContract:            "",
 }
 
 var HoleskyAddresses = Addresses{
 	stakingContract:                "0x0f59BfDEdbB4ECc965be28484BfD968552fD5C67",
 	restakingContract:              "0xf59fc684Ad69A7F8B1C563D8b9fC4003F841F4Ef",
 	eigenDelegationManagerContract: "0xA44151489861Fe9e3055d95adC98FbD462B948e7",
+	eigenOracleContract:            "0x4C116BB629bff7A8373c2378bBd919f8349B8f25",
 }
 
 type Config struct {
@@ -33,6 +36,7 @@ type Config struct {
 	StakingContract                string    `yaml:"-"`
 	RestakingContract              string    `yaml:"-"`
 	EigenDelegationManagerContract string    `yaml:"-"`
+	EigenOracleContract            string    `yaml:"-"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 }
 
@@ -54,10 +58,12 @@ func LoadConfig(path string) (config *Config) {
 		config.StakingContract = HoleskyAddresses.stakingContract
 		config.RestakingContract = HoleskyAddresses.restakingContract
 		config.EigenDelegationManagerContract = HoleskyAddresses.eigenDelegationManagerContract
+		config.EigenOracleContract = HoleskyAddresses.eigenOracleContract
 	} else if config.Network == "mainnet" {
 		config.StakingContract = MainnetAddresses.stakingContract
 		config.RestakingContract = MainnetAddresses.restakingContract
 		config.EigenDelegationManagerContract = MainnetAddresses.eigenDelegationManagerContract
+		config.EigenOracleContract = MainnetAddresses.eigenOracleContract
 	} else {
 		panic("invalid network")
 	}

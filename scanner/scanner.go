@@ -8,6 +8,7 @@ import (
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/attestantio/go-eth2-client/api"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
@@ -16,13 +17,14 @@ import (
 )
 
 type Scanner struct {
-	Config       *config.Config
-	DBEngine     *gorm.DB
-	EthClient    *ethclient.Client
-	BeaconClient *beaconClient.Client
-	BlockTimer   *blockTimer.BlockTimer
-	Pods         map[string]models.Pod
-	Quit         chan struct{}
+	Config        *config.Config
+	DBEngine      *gorm.DB
+	EthClient     *ethclient.Client
+	BeaconClient  *beaconClient.Client
+	BlockTimer    *blockTimer.BlockTimer
+	Pods          map[string]models.Pod
+	FilterAddress []common.Address
+	Quit          chan struct{}
 }
 
 func New(config *config.Config, quit chan struct{}) *Scanner {
@@ -53,9 +55,27 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 	}
 	scanner.Pods = pods
 	logrus.Info("get pods length:", len(pods))
+	//Init FilterAddress
+	scanner.FilterAddress = scanner.fillFilterAddress()
+	logrus.Info("get filter address: ", scanner.FilterAddress)
 	//Init blockTimer
 	scanner.BlockTimer = blockTimer.NewBlockTimer()
 	return scanner
+}
+
+func (s *Scanner) fillFilterAddress() []common.Address {
+	address := make([]common.Address, 0)
+	for _, pod := range s.Pods {
+		address = append(address, common.HexToAddress(pod.Address))
+	}
+	address = append(address,
+		common.HexToAddress(s.Config.EigenDelegationManagerContract),
+		common.HexToAddress(s.Config.EigenOracleContract),
+		common.HexToAddress(s.Config.RestakingContract),
+		common.HexToAddress(s.Config.StakingContract),
+	)
+
+	return address
 }
 
 func (s *Scanner) Scan() {
@@ -81,7 +101,7 @@ func (s *Scanner) scan() {
 		logrus.Errorln("Get Beacon Latest Slot Number err:", err)
 		return
 	}
-	cursor, err := models.GetCursor(s.DBEngine)
+	cursor, err := models.GetCursor(s.DBEngine, models.Scanner)
 	if err != nil {
 		logrus.Errorln("GetCursor:", err)
 		return
@@ -121,15 +141,20 @@ LOOP:
 				}
 			}
 		}
-		eblockNumber, err := slotBody.Data.ExecutionBlockNumber()
+		executionBlockNumber, err := slotBody.Data.ExecutionBlockNumber()
 		if err != nil {
 			return start, err
 		}
-		logrus.Infof("slotBody[%d]: %v", start, eblockNumber)
+		logrus.Infof("slotBody[%d]: %v", start, executionBlockNumber)
 		err = s.processBeacon(slotBody, s.DBEngine)
 		if err != nil {
 			return start, err
 		}
+		err = s.processBlock(executionBlockNumber, s.DBEngine)
+		if err != nil {
+			return start, err
+		}
+
 		start++
 		select {
 		case _, b := <-s.Quit:

@@ -65,6 +65,7 @@ type Cursor struct {
 	gorm.Model
 	//slot start to process
 	Slot uint64 `gorm:"not null;default:0" json:"slot"`
+	Meme string `gorm:"not null;default:''" json:"meme"`
 }
 
 // Transaction record transaction fee that we spent
