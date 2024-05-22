@@ -60,6 +60,11 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 	logrus.Info("get filter address: ", scanner.FilterAddress)
 	//Init blockTimer
 	scanner.BlockTimer = blockTimer.NewBlockTimer()
+	//Init timer
+	err = scanner.InitVerifyWithdrawCredential()
+	if err != nil {
+		panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
+	}
 	return scanner
 }
 
@@ -154,6 +159,8 @@ LOOP:
 		if err != nil {
 			return start, err
 		}
+
+		s.BlockTimer.InvokeTimer(executionBlockNumber)
 
 		start++
 		select {
