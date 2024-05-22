@@ -61,7 +61,8 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 			//get pod's validators that need to verify
 			validators := make([]uint64, 0, batchSize)
 			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").Where("pod_address = ?", pod.Address).
-				Where("credential_verified = ?", 0).
+				Where("credential_verified = ?", 0).Where("withdrawn_on_chain = ?", 0).
+				Where("withdrawn_on_pod = ?", 0).
 				Find(&validators).Limit(batchSize)
 			if rest.Error != nil {
 				logrus.Infof("Get pod's[%s] validators that need to verify error: %v", pod.Address, rest.Error)
@@ -80,16 +81,20 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				headerfileName := fmt.Sprintf(beaconHeaderFormat, v.scanner.Config.Network, cursor.Slot)
 				headerfilePath := fmt.Sprintf("%s/%s", v.scanner.Config.DataPath, headerfileName)
 
-				err = v.scanner.getBeaconStates(statefilePath, 0)
+				err = v.scanner.getBeaconStates(statefilePath, cursor.Slot)
 				if err != nil {
+					logrus.Errorln("getBeaconStates err:", err)
 					return
 				}
-				err = v.scanner.getBeaconHeaders(headerfilePath, 0)
+				err = v.scanner.getBeaconHeaders(headerfilePath, cursor.Slot)
 				if err != nil {
+					logrus.Errorln("getBeaconHeaders err:", err)
 					return
 				}
-				tx, err := v.scanner.getVerifyWithdrawCredentialTx(statefilePath, headerfilePath, common.HexToAddress(pod.Address), validators)
+				tx, err := v.scanner.getVerifyWithdrawCredentialTx(statefilePath, headerfilePath,
+					common.HexToAddress(pod.Address), validators)
 				if err != nil {
+					logrus.Errorln("getVerifyWithdrawCredentialTx err:", err)
 					return
 				}
 				logrus.Infof("VerifyWithdrawCredential tx: %v", tx.Data())
@@ -117,12 +122,12 @@ const beaconStateFormat = "%s_state_%d.json"
 const beaconHeaderFormat = "%s_header_%d.json"
 
 func (s *Scanner) getBeaconStates(filePath string, slot uint64) error {
-	url := fmt.Sprintf("%s/eth/v2/debug/beacon/states/%v", s.Config.BeaconClient, slot)
+	url := fmt.Sprintf("%s/eth/v2/debug/beacon/states/%d", s.Config.BeaconClient, slot)
 	return downloadFile(filePath, url)
 }
 
 func (s *Scanner) getBeaconHeaders(filePath string, slot uint64) error {
-	url := fmt.Sprintf("%s/eth/v1/beacon/headers/%v", s.Config.BeaconClient, slot)
+	url := fmt.Sprintf("%s/eth/v1/beacon/headers/%d", s.Config.BeaconClient, slot)
 	return downloadFile(filePath, url)
 }
 
@@ -131,25 +136,22 @@ func downloadFile(filePath, url string) error {
 	if exist {
 		return nil
 	} else {
-		logrus.Infoln("downloading ", filePath)
+		logrus.Infoln("downloading ", url)
 		// Create the file
 		out, err := os.Create(filePath)
 		if err != nil {
 			return err
 		}
 		defer out.Close()
-
-		stateUrl := url
-		stateUrlResponse, err := http.Get(stateUrl)
+		resp, err := http.Get(url)
 		if err != nil {
 			return err
 		}
-		if stateUrlResponse.StatusCode != http.StatusOK {
-			return fmt.Errorf("download error:%v", stateUrlResponse.StatusCode)
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("download error:%v", resp.StatusCode)
 		}
-		defer stateUrlResponse.Body.Close()
-
-		_, err = io.Copy(out, stateUrlResponse.Body)
+		defer resp.Body.Close()
+		_, err = io.Copy(out, resp.Body)
 		if err != nil {
 			return err
 		}

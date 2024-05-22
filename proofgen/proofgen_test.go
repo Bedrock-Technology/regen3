@@ -1,7 +1,6 @@
 package proofgen
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"math/big"
@@ -137,10 +136,16 @@ func TestVerifyWithdrawalCredentialsGen(t *testing.T) {
 //
 // npx hardhat node
 func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
-	oracleStateFile := "../data/holesky_slot_1603985.json"
-	oracleHeaderFile := "../data/holesky_block_header_1603985.json"
+	//oracleStateFile := "../data/holesky_slot_1603985.json"
+	//oracleHeaderFile := "../data/holesky_block_header_1603985.json"
 
-	chainClient, err := txsubmitter.NewChainClient(provider, "", "", 0, 0)
+	//oracleStateFile := "../data/holesky_slot_1705206.json"
+	//oracleHeaderFile := "../data/holesky_block_header_1705206.json"
+
+	oracleStateFile := "../data/holesky_state_1705206.json"
+	oracleHeaderFile := "../data/holesky_header_1705206.json"
+
+	chainClient, err := txsubmitter.NewChainClient(provider, "", PodOwner, 0, 0)
 	if err != nil {
 		t.Logf("%v", err)
 		return
@@ -163,45 +168,47 @@ func TestVerifyWithdrawalCredentialsGen2(t *testing.T) {
 		return
 	}
 	t.Logf("fake:%v", tx.Hash())
-	//send to chain
-	opts := getTransOpts("HOLESKY_ACCOUNT_0")
-	//tipCap, _ := big.NewInt(0).SetString("1000000000", 0)
-	//opts.GasTipCap = tipCap
-	gasPrice, _ := big.NewInt(0).SetString("20000000000", 0)
-	opts.GasPrice = gasPrice
-	opts.GasLimit = 1000000
-	caller := bind.NewBoundContract(*tx.To(), abi.ABI{}, provider, provider, provider)
-	realTx, err := caller.RawTransact(opts, tx.Data())
-	if err != nil {
-		t.Logf("RawTransact err:%v", err)
-		return
-	}
-	t.Logf("raw tx:%v", realTx.Hash())
-	txReceipt, err := bind.WaitMined(context.Background(), provider, realTx)
-	if err != nil {
-		t.Logf("txReceipt err:%v", err)
-		return
-	}
-	gasFee := big.NewInt(0).Mul(big.NewInt(int64(txReceipt.GasUsed)), txReceipt.EffectiveGasPrice)
-	t.Logf("gasFee:%v", gasFee)
-	egAbi, err := EigenPod.EigenPodMetaData.GetAbi()
-	if err != nil {
-		t.Error("GetAbi err:", err)
-		return
-	}
-	for _, log := range txReceipt.Logs {
-		if log.Address == common.HexToAddress(PodAddress) {
-			e, _ := egAbi.EventByID(log.Topics[0])
-			if e.Name == "ValidatorRestaked" {
-				r, err := contract.ParseValidatorRestaked(*log)
-				if err != nil {
-					t.Logf("ParseValidatorRestaked err:%v", err)
-					return
+	/*
+		//send to chain
+		opts := getTransOpts("HOLESKY_ACCOUNT_0")
+		//tipCap, _ := big.NewInt(0).SetString("1000000000", 0)
+		//opts.GasTipCap = tipCap
+		gasPrice, _ := big.NewInt(0).SetString("20000000000", 0)
+		opts.GasPrice = gasPrice
+		opts.GasLimit = 1000000
+		caller := bind.NewBoundContract(*tx.To(), abi.ABI{}, provider, provider, provider)
+		realTx, err := caller.RawTransact(opts, tx.Data())
+		if err != nil {
+			t.Logf("RawTransact err:%v", err)
+			return
+		}
+		t.Logf("raw tx:%v", realTx.Hash())
+		txReceipt, err := bind.WaitMined(context.Background(), provider, realTx)
+		if err != nil {
+			t.Logf("txReceipt err:%v", err)
+			return
+		}
+		gasFee := big.NewInt(0).Mul(big.NewInt(int64(txReceipt.GasUsed)), txReceipt.EffectiveGasPrice)
+		t.Logf("gasFee:%v", gasFee)
+		egAbi, err := EigenPod.EigenPodMetaData.GetAbi()
+		if err != nil {
+			t.Error("GetAbi err:", err)
+			return
+		}
+		for _, log := range txReceipt.Logs {
+			if log.Address == common.HexToAddress(PodAddress) {
+				e, _ := egAbi.EventByID(log.Topics[0])
+				if e.Name == "ValidatorRestaked" {
+					r, err := contract.ParseValidatorRestaked(*log)
+					if err != nil {
+						t.Logf("ParseValidatorRestaked err:%v", err)
+						return
+					}
+					t.Logf("r:%v", r.ValidatorIndex)
 				}
-				t.Logf("r:%v", r.ValidatorIndex)
 			}
 		}
-	}
+	*/
 }
 
 func getTransOpts(account string) *bind.TransactOpts {
