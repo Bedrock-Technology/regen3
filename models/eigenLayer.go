@@ -11,13 +11,17 @@ import (
 // Number of CredentialVerified == 1 and WithdrawnOnPod == 0 should be equal to pod.active
 type Validator struct {
 	gorm.Model
-	PubKey             string `gorm:"index:idx_pubKey,unique;type:varchar(128);not null;default:''" json:"pubKey"`
-	ValidatorIndex     uint64 `gorm:"index:idx_validator,unique;not null;default:0" json:"validatorIndex"`
-	PodAddress         string `gorm:"index:idx_validator,unique;type:varchar(128);not null;default:''" json:"podAddress"`
-	CredentialVerified uint8  `gorm:"not null;default:0" json:"credentialVerified"`
-	WithdrawnOnChain   uint8  `gorm:"not null;default:0" json:"withdrawnOnChain"`
-	WithdrawnOnPod     uint8  `gorm:"not null;default:0" json:"withdrawnOnPod"`
-	VoluntaryExit      uint8  `gorm:"not null;default:0" json:"voluntaryExit"`
+	PubKey         string `gorm:"index:idx_pubKey,unique;type:varchar(128);not null;default:''" json:"pubKey"`
+	ValidatorIndex uint64 `gorm:"index:idx_validator,unique;not null;default:0" json:"validatorIndex"`
+	PodAddress     string `gorm:"index:idx_validator,unique;type:varchar(128);not null;default:''" json:"podAddress"`
+	// Eth Block Number
+	CredentialVerified uint64 `gorm:"not null;default:0" json:"credentialVerified"`
+	// Beacon Slot
+	WithdrawnOnChain uint64 `gorm:"not null;default:0" json:"withdrawnOnChain"`
+	// Eth Block Number
+	WithdrawnOnPod uint64 `gorm:"not null;default:0" json:"withdrawnOnPod"`
+	// Beacon Slot
+	VoluntaryExit uint64 `gorm:"not null;default:0" json:"voluntaryExit"`
 }
 
 // Pod for some pods will not enable checkPoint system, will not do verifyWithdrawalCredentials.

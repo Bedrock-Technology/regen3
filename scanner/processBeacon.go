@@ -85,7 +85,7 @@ func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSigned
 }
 
 func (s *Scanner) processVoluntaryExit(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
-	//holesky 1663671 slot 1511574
+	//holesky 1663671 slot 1511574; 1663672 slot 1516502
 	voluntaryExits, err := beaconBlock.Data.VoluntaryExits()
 	if err != nil {
 		return err
@@ -102,13 +102,13 @@ func (s *Scanner) processVoluntaryExit(beaconBlock *api.Response[*spec.Versioned
 	}
 	if len(validators) != 0 {
 		//Update
+		slot, _ := beaconBlock.Data.Slot()
 		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
-			UpdateColumn("voluntary_exit", uint8(1))
+			UpdateColumn("voluntary_exit", uint64(slot))
 
 		if res.Error != nil {
 			return res.Error
 		}
-		slot, _ := beaconBlock.Data.Slot()
 		logrus.Infof("find VoluntaryExit len(%d), slot[%d]", len(validators), slot)
 	}
 	return nil
@@ -133,13 +133,13 @@ func (s *Scanner) processWithdrawnOnChain(beaconBlock *api.Response[*spec.Versio
 	}
 	if len(validators) != 0 {
 		//Update
+		slot, _ := beaconBlock.Data.Slot()
 		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
-			UpdateColumn("withdrawn_on_chain", uint8(1))
+			UpdateColumn("withdrawn_on_chain", uint64(slot))
 
 		if res.Error != nil {
 			return res.Error
 		}
-		slot, _ := beaconBlock.Data.Slot()
 		logrus.Infof("find WithdrawnOnChain len(%d), slot[%d]", len(validators), slot)
 	}
 	return nil
