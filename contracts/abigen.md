@@ -15,3 +15,9 @@ abigen --abi ./contracts/EigenPodManager/EigenPodManager.json \
 
 abigen --abi ./contracts/EigenLayerBeaconOracle/EigenLayerBeaconOracle.json \
 --pkg EigenLayerBeaconOracle --out ./contracts/EigenLayerBeaconOracle/EigenLayerBeaconOracle.go
+
+abigen --abi ./contracts/Restaking/Restaking.json \
+--pkg Restaking --out ./contracts/Restaking/Restaking.go
+
+abigen --abi ./contracts/Staking/Staking.json \
+--pkg Staking --out ./contracts/Staking/Staking.go

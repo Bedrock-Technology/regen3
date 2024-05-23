@@ -29,6 +29,7 @@ type Pod struct {
 	gorm.Model
 	Address      string `gorm:"index:idx_chain,unique;type:varchar(128);not null;default:''" json:"podAddress"`
 	Owner        string `gorm:"index:idx_chain,unique;type:varchar(128);not null;default:''" json:"owner"`
+	PodIndex     uint64 `gorm:"not null;default:0" json:"podIndex"`
 	DelegateTo   string `gorm:"type:varchar(128);not null;default:''" json:"delegateTo"`
 	IsCredential uint8  `gorm:"not null;default:0" json:"isCredential"`
 }
