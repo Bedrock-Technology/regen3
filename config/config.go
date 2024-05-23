@@ -40,9 +40,11 @@ type Config struct {
 	EigenDelegationManagerContract string    `yaml:"-"`
 	EigenOracleContract            string    `yaml:"-"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
+	CheckVerifyWithdrawProof       TimerSpec `yaml:"checkVerifyWithdrawProof"`
 }
 
 type TimerSpec struct {
+	Enable        bool   `yaml:"enable"`
 	IntervalBlock uint64 `yaml:"intervalBlock"`
 	FirstRun      uint64 `yaml:"firstRun"`
 }

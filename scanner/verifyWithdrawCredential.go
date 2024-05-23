@@ -71,7 +71,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				return
 			}
 			if len(validators) != 0 {
-				logrus.Infof("need send[%v] to chain", validators)
+				logrus.Infof("need send[%v] to credential", validators)
 				cursor, err := models.GetCursor(v.scanner.DBEngine, models.EigenOracle)
 				if err != nil {
 					logrus.Errorln("GetCursor:", err)
@@ -145,6 +145,11 @@ func (s *Scanner) getBeaconStates(filePath string, slot uint64) error {
 
 func (s *Scanner) getBeaconHeaders(filePath string, slot uint64) error {
 	url := fmt.Sprintf("%s/eth/v1/beacon/headers/%d", s.Config.BeaconClient, slot)
+	return downloadFile(filePath, url)
+}
+
+func (s *Scanner) getBeaconBlocks(filePath string, slot uint64) error {
+	url := fmt.Sprintf("%s/eth/v2/beacon/blocks/%d", s.Config.BeaconClient, slot)
 	return downloadFile(filePath, url)
 }
 

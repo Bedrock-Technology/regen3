@@ -6,5 +6,10 @@ logLevel: ""
 slackUrl: ""
 dataPath: ""
 checkVerifyWithdrawCredential:
+  enable: false
+  intervalBlock: 0
+  firstRun: 0
+checkVerifyWithdrawProof:
+  enable: false
   intervalBlock: 0
   firstRun: 0

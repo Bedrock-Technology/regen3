@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/attestantio/go-eth2-client/spec"
 	"strconv"
 	"strings"
 
@@ -88,6 +89,73 @@ func VerifyWithdrawalCredentialsGen2(submitter *txsubmitter.EigenPodProofTxSubmi
 
 	return submitter.GenerateVerifyWithdrawalCredentialsTx(eigenPod, &versionedOracleState,
 		&oracleBeaconBlockHeader, validatorIndices)
+}
+
+type WithdrawalProof struct {
+	EigenPodAddress common.Address
+
+	BeaconStateFiles struct {
+		OracleStateFile       string
+		OracleBlockHeaderFile string
+	}
+
+	WithdrawalDetails struct {
+		ValidatorIndices            []uint64
+		WithdrawalBlockHeaderFiles  []string
+		WithdrawalBlockBodyFiles    []string
+		HistoricalSummaryStateFiles []string
+	}
+}
+
+func VerifyAndProcessWithdrawalsGen(submitter *txsubmitter.EigenPodProofTxSubmitter, proof WithdrawalProof) (*types.Transaction, error) {
+	oracleBeaconBlockHeader, err := commonutils.ExtractBlockHeader(proof.BeaconStateFiles.OracleBlockHeaderFile)
+	if err != nil {
+		return nil, err
+	}
+
+	oracleStateJSON, err := commonutils.ParseDenebStateJSONFile(proof.BeaconStateFiles.OracleStateFile)
+	var oracleState deneb.BeaconState
+	if err != nil {
+		return nil, err
+	}
+	err = commonutils.ParseDenebBeaconStateFromJSON(*oracleStateJSON, &oracleState)
+	if err != nil {
+		return nil, err
+	}
+
+	versionedOracleState, err := beacon.CreateVersionedState(&oracleState)
+
+	historicalSummaryStateBlockRoots := make([][]phase0.Root, 0)
+	for _, file := range proof.WithdrawalDetails.HistoricalSummaryStateFiles {
+		historicalSummaryStateJSON, err := commonutils.ParseDenebStateJSONFile(file)
+		var historicalSummaryState deneb.BeaconState
+		if err != nil {
+			return nil, err
+		}
+		err = commonutils.ParseDenebBeaconStateFromJSON(*historicalSummaryStateJSON, &historicalSummaryState)
+		if err != nil {
+			return nil, err
+		}
+
+		historicalSummaryStateBlockRoots = append(historicalSummaryStateBlockRoots, historicalSummaryState.BlockRoots)
+	}
+
+	withdrawalBlocks := make([]*spec.VersionedSignedBeaconBlock, 0)
+	for _, file := range proof.WithdrawalDetails.WithdrawalBlockBodyFiles {
+		block, err := commonutils.ExtractBlock(file)
+		if err != nil {
+			return nil, err
+		}
+		versionedSignedBlock, err := beacon.CreateVersionedSignedBlock(block)
+		withdrawalBlocks = append(withdrawalBlocks, &versionedSignedBlock)
+	}
+
+	withdrawalTx, err := submitter.GenerateVerifyAndProcessWithdrawalsTx(proof.EigenPodAddress, &versionedOracleState,
+		&oracleBeaconBlockHeader, historicalSummaryStateBlockRoots, withdrawalBlocks, proof.WithdrawalDetails.ValidatorIndices)
+	if err != nil {
+		return nil, err
+	}
+	return withdrawalTx, nil
 }
 
 func extractBlockHeader(blockHeader []byte) (phase0.BeaconBlockHeader, error) {

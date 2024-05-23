@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"context"
+	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenLayerBeaconOracle"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/ethereum/go-ethereum"
@@ -10,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"math/big"
+	"os"
 )
 
 func (s *Scanner) processBlock(blockNumber uint64, orm *gorm.DB) error {
@@ -66,12 +68,30 @@ func (s *Scanner) processEigenOracle(txHash common.Hash, log types.Log, orm *gor
 			if err != nil {
 				return err
 			}
-			rest := orm.Model(&models.Cursor{}).Where("meme = ?", models.EigenOracle).
-				UpdateColumn("slot", beaconOracleUpdate.Slot.Uint64())
+			cursor, err := models.GetCursor(orm, models.EigenOracle)
+			if err != nil {
+				return err
+			}
+			lastSlot := cursor.Slot
+			cursor.Slot = beaconOracleUpdate.Slot.Uint64()
+			rest := orm.Save(&cursor)
 			if rest.Error != nil {
 				return rest.Error
 			}
-			logrus.Info("Update EigenBeaconOracle slot:", beaconOracleUpdate.Slot)
+			logrus.Infof("Update EigenBeaconOracle slot before[%d], now[%d]:", lastSlot, cursor.Slot)
+			//remove statefile, headerfile
+			statefileName := fmt.Sprintf(beaconStateFormat, s.Config.Network, lastSlot)
+			statefilePath := fmt.Sprintf("%s/%s", s.Config.DataPath, statefileName)
+			headerfileName := fmt.Sprintf(beaconHeaderFormat, s.Config.Network, lastSlot)
+			headerfilePath := fmt.Sprintf("%s/%s", s.Config.DataPath, headerfileName)
+			err = os.Remove(statefilePath)
+			if err != nil {
+				logrus.Errorf("remove state file[%s] failed:%v", statefilePath, err)
+			}
+			err = os.Remove(headerfilePath)
+			if err != nil {
+				logrus.Errorf("remove header file[%s] failed:%v", statefilePath, err)
+			}
 		}
 	}
 	return nil

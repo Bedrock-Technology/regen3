@@ -63,9 +63,17 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 	//Init blockTimer
 	scanner.BlockTimer = blockTimer.NewBlockTimer()
 	//Init timer
-	err = scanner.InitVerifyWithdrawCredential()
-	if err != nil {
-		panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
+	if scanner.Config.CheckVerifyWithdrawCredential.Enable {
+		err = scanner.InitVerifyWithdrawCredential()
+		if err != nil {
+			panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
+		}
+	}
+	if scanner.Config.CheckVerifyWithdrawProof.Enable {
+		err = scanner.InitVerifyWithdrawProof()
+		if err != nil {
+			panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
+		}
 	}
 
 	return scanner
