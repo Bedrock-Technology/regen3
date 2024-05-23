@@ -41,6 +41,17 @@ type Config struct {
 	EigenOracleContract            string    `yaml:"-"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 	CheckVerifyWithdrawProof       TimerSpec `yaml:"checkVerifyWithdrawProof"`
+	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
+}
+
+type KeyAgent struct {
+	KeyAgentRpc        string `yaml:"keyAgentRpc"`
+	Service            uint64 `yaml:"service"`
+	Index              uint64 `yaml:"index"`
+	Address            string `yaml:"address"`
+	SignPri            string `yaml:"signPri"`
+	KeyAgentSignPub    string `yaml:"keyAgentSignPub"`
+	KeyAgentEncryptPub string `yaml:"keyAgentEncryptPub"`
 }
 
 type TimerSpec struct {

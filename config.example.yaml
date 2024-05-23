@@ -13,3 +13,11 @@ checkVerifyWithdrawProof:
   enable: false
   intervalBlock: 0
   firstRun: 0
+keyAgent:
+  keyAgentRpc: ""
+  service: 0
+  index: 0
+  address: ""
+  signPri: ""
+  keyAgentSignPub: ""
+  keyAgentEncryptPub: ""
