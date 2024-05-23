@@ -1,7 +1,11 @@
 package EigenPod
 
 import (
+	"context"
 	"encoding/hex"
+	"encoding/json"
+	"github.com/ethereum/go-ethereum"
+	"math/big"
 	"os"
 	"strconv"
 	"testing"
@@ -25,6 +29,7 @@ var (
 var (
 	ContractAddress = ""
 	PodOwner        = ""
+	Pod             = ""
 )
 
 func init() {
@@ -37,6 +42,7 @@ func init() {
 	ChainId, _ = strconv.ParseInt(os.Getenv("HOLESKY_CHAIN_ID"), 0, 64)
 	ContractAddress = os.Getenv("HOLESKY_POD")
 	PodOwner = os.Getenv("HOLESKY_POD_WONER")
+	Pod = os.Getenv("HOLESKY_POD")
 
 	client, err := ethclient.Dial(RpcHost)
 	if err != nil {
@@ -82,4 +88,18 @@ func TestEigenPodCaller_ValidatorPubkeyToInfo(t *testing.T) {
 		t.Logf("ValidatorPubkeyToInfo status: %v", "Active")
 	}
 	t.Logf("ValidatorPubkeyToInfo Status: %v", ValidatorStatus(validatorInfo.Status))
+}
+
+func TestFilter(t *testing.T) {
+	logs, err := provider.FilterLogs(context.Background(), ethereum.FilterQuery{
+		FromBlock: big.NewInt(int64(1362421)),
+		ToBlock:   big.NewInt(int64(1362421)),
+		Addresses: []common.Address{common.HexToAddress(Pod)},
+	})
+	if err != nil {
+		t.Logf("err:%v", err)
+		return
+	}
+	out, _ := json.Marshal(&logs)
+	t.Logf("logs:%v", string(out))
 }
