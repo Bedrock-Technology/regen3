@@ -126,7 +126,8 @@ func TestGetValidatorStateSlot(t *testing.T) {
 		t.Fatal("err:", err)
 	}
 	v, err := client.Validators(context.TODO(), &api.ValidatorsOpts{
-		State:   "1592408",
+		//State:   "1592408",
+		State:   "head",
 		PubKeys: []phase0.BLSPubKey{pubKeyBls},
 	})
 	if err != nil {
@@ -185,6 +186,23 @@ func TestEmptyHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("header:%v", header)
+}
+
+func TestNotDepositPubKey(t *testing.T) {
+	pubKeyS := `"0x8cc013a19a332b806908437217bf8ae5eb6898dd72125c88d9c3faf3c3c2ffb84b6418395dc59c0ec2012bc454711dd1"`
+	pubKeyBls := phase0.BLSPubKey{}
+	_ = pubKeyBls.UnmarshalJSON([]byte(pubKeyS))
+	validatorOnbeacon, err := client.Validators(context.Background(), &api.ValidatorsOpts{
+		State:   "head",
+		PubKeys: []phase0.BLSPubKey{pubKeyBls},
+	})
+	if err != nil {
+		t.Logf("err:%v", err)
+		return
+	}
+	t.Logf("validatorOnbeacon:%v", validatorOnbeacon)
+	t.Logf("validatorOnbeacon:%v", len(validatorOnbeacon.Data))
+	t.Logf("validatorOnbeacon:%v", validatorOnbeacon.Data[0].Index)
 }
 
 func TestNewClient(t *testing.T) {

@@ -1,20 +1,28 @@
 package scanner
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/blockTimer"
 	"github.com/Bedrock-Technology/regen3/config"
+	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
+	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
+	"github.com/Bedrock-Technology/regen3/contracts/Staking"
 	"github.com/Bedrock-Technology/regen3/keyAgentRpc"
 	"github.com/Bedrock-Technology/regen3/models"
 	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
 	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"math/big"
+	"strconv"
 	"time"
 )
 
@@ -184,4 +192,128 @@ LOOP:
 		}
 	}
 	return start, nil
+}
+
+func (s *Scanner) Setup(slot string) {
+	contract, err := Restaking.NewRestaking(common.HexToAddress(s.Config.RestakingContract), s.EthClient)
+	if err != nil {
+		logrus.Errorln("NewRestaking err", err)
+		return
+	}
+	podsNum, err := contract.GetTotalPods(&bind.CallOpts{})
+	if err != nil {
+		logrus.Errorln("GetTotalPods ", err)
+	}
+	logrus.Infof("podsNum [%v]", podsNum.Uint64())
+	pods := make([]models.Pod, 0)
+	for i := uint64(0); i < podsNum.Uint64(); i++ {
+		pod := models.Pod{}
+		pod.PodIndex = i
+		podInfo, err := contract.GetPod(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			logrus.Errorln("podInfo err:", podInfo)
+			return
+		}
+		pod.Address = podInfo.String()
+		podOwner, err := contract.PodOwners(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			logrus.Errorln("PodOwners err:", podInfo)
+			return
+		}
+		pod.Owner = podInfo.String()
+		//if pod active
+		podContract, err := EigenPod.NewEigenPod(podInfo, s.EthClient)
+		if err != nil {
+			logrus.Errorln("NewEigenPod err:", podInfo)
+			return
+		}
+		restaked, err := podContract.HasRestaked(&bind.CallOpts{})
+		if err != nil {
+			logrus.Errorln("HasRestaked err:", podInfo)
+			return
+		}
+		if restaked {
+			pod.IsCredential = 1
+		}
+		logrus.Infof("pod %d, podAddress: %s, podOwner: %s, hasRestaked: %v", i, podInfo.String(), podOwner.String(),
+			restaked)
+		pods = append(pods, pod)
+	}
+	//validatorStatus
+	podsMap := make(map[uint64]models.Pod)
+	for _, v := range pods {
+		podsMap[v.PodIndex] = v
+	}
+	stakeContract, err := Staking.NewStaking(common.HexToAddress(s.Config.StakingContract), s.EthClient)
+	if err != nil {
+		logrus.Errorln("NewStaking err:", err)
+		return
+	}
+	nextId, err := stakeContract.GetNextValidatorId(&bind.CallOpts{})
+	if err != nil {
+		logrus.Errorln("GetNextValidatorId err:")
+		return
+	}
+	logrus.Infof("nextId:%v", nextId.Uint64())
+	validators := make([]models.Validator, 0)
+	for i := uint64(0); i < nextId.Uint64(); i++ {
+		info, err := stakeContract.ValidatorRegistry(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			logrus.Errorln("ValidatorRegistry err:")
+			return
+		}
+		logrus.Infof("pubkey:%v, podAddress: %v", hex.EncodeToString(info.Pubkey), podsMap[uint64(info.Eigenpod)].Address)
+		if info.Restaking {
+			validator := models.Validator{
+				PubKey:             fmt.Sprintf("0x%s", hex.EncodeToString(info.Pubkey)),
+				ValidatorIndex:     0,
+				PodAddress:         podsMap[uint64(info.Eigenpod)].Address,
+				CredentialVerified: 0,
+				WithdrawnOnChain:   0,
+				WithdrawnOnPod:     0,
+				VoluntaryExit:      0,
+			}
+			//get if validatorIndexed
+			pubKeyS := fmt.Sprintf(`"%s"`, validator.PubKey)
+			pubKeyBls := phase0.BLSPubKey{}
+			_ = pubKeyBls.UnmarshalJSON([]byte(pubKeyS))
+			validatorOnbeacon, err := s.BeaconClient.Validators(beaconClient.CTX, &api.ValidatorsOpts{
+				State:   slot,
+				PubKeys: []phase0.BLSPubKey{pubKeyBls},
+			})
+			if err != nil {
+				logrus.Errorf("get %s error:", validator.PubKey, err)
+				return
+			}
+			if len(validatorOnbeacon.Data) != 0 { //deposited
+				for _, v := range validatorOnbeacon.Data {
+					if v.Validator.PublicKey.String() == validator.PubKey {
+						validator.ValidatorIndex = uint64(v.Index)
+						validators = append(validators, validator)
+					}
+				}
+			}
+		}
+	}
+	//write db
+	trans := s.DBEngine.Begin()
+	rest := trans.CreateInBatches(&pods, 50)
+	if rest.Error != nil {
+		trans.Rollback()
+		logrus.Errorln("Insert error:", rest.Error)
+		return
+	}
+	rest = trans.CreateInBatches(&validators, 50)
+	if rest.Error != nil {
+		logrus.Errorln("Insert error:", rest.Error)
+		trans.Rollback()
+		return
+	}
+	u, _ := strconv.ParseUint(slot, 0, 64)
+	rest = trans.Create(&models.Cursor{
+		Slot: u + 1,
+		Meme: models.Scanner,
+	})
+	trans.Commit()
+	logrus.Infof("setup complete...donot forget eigenOracle cursor")
 }
