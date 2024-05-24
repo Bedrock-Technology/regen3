@@ -14,12 +14,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/config"
-	"github.com/Bedrock-Technology/regen3/ecdh"
-	"github.com/Bedrock-Technology/regen3/schnorrSign"
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/pbkdf2"
 	"io"
+	"math/big"
 	"net/http"
 )
 
@@ -98,7 +98,7 @@ func (client *Client) Eth1SignTransaction(digestHash []byte) (sig []byte, err er
 	keyAgentEncryptPub, _ := hex.DecodeString(client.config.KeyAgentEncryptPub)
 	keyAgentEncryptPubKey, _ := crypto.UnmarshalPubkey(keyAgentEncryptPub)
 	encryptPri, _ := ecdsa.GenerateKey(btcec.S256(), rand.Reader)
-	secret := ecdh.GetSecret(keyAgentEncryptPubKey, encryptPri)
+	secret := ecdhGetSecret(keyAgentEncryptPubKey, encryptPri)
 	aesKey := pbkdf2.Key(secret.Bytes(), []byte(`Rockx`), 1024, 16, sha1.New)
 	//
 	eth1SignReq := Eth1SignRequest{
@@ -107,9 +107,9 @@ func (client *Client) Eth1SignTransaction(digestHash []byte) (sig []byte, err er
 		DigestHash: hex.EncodeToString(digestHash),
 	}
 	content, _ := json.Marshal(&eth1SignReq)
-	contentEncypt, _ := AesEncrypt(content, aesKey)
+	contentEncypt, _ := aesEncrypt(content, aesKey)
 
-	sign, _ := Sign(contentEncypt, signPri)
+	sign, _ := sign(contentEncypt, signPri)
 	eth1req := Request{
 		Content: hex.EncodeToString(contentEncypt),
 		Sign:    hex.EncodeToString(sign),
@@ -128,12 +128,12 @@ func (client *Client) Eth1SignTransaction(digestHash []byte) (sig []byte, err er
 	_ = json.Unmarshal(body, &respEth1)
 	respSign, _ := hex.DecodeString(respEth1.Sign)
 	respContent, _ := hex.DecodeString(respEth1.Content)
-	if !Verify(respContent, respSign, [][]byte{signPub}) {
+	if !verify(respContent, respSign, [][]byte{signPub}) {
 		err = fmt.Errorf("verify error")
 		return
 	}
 	//decode
-	respContentDecrypt, _ := AesDecrypt(respContent, aesKey)
+	respContentDecrypt, _ := aesDecrypt(respContent, aesKey)
 	eth1SignResponse := Eth1SignResponse{}
 	_ = json.Unmarshal(respContentDecrypt, &eth1SignResponse)
 	sig, _ = hex.DecodeString(eth1SignResponse.Sig)
@@ -147,7 +147,7 @@ func (client *Client) Eth1Address() (address string, err error) {
 	keyAgentEncryptPub, _ := hex.DecodeString(client.config.KeyAgentEncryptPub)
 	keyAgentEncryptPubKey, _ := crypto.UnmarshalPubkey(keyAgentEncryptPub)
 	encryptPri, _ := ecdsa.GenerateKey(btcec.S256(), rand.Reader)
-	secret := ecdh.GetSecret(keyAgentEncryptPubKey, encryptPri)
+	secret := ecdhGetSecret(keyAgentEncryptPubKey, encryptPri)
 	aesKey := pbkdf2.Key(secret.Bytes(), []byte(`Rockx`), 1024, 16, sha1.New)
 	//
 	eth1AddressReq := Eth1AddressRequest{
@@ -155,9 +155,9 @@ func (client *Client) Eth1Address() (address string, err error) {
 		Index:   client.config.Index,
 	}
 	content, _ := json.Marshal(&eth1AddressReq)
-	contentEncypt, _ := AesEncrypt(content, aesKey)
+	contentEncypt, _ := aesEncrypt(content, aesKey)
 
-	sign, _ := Sign(contentEncypt, signPri)
+	sign, _ := sign(contentEncypt, signPri)
 	eth1req := Request{
 		Content: hex.EncodeToString(contentEncypt),
 		Sign:    hex.EncodeToString(sign),
@@ -176,12 +176,12 @@ func (client *Client) Eth1Address() (address string, err error) {
 	_ = json.Unmarshal(body, &respEth1)
 	respSign, _ := hex.DecodeString(respEth1.Sign)
 	respContent, _ := hex.DecodeString(respEth1.Content)
-	if !Verify(respContent, respSign, [][]byte{signPub}) {
+	if !verify(respContent, respSign, [][]byte{signPub}) {
 		err = fmt.Errorf("verify error")
 		return
 	}
 	//decode
-	respContentDecrypt, _ := AesDecrypt(respContent, aesKey)
+	respContentDecrypt, _ := aesDecrypt(respContent, aesKey)
 	eth1AddressResponse := Eth1AddressResponse{}
 	_ = json.Unmarshal(respContentDecrypt, &eth1AddressResponse)
 	address = eth1AddressResponse.Address
@@ -201,7 +201,7 @@ func pKCS7UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
-func AesEncrypt(origData, key []byte) ([]byte, error) {
+func aesEncrypt(origData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -214,7 +214,7 @@ func AesEncrypt(origData, key []byte) ([]byte, error) {
 	return crypted, nil
 }
 
-func AesDecrypt(crypted, key []byte) ([]byte, error) {
+func aesDecrypt(crypted, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -227,9 +227,9 @@ func AesDecrypt(crypted, key []byte) ([]byte, error) {
 	return origData, nil
 }
 
-func Sign(data, privateKey []byte) ([]byte, error) {
+func sign(data, privateKey []byte) ([]byte, error) {
 	hash := sha256.Sum256(data)
-	sign, err := schnorrSign.Sign(privateKey, hash[:])
+	sign, err := schnorrSign(privateKey, hash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -237,11 +237,11 @@ func Sign(data, privateKey []byte) ([]byte, error) {
 	return sign, nil
 }
 
-func Verify(data, sign []byte, publicKeys [][]byte) bool {
+func verify(data, sign []byte, publicKeys [][]byte) bool {
 	hash := sha256.Sum256(data)
 	verify := false
 	for i := len(publicKeys) - 1; i >= 0; i-- {
-		isVerified, err := schnorrSign.Verify(hash[:], sign, publicKeys[i])
+		isVerified, err := schnorrVerify(hash[:], sign, publicKeys[i])
 		if err != nil {
 		}
 		if isVerified {
@@ -255,4 +255,33 @@ func Verify(data, sign []byte, publicKeys [][]byte) bool {
 	}
 
 	return true
+}
+
+func schnorrSign(privateKey, hash []byte) ([]byte, error) {
+	pri, _ := btcec.PrivKeyFromBytes(privateKey)
+	s, err := schnorr.Sign(pri, hash, schnorr.FastSign())
+	if err != nil {
+		return nil, err
+	}
+	return s.Serialize(), nil
+}
+
+func schnorrVerify(hash, sign, pubKey []byte) (bool, error) {
+	publicKey, err := btcec.ParsePubKey(pubKey)
+	if err != nil {
+		return false, err
+	}
+
+	v, err := schnorr.ParseSignature(sign)
+	if err != nil {
+		return false, err
+	}
+
+	b := v.Verify(hash, publicKey)
+	return b, nil
+}
+
+func ecdhGetSecret(publicKey *ecdsa.PublicKey, key *ecdsa.PrivateKey) *big.Int {
+	secret, _ := key.Curve.ScalarMult(publicKey.X, publicKey.Y, key.D.Bytes())
+	return secret
 }
