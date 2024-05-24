@@ -30,15 +30,17 @@ type VerifyWithdrawProofRun struct {
 	scanner *Scanner
 }
 
+const batchSizeProof = int(2)
+
 func (v *VerifyWithdrawProofRun) JobRun() {
 	logrus.Info("VerifyWithdrawProofRun")
 	for _, pod := range v.scanner.Pods {
 		//get pod's validators that need to verify
-		validators := make([]models.Validator, 0, batchSize)
+		validators := make([]models.Validator, 0, batchSizeProof)
 		rest := v.scanner.DBEngine.Model(&models.Validator{}).Where("pod_address = ?", pod.Address).
 			Where("credential_verified != ?", 0).Where("withdrawn_on_chain != ?", 0).
 			Where("withdrawn_on_pod = ?", 0).
-			Find(&validators).Limit(batchSize)
+			Find(&validators).Limit(batchSizeProof)
 		if rest.Error != nil {
 			logrus.Infof("Get pod's[%s] validators that need to proof error: %v", pod.Address, rest.Error)
 			return

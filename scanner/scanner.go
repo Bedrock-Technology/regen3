@@ -6,6 +6,7 @@ import (
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/blockTimer"
 	"github.com/Bedrock-Technology/regen3/config"
+	"github.com/Bedrock-Technology/regen3/keyAgentRpc"
 	"github.com/Bedrock-Technology/regen3/models"
 	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
 	"github.com/attestantio/go-eth2-client/api"
@@ -18,15 +19,16 @@ import (
 )
 
 type Scanner struct {
-	Config        *config.Config
-	DBEngine      *gorm.DB
-	EthClient     *ethclient.Client
-	BeaconClient  *beaconClient.Client
-	BlockTimer    *blockTimer.BlockTimer
-	Pods          map[string]models.Pod
-	FilterAddress []common.Address
-	Submitter     *txsubmitter.EigenPodProofTxSubmitter
-	Quit          chan struct{}
+	Config         *config.Config
+	DBEngine       *gorm.DB
+	EthClient      *ethclient.Client
+	BeaconClient   *beaconClient.Client
+	BlockTimer     *blockTimer.BlockTimer
+	Pods           map[string]models.Pod
+	FilterAddress  []common.Address
+	Submitter      *txsubmitter.EigenPodProofTxSubmitter
+	KeyAgentClient *keyAgentRpc.Client
+	Quit           chan struct{}
 }
 
 func New(config *config.Config, quit chan struct{}) *Scanner {
@@ -75,7 +77,7 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 			panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
 		}
 	}
-
+	scanner.KeyAgentClient = keyAgentRpc.NewClient(scanner.Config.KeyAgent)
 	return scanner
 }
 
@@ -87,8 +89,6 @@ func (s *Scanner) fillFilterAddress() []common.Address {
 	address = append(address,
 		common.HexToAddress(s.Config.EigenDelegationManagerContract),
 		common.HexToAddress(s.Config.EigenOracleContract),
-		common.HexToAddress(s.Config.RestakingContract),
-		common.HexToAddress(s.Config.StakingContract),
 	)
 
 	return address
