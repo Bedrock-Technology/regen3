@@ -2,9 +2,7 @@ package scanner
 
 import (
 	"fmt"
-	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/models"
-	"github.com/attestantio/go-eth2-client/api"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -81,16 +79,17 @@ func (s *Scanner) findLatestBlockNumber() (uint64, error) {
 		logrus.Errorln("GetCursor:", err)
 		return 0, err
 	}
-	for {
-		slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
-			Block: fmt.Sprintf("%d", cursor.Slot),
-		})
-		if err == nil {
-			executionBlockNumber, errEb := slotBody.Data.ExecutionBlockNumber()
-			if errEb == nil {
-				return executionBlockNumber, nil
-			}
-		}
-		cursor.Slot--
-	}
+	return cursor.Slot, nil
+	//for {
+	//	slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
+	//		Block: fmt.Sprintf("%d", cursor.Slot),
+	//	})
+	//	if err == nil {
+	//		executionBlockNumber, errEb := slotBody.Data.ExecutionBlockNumber()
+	//		if errEb == nil {
+	//			return executionBlockNumber, nil
+	//		}
+	//	}
+	//	cursor.Slot--
+	//}
 }

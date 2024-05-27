@@ -130,21 +130,27 @@ func (s *Scanner) scan() {
 		logrus.Errorln("GetCursor:", err)
 		return
 	}
+	DbTransaction := s.DBEngine.Begin()
 	start := cursor.Slot
 	logrus.Infof("Scan [%d:%d)", start, end)
-	realEnd, err := s.scanSlotAndBlock(start, end)
+	realEnd, err := s.scanSlotAndBlock(start, end, DbTransaction)
 	if err != nil {
 		logrus.Errorf("scanSlotAndBlock [%d:%d),error:%v", start, end, err)
+		DbTransaction.Rollback()
+		return
 	}
 	cursor.Slot = realEnd
 	err = models.SaveCursor(s.DBEngine, cursor)
 	if err != nil {
 		logrus.Errorln("UpdateCursor error:", err)
+		DbTransaction.Rollback()
 		return
 	}
+	DbTransaction.Commit()
+	s.BlockTimer.InvokeTimer(cursor.Slot)
 }
 
-func (s *Scanner) scanSlotAndBlock(start, end uint64) (realEnd uint64, err error) {
+func (s *Scanner) scanSlotAndBlock(start, end uint64, DbTrans *gorm.DB) (realEnd uint64, err error) {
 LOOP:
 	for start < end {
 		logrus.Infof("Scan Slot[%d]", start)
@@ -170,16 +176,14 @@ LOOP:
 			return start, err
 		}
 		logrus.Infof("slotBody[%d]: %v", start, executionBlockNumber)
-		err = s.processBeacon(slotBody, s.DBEngine)
+		err = s.processBeacon(slotBody, DbTrans)
 		if err != nil {
 			return start, err
 		}
-		err = s.processBlock(executionBlockNumber, s.DBEngine)
+		err = s.processBlock(executionBlockNumber, DbTrans)
 		if err != nil {
 			return start, err
 		}
-
-		s.BlockTimer.InvokeTimer(executionBlockNumber)
 
 		start++
 		select {
