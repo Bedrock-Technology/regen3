@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/attestantio/go-eth2-client/spec"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -86,7 +87,7 @@ func VerifyWithdrawalCredentialsGen2(submitter *txsubmitter.EigenPodProofTxSubmi
 	if err != nil {
 		return nil, err
 	}
-
+	runtime.GC()
 	return submitter.GenerateVerifyWithdrawalCredentialsTx(eigenPod, &versionedOracleState,
 		&oracleBeaconBlockHeader, validatorIndices)
 }
