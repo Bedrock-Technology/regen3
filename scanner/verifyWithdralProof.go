@@ -31,7 +31,7 @@ type VerifyWithdrawProofRun struct {
 	scanner *Scanner
 }
 
-const batchSizeProof = int(2)
+const batchSizeProof = int(1)
 
 func (v *VerifyWithdrawProofRun) JobRun() {
 	logrus.Info("VerifyWithdrawProofRun")
