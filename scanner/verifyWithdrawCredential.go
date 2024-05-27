@@ -11,6 +11,7 @@ import (
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
 	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -182,22 +183,14 @@ func (s *Scanner) getVerifyWithdrawCredentialTx(oracleStateFile, oracleHeaderFil
 	return tx, nil
 }
 
-type VerifyWithdrawCredential struct {
-	OracleTimestamp       uint64
-	StateRootProof        Restaking.BeaconChainProofsStateRootProof
-	ValidatorIndices      []*big.Int
-	ValidatorFieldsProofs [][]byte
-	ValidatorFields       [][][32]byte
-}
-
 func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big.Int) (*types.Transaction, error) {
 	//parse data to param
 	eigenPodAbi, err := EigenPod.EigenPodMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	verifyWithdrawCredential := VerifyWithdrawCredential{}
-	err = eigenPodAbi.UnpackIntoInterface(&verifyWithdrawCredential, "verifyWithdrawalCredentials", tx.Data())
+	m := map[string]interface{}{}
+	err = eigenPodAbi.Methods["verifyWithdrawalCredentials"].Inputs.UnpackIntoMap(m, tx.Data()[4:])
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +198,8 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	if err != nil {
 		return nil, err
 	}
-	input, err := restakingAbi.Pack("verifyWithdrawalCredentials", podId, &verifyWithdrawCredential)
+	input, err := restakingAbi.Pack("verifyWithdrawalCredentials", podId, m["oracleTimestamp"],
+		m["stateRootProof"], m["validatorIndices"], m["validatorFieldsProofs"], m["validatorFields"])
 	if err != nil {
 		return nil, err
 	}
@@ -226,18 +220,13 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	if err != nil {
 		return nil, err
 	}
-	restakingContract, err := Restaking.NewRestaking(common.HexToAddress(s.Config.RestakingContract), s.EthClient)
-	if err != nil {
-		return nil, err
-	}
 	opts, err := s.signWithChainIDFromKeyAgent(common.HexToAddress(s.Config.KeyAgent.Address),
 		big.NewInt(int64(s.Config.ChainId)))
 	opts.GasTipCap = gasTipCap
 	opts.GasFeeCap = gasFeeCap
 	opts.GasLimit = addGasBuffer(gasLimit)
-	realTx, err := restakingContract.VerifyWithdrawalCredentials(opts, podId, verifyWithdrawCredential.OracleTimestamp,
-		verifyWithdrawCredential.StateRootProof, verifyWithdrawCredential.ValidatorIndices,
-		verifyWithdrawCredential.ValidatorFieldsProofs, verifyWithdrawCredential.ValidatorFields)
+	realTx, err := bind.NewBoundContract(common.HexToAddress(s.Config.RestakingContract), abi.ABI{}, s.EthClient, s.EthClient,
+		s.EthClient).RawTransact(opts, input)
 	if err != nil {
 		return nil, err
 	}
