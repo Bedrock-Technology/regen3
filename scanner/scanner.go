@@ -146,7 +146,11 @@ func (s *Scanner) scan() {
 		DbTransaction.Rollback()
 		return
 	}
-	DbTransaction.Commit()
+	rest := DbTransaction.Commit()
+	if rest != nil {
+		logrus.Errorln("DbTransaction error:", rest.Error)
+		return
+	}
 	s.BlockTimer.InvokeTimer(cursor.Slot)
 }
 
