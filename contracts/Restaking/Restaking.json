@@ -206,21 +206,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "maxNumberOfWithdrawalsToClaim",
-        "type": "uint256"
-      }
-    ],
-    "name": "claimDelayedWithdrawals",
-    "outputs": [
-
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
 
     ],
     "name": "createPod",
@@ -625,6 +610,125 @@
         "type": "tuple"
       },
       {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "withdrawalProof",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "slotProof",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "executionPayloadProof",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "timestampProof",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "historicalSummaryBlockRootProof",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint64",
+            "name": "blockRootIndex",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "historicalSummaryIndex",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "withdrawalIndex",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "blockRoot",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "slotRoot",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "timestampRoot",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "executionPayloadRoot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct BeaconChainProofs.WithdrawalProof[]",
+        "name": "withdrawalProofs",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "validatorFieldsProofs",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "bytes32[][]",
+        "name": "validatorFields",
+        "type": "bytes32[][]"
+      },
+      {
+        "internalType": "bytes32[][]",
+        "name": "withdrawalFields",
+        "type": "bytes32[][]"
+      }
+    ],
+    "name": "verifyAndProcessWithdrawals",
+    "outputs": [
+
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "podId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint64",
+        "name": "oracleTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "beaconStateRoot",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "proof",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct BeaconChainProofs.StateRootProof",
+        "name": "stateRootProof",
+        "type": "tuple"
+      },
+      {
         "internalType": "uint40[]",
         "name": "validatorIndices",
         "type": "uint40[]"
@@ -641,17 +745,6 @@
       }
     ],
     "name": "verifyWithdrawalCredentials",
-    "outputs": [
-
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-
-    ],
-    "name": "withdrawBeforeRestaking",
     "outputs": [
 
     ],
