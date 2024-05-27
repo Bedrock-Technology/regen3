@@ -147,7 +147,7 @@ func (s *Scanner) scan() {
 		return
 	}
 	rest := DbTransaction.Commit()
-	if rest != nil {
+	if rest.Error != nil {
 		logrus.Errorln("DbTransaction error:", rest.Error)
 		return
 	}
