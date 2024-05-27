@@ -10,7 +10,7 @@ import (
 )
 
 const TxVerifyWithdrawalCredentials = "verifyWithdrawalCredentials"
-const batchSizeCredential = int(20)
+const batchSizeCredential = int(2)
 
 const beaconStateFormat = "%s_state_%d.json"
 const beaconHeaderFormat = "%s_header_%d.json"
