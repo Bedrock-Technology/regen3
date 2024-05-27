@@ -27,7 +27,8 @@ func (s *Scanner) InitVerifyWithdrawCredential() error {
 		&VerifyWithdrawCredentialRun{
 			scanner: s,
 		})
-	logrus.Infoln("Add VerifyWithdrawCredential timer blockNow:", blockNow)
+	logrus.Infof("Add VerifyWithdrawCredential timer blockNow:%d, firstRun:%d, interval:%d",
+		blockNow, s.Config.CheckVerifyWithdrawCredential.FirstRun, s.Config.CheckVerifyWithdrawCredential.IntervalBlock)
 	return nil
 }
 
@@ -89,6 +90,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Errorf("waiting sendVerifyWithdrawCredential index %v error:%v", validators, err)
 					panic("waiting error")
 				}
+				logrus.WithField("Report", "true").Infof("sendVerifyWithdrawCredential tx:%s", txReceipt.TxHash)
 				//write to db
 				fee := big.NewInt(0).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.CumulativeGasUsed)))
 				txRecord := models.Transaction{

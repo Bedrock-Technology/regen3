@@ -22,7 +22,8 @@ func (s *Scanner) InitVerifyWithdrawProof() error {
 		&VerifyWithdrawProofRun{
 			scanner: s,
 		})
-	logrus.Infoln("Add VerifyWithdrawProof timer blockNow:", blockNow)
+	logrus.Infof("Add VerifyWithdrawProof timer blockNow:%d, firstRun:%d, interval:%d",
+		blockNow, s.Config.CheckVerifyWithdrawProof.FirstRun, s.Config.CheckVerifyWithdrawProof.IntervalBlock)
 	return nil
 }
 

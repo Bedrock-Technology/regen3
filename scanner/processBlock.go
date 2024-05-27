@@ -96,10 +96,12 @@ func (s *Scanner) processEigenOracle(txHash common.Hash, log types.Log, orm *gor
 			if err != nil {
 				logrus.Errorf("remove state file[%s] failed:%v", statefilePath, err)
 			}
+			logrus.Infof("remove state file[%s]", statefilePath)
 			err = os.Remove(headerfilePath)
 			if err != nil {
-				logrus.Errorf("remove header file[%s] failed:%v", statefilePath, err)
+				logrus.Errorf("remove header file[%s] failed:%v", headerfilePath, err)
 			}
+			logrus.Infof("remove header file[%s]", headerfilePath)
 		}
 	}
 	return nil
@@ -167,14 +169,17 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 			if err != nil {
 				logrus.Errorf("remove state file[%s] failed:%v", withdrawalHeaderPath, err)
 			}
+			logrus.Infof("remove state file[%s]", withdrawalHeaderPath)
 			err = os.Remove(withdrawalBodyPath)
 			if err != nil {
 				logrus.Errorf("remove state file[%s] failed:%v", withdrawalBodyPath, err)
 			}
+			logrus.Infof("remove state file[%s]", withdrawalBodyPath)
 			err = os.Remove(historicalSummaryStatePath)
 			if err != nil {
 				logrus.Errorf("remove state file[%s] failed:%v", historicalSummaryStatePath, err)
 			}
+			logrus.Infof("remove state file[%s]", historicalSummaryStatePath)
 		}
 	}
 	return nil
