@@ -44,8 +44,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 			validators := make([]uint64, 0, batchSizeCredential)
 			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").Where("pod_address = ?", pod.Address).
 				Where("credential_verified = ?", 0).Where("withdrawn_on_chain = ?", 0).
-				Where("withdrawn_on_pod = ?", 0).
-				Find(&validators).Limit(batchSizeCredential)
+				Where("withdrawn_on_pod = ?", 0).Limit(batchSizeCredential).Find(&validators)
 			if rest.Error != nil {
 				logrus.Infof("Get pod's[%s] validators that need to verify error: %v", pod.Address, rest.Error)
 				return
