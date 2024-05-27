@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -78,6 +79,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Errorln("getVerifyWithdrawCredentialTx err:", err)
 					return
 				}
+				logrus.Infof("tx data:%v", hex.EncodeToString(tx.Data()))
 				realTx, err := v.scanner.sendVerifyWithdrawCredential(tx, big.NewInt(int64(pod.PodIndex)))
 				if err != nil {
 					logrus.Errorf("sendVerifyWithdrawCredential index %v error:%v", validators, err)
