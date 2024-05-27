@@ -228,7 +228,7 @@ func (s *Scanner) Setup(slot string) {
 			logrus.Errorln("PodOwners err:", podInfo)
 			return
 		}
-		pod.Owner = podInfo.String()
+		pod.Owner = podOwner.String()
 		//if pod active
 		podContract, err := EigenPod.NewEigenPod(podInfo, s.EthClient)
 		if err != nil {
