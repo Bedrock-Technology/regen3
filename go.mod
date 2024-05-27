@@ -20,6 +20,8 @@ require (
 	gorm.io/gorm v1.25.10
 )
 
+replace github.com/Layr-Labs/eigenpod-proofs-generation v0.0.10-0.20240502182625-d1ae0221e732 => ./eigenpod-proofs-generation
+
 require (
 	github.com/Layr-Labs/eigensdk-go v0.1.3 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
