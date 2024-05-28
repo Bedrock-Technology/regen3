@@ -86,6 +86,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// delegateToCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	setupCmd.PersistentFlags().StringP("podIndex", "p", "", "pod")
-	setupCmd.PersistentFlags().StringP("operator", "o", "", "operator")
+	delegateToCmd.PersistentFlags().StringP("podIndex", "p", "", "pod")
+	delegateToCmd.PersistentFlags().StringP("operator", "o", "", "operator")
 }
