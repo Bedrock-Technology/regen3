@@ -216,6 +216,10 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	if err != nil {
 		return nil, err
 	}
+	//max 1gwei
+	if gasTipCap.Cmp(big.NewInt(1000000000)) > 0 {
+		gasTipCap = big.NewInt(1000000000)
+	}
 	gasFeeCap := new(big.Int).Add(header.BaseFee.Mul(header.BaseFee, big.NewInt(2)), gasTipCap)
 	restakingContractAddress := common.HexToAddress(s.Config.RestakingContract)
 	gasLimit, err := s.EthClient.EstimateGas(context.Background(), ethereum.CallMsg{
