@@ -3,6 +3,7 @@ package scanner
 import (
 	"context"
 	"fmt"
+	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenLayerBeaconOracle"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
@@ -37,6 +38,10 @@ func (s *Scanner) processBlock(blockNumber uint64, orm *gorm.DB) error {
 				return err
 			}
 		case s.Config.EigenDelegationManagerContract:
+			err := s.processDelegationManager(log.TxHash, log, orm)
+			if err != nil {
+				return err
+			}
 		}
 		//pods events
 		if _, b := s.Pods[log.Address.String()]; b {
@@ -137,6 +142,7 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 				Where("validator_index = ?", eigenPodRestaked.ValidatorIndex.Uint64()).
 				Where("pod_address = ?", log.Address.String()).
 				UpdateColumn("credential_verified", txReceipt.BlockNumber.Uint64())
+			logrus.Infof("ValidatorRestaked %v", eigenPodRestaked.ValidatorIndex)
 			return rest.Error
 		case "FullWithdrawalRedeemed":
 			eigenPodFullWithdrawalRedeemed, err := contract.ParseFullWithdrawalRedeemed(log)
@@ -180,6 +186,47 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 				logrus.Errorf("remove state file[%s] failed:%v", historicalSummaryStatePath, err)
 			}
 			logrus.Infof("remove state file[%s]", historicalSummaryStatePath)
+		}
+	}
+	return nil
+}
+
+func (s *Scanner) processDelegationManager(txHash common.Hash, log types.Log, orm *gorm.DB) error {
+	//log's status
+	txReceipt, err := s.EthClient.TransactionReceipt(context.Background(), txHash)
+	if err != nil {
+		return err
+	}
+	if txReceipt.Status == 1 {
+		DelegationManagerAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
+		if err != nil {
+			return err
+		}
+		event, err := DelegationManagerAbi.EventByID(log.Topics[0])
+		if err != nil {
+			return err
+		}
+		contract, err := DelegationManager.NewDelegationManager(
+			log.Address, s.EthClient)
+		if err != nil {
+			return err
+		}
+		switch event.Name {
+		case "StakerDelegated":
+			eigenPodRestaked, err := contract.ParseStakerDelegated(log)
+			if err != nil {
+				return err
+			}
+			for _, pod := range s.Pods {
+				if pod.Owner == eigenPodRestaked.Staker.String() {
+					//our pods
+					rest := orm.Model(&models.Pod{}).
+						Where("owner = ?", pod.Owner).
+						UpdateColumn("delegate_to", eigenPodRestaked.Operator.String())
+					logrus.Infof("staker:%v delegate to %v", eigenPodRestaked.Staker.String(), eigenPodRestaked.Operator)
+					return rest.Error
+				}
+			}
 		}
 	}
 	return nil

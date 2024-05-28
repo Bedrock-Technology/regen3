@@ -203,12 +203,16 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	if err != nil {
 		return nil, err
 	}
-	//gasTipCap := big.NewInt(150000000) //0.15gwei
-	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
+	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		return nil, err
 	}
-	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
+	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
+		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
+		return nil, nil
+	}
+	//gasTipCap := big.NewInt(150000000) //0.15gwei
+	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
 	if err != nil {
 		return nil, err
 	}
