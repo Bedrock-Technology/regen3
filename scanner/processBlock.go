@@ -94,12 +94,12 @@ func (s *Scanner) processEigenOracle(txHash common.Hash, log types.Log, orm *gor
 			headerfilePath := fmt.Sprintf("%s/%s", s.Config.DataPath, headerfileName)
 			err = os.Remove(statefilePath)
 			if err != nil {
-				logrus.Errorf("remove state file[%s] failed:%v", statefilePath, err)
+				logrus.Warnf("remove state file[%s] failed:%v", statefilePath, err)
 			}
 			logrus.Infof("remove state file[%s]", statefilePath)
 			err = os.Remove(headerfilePath)
 			if err != nil {
-				logrus.Errorf("remove header file[%s] failed:%v", headerfilePath, err)
+				logrus.Warnf("remove header file[%s] failed:%v", headerfilePath, err)
 			}
 			logrus.Infof("remove header file[%s]", headerfilePath)
 		}

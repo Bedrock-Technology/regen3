@@ -94,7 +94,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				}
 				logrus.WithField("Report", "true").Infof("sendVerifyWithdrawCredential tx:%s", txReceipt.TxHash)
 				//write to db
-				fee := big.NewInt(0).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.CumulativeGasUsed)))
+				fee := big.NewInt(0).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.GasUsed)))
 				txRecord := models.Transaction{
 					TxHash: txReceipt.TxHash.String(),
 					Status: txReceipt.Status,
@@ -203,12 +203,16 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	if err != nil {
 		return nil, err
 	}
-	gasTipCap := big.NewInt(150000000) //0.15gwei
+	//gasTipCap := big.NewInt(150000000) //0.15gwei
+	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		return nil, err
 	}
-	gasFeeCap := new(big.Int).Add(header.BaseFee, gasTipCap)
+	gasFeeCap := new(big.Int).Add(header.BaseFee.Mul(header.BaseFee, big.NewInt(2)), gasTipCap)
 	restakingContractAddress := common.HexToAddress(s.Config.RestakingContract)
 	gasLimit, err := s.EthClient.EstimateGas(context.Background(), ethereum.CallMsg{
 		From:      common.HexToAddress(s.Config.KeyAgent.Address),
@@ -225,6 +229,8 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	opts.GasTipCap = gasTipCap
 	opts.GasFeeCap = gasFeeCap
 	opts.GasLimit = addGasBuffer(gasLimit)
+	//Min( Max fee - Base fee, Max priority fee)
+	//gasPrice = Min(Base fee + Max priority fee, GasFeeCap)
 	realTx, err := bind.NewBoundContract(common.HexToAddress(s.Config.RestakingContract), abi.ABI{}, s.EthClient, s.EthClient,
 		s.EthClient).RawTransact(opts, input)
 	if err != nil {
