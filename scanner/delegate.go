@@ -23,9 +23,16 @@ func (s *Scanner) DelegateTo(podIndex int64, operator string) {
 		Expiry:    big.NewInt(0),
 	}
 	approverSalt := [32]byte{0}
+	delegationManagerAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
+	if err != nil {
+		return
+	}
+	output, err := delegationManagerAbi.Pack("delegateTo", common.HexToAddress(operator), isswe, approverSalt)
+	if err != nil {
+		return
+	}
 
-	input, err := restakingAbi.Pack("callDelegationManager", big.NewInt(podIndex), common.HexToAddress(operator),
-		isswe, approverSalt)
+	input, err := restakingAbi.Pack("callDelegationManager", big.NewInt(podIndex), output)
 	if err != nil {
 		logrus.Errorln("Pack err:", err)
 		return
