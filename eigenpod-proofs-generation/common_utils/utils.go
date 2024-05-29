@@ -294,8 +294,7 @@ func ParseDenebStateJSONFile(filePath string) (*beaconStateJSONDeneb, error) {
 		return nil, err
 	}
 
-	actualData := beaconState.Data
-	return &actualData, nil
+	return &beaconState.Data, nil
 }
 
 func ParseCapellaStateJSONFile(filePath string) (*beaconStateJSONCapella, error) {
@@ -318,7 +317,7 @@ func ParseCapellaStateJSONFile(filePath string) (*beaconStateJSONCapella, error)
 }
 
 // nolint:gocyclo
-func ParseDenebBeaconStateFromJSON(data beaconStateJSONDeneb, s *deneb.BeaconState) error {
+func ParseDenebBeaconStateFromJSON(data *beaconStateJSONDeneb, s *deneb.BeaconState) error {
 	var err error
 
 	if data.GenesisTime == "" {

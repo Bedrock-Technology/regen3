@@ -78,7 +78,7 @@ func VerifyWithdrawalCredentialsGen2(submitter *txsubmitter.EigenPodProofTxSubmi
 		return nil, err
 	}
 
-	err = commonutils.ParseDenebBeaconStateFromJSON(*oracleStateJSON, &oracleState)
+	err = commonutils.ParseDenebBeaconStateFromJSON(oracleStateJSON, &oracleState)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func VerifyAndProcessWithdrawalsGen(submitter *txsubmitter.EigenPodProofTxSubmit
 	if err != nil {
 		return nil, err
 	}
-	err = commonutils.ParseDenebBeaconStateFromJSON(*oracleStateJSON, &oracleState)
+	err = commonutils.ParseDenebBeaconStateFromJSON(oracleStateJSON, &oracleState)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func VerifyAndProcessWithdrawalsGen(submitter *txsubmitter.EigenPodProofTxSubmit
 		if err != nil {
 			return nil, err
 		}
-		err = commonutils.ParseDenebBeaconStateFromJSON(*historicalSummaryStateJSON, &historicalSummaryState)
+		err = commonutils.ParseDenebBeaconStateFromJSON(historicalSummaryStateJSON, &historicalSummaryState)
 		if err != nil {
 			return nil, err
 		}
