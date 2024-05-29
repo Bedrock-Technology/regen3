@@ -13,6 +13,10 @@ checkVerifyWithdrawProof:
   enable: false
   intervalBlock: 0
   firstRun: 0
+checkQueueWithdraw:
+  enable: false
+  intervalBlock: 0
+  firstRun: 0
 keyAgent:
   keyAgentRpc: ""
   service: 0

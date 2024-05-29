@@ -11,6 +11,8 @@ import (
 
 const TxVerifyWithdrawalCredentials = "verifyWithdrawalCredentials"
 const TxVerifyWithdrawalProof = "verifyWithdrawalProof"
+const TxQueueWithdrawals = "queueWithdrawals"
+const TxCompleteQueueWithdrawals = "completeQueueWithdrawals"
 const batchSizeCredential = int(2)
 
 const beaconStateFormat = "%s_state_%d.json"

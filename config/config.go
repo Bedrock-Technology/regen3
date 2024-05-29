@@ -26,6 +26,8 @@ var HoleskyAddresses = Addresses{
 	eigenOracleContract:            "0x4C116BB629bff7A8373c2378bBd919f8349B8f25",
 }
 
+const HoleskyMinWithdrawalDelayBlocks = 10
+
 type Config struct {
 	Network                        string    `yaml:"network"`
 	ChainId                        uint64    `yaml:"-"`
@@ -39,8 +41,10 @@ type Config struct {
 	RestakingContract              string    `yaml:"-"`
 	EigenDelegationManagerContract string    `yaml:"-"`
 	EigenOracleContract            string    `yaml:"-"`
+	MinWithdrawalDelayBlocks       uint64    `yaml:"-"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 	CheckVerifyWithdrawProof       TimerSpec `yaml:"checkVerifyWithdrawProof"`
+	CheckQueueWithdraw             TimerSpec `yaml:"checkQueueWithdraw"`
 	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
 }
 
@@ -74,6 +78,7 @@ func LoadConfig(path string) (config *Config) {
 		config.RestakingContract = HoleskyAddresses.restakingContract
 		config.EigenDelegationManagerContract = HoleskyAddresses.eigenDelegationManagerContract
 		config.EigenOracleContract = HoleskyAddresses.eigenOracleContract
+		config.MinWithdrawalDelayBlocks = HoleskyMinWithdrawalDelayBlocks
 		config.ChainId = 17000
 	} else if config.Network == "mainnet" {
 		config.StakingContract = MainnetAddresses.stakingContract

@@ -2,6 +2,8 @@ package scanner
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenLayerBeaconOracle"
@@ -225,6 +227,36 @@ func (s *Scanner) processDelegationManager(txHash common.Hash, log types.Log, or
 					return rest.Error
 				}
 			}
+		case "WithdrawalQueued":
+			r, err := contract.ParseWithdrawalQueued(log)
+			if err != nil {
+				return err
+			}
+			for _, pod := range s.Pods {
+				if pod.Owner == r.Withdrawal.Withdrawer.String() {
+					//our pods
+					withdrawal, _ := json.Marshal(&r.Withdrawal)
+					queue := models.QueueWithdrawals{
+						Pod:            pod.Address,
+						WithdrawalRoot: base64.StdEncoding.EncodeToString(r.WithdrawalRoot[:]),
+						Withdrawal:     string(withdrawal),
+						StartBlock:     uint64(r.Withdrawal.StartBlock),
+						Completed:      0,
+					}
+					rest := orm.Create(&queue)
+					return rest.Error
+				}
+			}
+		case "WithdrawalCompleted":
+			r, err := contract.ParseWithdrawalCompleted(log)
+			if err != nil {
+				return err
+			}
+			root := base64.StdEncoding.EncodeToString(r.WithdrawalRoot[:])
+			rest := orm.Model(&models.QueueWithdrawals{}).
+				Where("withdrawal_root = ?", root).
+				UpdateColumn("completed", 1)
+			return rest.Error
 		}
 	}
 	return nil

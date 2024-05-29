@@ -85,6 +85,12 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 			panic(fmt.Sprintf("InitVerifyWithdrawCredential err:%v", err))
 		}
 	}
+	if scanner.Config.CheckQueueWithdraw.Enable {
+		err = scanner.InitQueueWithdraw()
+		if err != nil {
+			panic(fmt.Sprintf("InitQueueWithdraw err:%v", err))
+		}
+	}
 	scanner.KeyAgentClient = keyAgentRpc.NewClient(scanner.Config.KeyAgent)
 	return scanner
 }
