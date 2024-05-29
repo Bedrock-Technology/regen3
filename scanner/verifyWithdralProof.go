@@ -1,15 +1,23 @@
 package scanner
 
 import (
+	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
+	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/Bedrock-Technology/regen3/proofgen"
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
 	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
+	"math/big"
 )
 
 func (s *Scanner) InitVerifyWithdrawProof() error {
@@ -39,10 +47,10 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 		//get pod's validators that need to verify
 		validators := make([]models.Validator, 0, batchSizeProof)
 		rest := v.scanner.DBEngine.Model(&models.Validator{}).Where("pod_address = ?", pod.Address).
-			Where("credential_verified != ?", 0).Where("withdrawn_on_chain != ?", 0).
-			Where("withdrawn_on_pod = ?", 0).Limit(batchSizeProof).Find(&validators)
+			Where("withdrawn_on_chain != ?", 0).Where("withdrawn_on_pod = ?", 0).
+			Limit(batchSizeProof).Find(&validators)
 		if rest.Error != nil {
-			logrus.Infof("Get pod's[%s] validators that need to proof error: %v", pod.Address, rest.Error)
+			logrus.Errorln("Get pod's[%s] validators that need to proof error: %v", pod.Address, rest.Error)
 			return
 		}
 		if len(validators) != 0 {
@@ -111,9 +119,88 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 				logrus.Errorln("getWithdrawalProofTx err:", err)
 				return
 			}
-			logrus.Infof("getWithdrawalProofTx tx: %v", tx.Data())
+			logrus.Infof("getWithdrawalProofTx tx: %v", hex.EncodeToString(tx.Data()))
+			realTx, err := v.scanner.sendVerifyWithdrawProof(tx, big.NewInt(int64(pod.PodIndex)))
+			if err != nil {
+				logrus.Errorf("sendVerifyWithdrawProof index %v error:%v", validators, err)
+				panic("sendVerifyWithdrawProof error")
+			}
+			logrus.Infoln("waiting sendVerifyWithdrawProof tx:", realTx.Hash())
+			txReceipt, err := bind.WaitMined(context.Background(), v.scanner.EthClient, realTx)
+			if err != nil {
+				logrus.Errorf("waiting sendVerifyWithdrawProof index %v error:%v", validators, err)
+				panic("waiting error")
+			}
+			logrus.WithField("Report", "true").Infof("sendVerifyWithdrawProof tx:%s", txReceipt.TxHash)
+			//write to db
+			fee := big.NewInt(0).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.GasUsed)))
+			txRecord := models.Transaction{
+				TxHash: txReceipt.TxHash.String(),
+				Status: txReceipt.Status,
+				TxType: TxVerifyWithdrawalProof,
+				Fee:    fee.String(),
+			}
+			rest := v.scanner.DBEngine.Create(&txRecord)
+			if rest.Error != nil {
+				logrus.Errorf("Insert txRecord[%s] err:%v", txReceipt.TxHash.String(), rest.Error)
+			}
+			if txReceipt.Status != 1 {
+				logrus.Errorf("sendVerifyWithdrawProof tx: %v status failed:%v", validators, txRecord.Status)
+				panic("sendVerifyWithdrawProof")
+			}
+			needCheck := make([]uint64, 0)
+			for _, validator := range validators {
+				needCheck = append(needCheck, validator.ValidatorIndex)
+			}
+			err = checkIfFullWithdrawalContained(txReceipt.Logs, needCheck, pod.Address, v.scanner)
+			if err != nil {
+				logrus.Errorln("checkIfEventContained error:", err)
+				panic("checkIfEventContained")
+			}
 		}
 	}
+}
+
+func checkIfFullWithdrawalContained(logs []*types.Log, needCheck []uint64, podAddress string, s *Scanner) error {
+	egAbi, err := EigenPod.EigenPodMetaData.GetAbi()
+	if err != nil {
+		return err
+	}
+	contract, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
+	if err != nil {
+		return err
+	}
+	validatorContains := make([]uint64, 0)
+	for _, log := range logs {
+		if log.Address == common.HexToAddress(podAddress) {
+			e, err := egAbi.EventByID(log.Topics[0])
+			if err != nil {
+				return err
+			}
+			if e.Name == "FullWithdrawalRedeemed" {
+				r, err := contract.ParseFullWithdrawalRedeemed(*log)
+				if err != nil {
+					return err
+				}
+				validatorContains = append(validatorContains, r.ValidatorIndex.Uint64())
+			}
+		}
+	}
+	if len(needCheck) != len(validatorContains) {
+		return fmt.Errorf(" not equal")
+	}
+	for _, n := range needCheck {
+		find := false
+		for _, c := range validatorContains {
+			if n == c {
+				find = true
+			}
+		}
+		if find == false {
+			return fmt.Errorf("not equal")
+		}
+	}
+	return nil
 }
 
 const SlotsPerHistoricalRoot = 8192
@@ -149,4 +236,69 @@ func (s *Scanner) getWithdrawalProofTx(proof proofgen.WithdrawalProof, podOwner 
 		return nil, err
 	}
 	return tx, nil
+}
+
+func (s *Scanner) sendVerifyWithdrawProof(tx *types.Transaction, podId *big.Int) (*types.Transaction, error) {
+	//parse data to param
+	eigenPodAbi, err := EigenPod.EigenPodMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	m := map[string]interface{}{}
+	err = eigenPodAbi.Methods["verifyAndProcessWithdrawals"].Inputs.UnpackIntoMap(m, tx.Data()[4:])
+	if err != nil {
+		return nil, err
+	}
+	restakingAbi, err := Restaking.RestakingMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	input, err := restakingAbi.Pack("verifyAndProcessWithdrawals", podId, m["oracleTimestamp"],
+		m["stateRootProof"], m["withdrawalProofs"], m["validatorFieldsProofs"], m["validatorFields"],
+		m["withdrawalFields"])
+	if err != nil {
+		return nil, err
+	}
+	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		return nil, err
+	}
+	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
+		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
+		return nil, nil
+	}
+	//gasTipCap := big.NewInt(150000000) //0.15gwei
+	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	//max 1gwei
+	if gasTipCap.Cmp(big.NewInt(1000000000)) > 0 {
+		gasTipCap = big.NewInt(1000000000)
+	}
+	gasFeeCap := new(big.Int).Add(header.BaseFee.Mul(header.BaseFee, big.NewInt(2)), gasTipCap)
+	restakingContractAddress := common.HexToAddress(s.Config.RestakingContract)
+	gasLimit, err := s.EthClient.EstimateGas(context.Background(), ethereum.CallMsg{
+		From:      common.HexToAddress(s.Config.KeyAgent.Address),
+		To:        &restakingContractAddress,
+		GasTipCap: gasTipCap,
+		GasFeeCap: gasFeeCap,
+		Data:      input,
+	})
+	if err != nil {
+		return nil, err
+	}
+	opts, err := s.signWithChainIDFromKeyAgent(common.HexToAddress(s.Config.KeyAgent.Address),
+		big.NewInt(int64(s.Config.ChainId)))
+	opts.GasTipCap = gasTipCap
+	opts.GasFeeCap = gasFeeCap
+	opts.GasLimit = addGasBuffer(gasLimit)
+	//Min( Max fee - Base fee, Max priority fee)
+	//gasPrice = Min(Base fee + Max priority fee, GasFeeCap)
+	realTx, err := bind.NewBoundContract(common.HexToAddress(s.Config.RestakingContract), abi.ABI{}, s.EthClient, s.EthClient,
+		s.EthClient).RawTransact(opts, input)
+	if err != nil {
+		return nil, err
+	}
+	return realTx, nil
 }

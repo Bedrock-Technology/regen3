@@ -73,7 +73,7 @@ func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSigned
 		}
 		for _, v := range validators.Data {
 			for i, k := range modelValidators {
-				if v.Validator.PublicKey.String() == k.PubKey {
+				if v.Validator.PublicKey.String() == k.PubKey && v.Validator.EffectiveBalance >= phase0.Gwei(32000000000) {
 					modelValidators[i].ValidatorIndex = uint64(v.Index)
 				}
 			}

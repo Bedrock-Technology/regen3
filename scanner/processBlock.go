@@ -149,11 +149,9 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 			if err != nil {
 				return err
 			}
-			//del data
 			validator := models.Validator{}
 			rest := orm.Where("validator_index = ?", eigenPodFullWithdrawalRedeemed.ValidatorIndex.Uint64()).
-				Where("pod_address = ?", log.Address.String()).
-				Take(&validator)
+				Where("pod_address = ?", log.Address.String()).Take(&validator)
 			if rest.Error != nil {
 				return rest.Error
 			}
@@ -173,17 +171,17 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 			historicalSummaryStatePath := fmt.Sprintf("%s/%s", s.Config.DataPath, historicalSummaryStateName)
 			err = os.Remove(withdrawalHeaderPath)
 			if err != nil {
-				logrus.Errorf("remove state file[%s] failed:%v", withdrawalHeaderPath, err)
+				logrus.Infoln("remove state file[%s] failed:%v", withdrawalHeaderPath, err)
 			}
 			logrus.Infof("remove state file[%s]", withdrawalHeaderPath)
 			err = os.Remove(withdrawalBodyPath)
 			if err != nil {
-				logrus.Errorf("remove state file[%s] failed:%v", withdrawalBodyPath, err)
+				logrus.Infoln("remove state file[%s] failed:%v", withdrawalBodyPath, err)
 			}
 			logrus.Infof("remove state file[%s]", withdrawalBodyPath)
 			err = os.Remove(historicalSummaryStatePath)
 			if err != nil {
-				logrus.Errorf("remove state file[%s] failed:%v", historicalSummaryStatePath, err)
+				logrus.Infoln("remove state file[%s] failed:%v", historicalSummaryStatePath, err)
 			}
 			logrus.Infof("remove state file[%s]", historicalSummaryStatePath)
 		}
