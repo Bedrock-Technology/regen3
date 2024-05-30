@@ -3,6 +3,7 @@ package scanner
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -83,6 +84,9 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				logrus.Infof("tx data:%v", hex.EncodeToString(tx.Data()))
 				realTx, err := v.scanner.sendVerifyWithdrawCredential(tx, big.NewInt(int64(pod.PodIndex)))
 				if err != nil {
+					if errors.Is(err, errBaseFeeTooHigh) {
+						return
+					}
 					logrus.Errorf("sendVerifyWithdrawCredential index %v error:%v", validators, err)
 					panic("sendVerifyWithdrawCredential error")
 				}
@@ -209,7 +213,7 @@ func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big
 	}
 	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
 		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
-		return nil, nil
+		return nil, errBaseFeeTooHigh
 	}
 	//gasTipCap := big.NewInt(150000000) //0.15gwei
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -53,7 +54,7 @@ func (v *QueueWithdrawRun) JobRun() {
 			//todo simple, need modify on M3
 			podBalance, err := v.scanner.EthClient.BalanceAt(context.Background(), common.HexToAddress(pod.Address), nil)
 			if err != nil {
-				logrus.Errorf("Get BalanceAt failed: %v", err)
+				logrus.Errorf("Get pod %s BalanceAt failed: %v", pod.Address, err)
 				continue
 			}
 			eth32, _ := big.NewInt(0).SetString("32000000000000000000", 0)
@@ -65,6 +66,9 @@ func (v *QueueWithdrawRun) JobRun() {
 			shares := big.NewInt(0).Mul(eth32, numV)
 			realTx, err := v.scanner.sendQueueWithdrawals(shares, pod)
 			if err != nil {
+				if errors.Is(err, errBaseFeeTooHigh) {
+					return
+				}
 				logrus.Errorf("sendQueueWithdrawals index %v error:%v", pod.Address, err)
 				panic("sendVerifyWithdrawProof error")
 			}
@@ -103,21 +107,24 @@ func (v *QueueWithdrawRun) JobRun() {
 			err := json.Unmarshal([]byte(queue.Withdrawal), &withdrawal)
 			if err != nil {
 				logrus.Errorf("Unmarshal QueueWithdrawals failed: %v", err)
-				return
+				continue
 			}
 			block, err := v.scanner.EthClient.BlockNumber(context.Background())
 			if err != nil {
 				logrus.Errorf("Get BlockNumber failed: %v", err)
-				return
+				continue
 			}
 			if uint64(withdrawal.Withdrawal.StartBlock)+v.scanner.Config.MinWithdrawalDelayBlocks > block {
 				logrus.Infof("minWithdrawalDelayBlocks period has not yet passed")
-				return
+				continue
 			}
 			if withdrawal.Withdrawal.Withdrawer.String() == pod.Owner {
 				//send completeQueueWithdrawal
 				realTx, err := v.scanner.sendCompleteQueuedWithdrawals(pod, withdrawal)
 				if err != nil {
+					if errors.Is(err, errBaseFeeTooHigh) {
+						return
+					}
 					logrus.Errorf("sendCompleteQueuedWithdrawals index %v error:%v", pod.Address, err)
 					panic("sendCompleteQueuedWithdrawals error")
 				}
@@ -190,7 +197,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) (*types.
 	}
 	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
 		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
-		return nil, nil
+		return nil, errBaseFeeTooHigh
 	}
 	//gasTipCap := big.NewInt(150000000) //0.15gwei
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
@@ -256,7 +263,7 @@ func (s *Scanner) sendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	}
 	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
 		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
-		return nil, nil
+		return nil, errBaseFeeTooHigh
 	}
 	//gasTipCap := big.NewInt(150000000) //0.15gwei
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())

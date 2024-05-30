@@ -102,13 +102,15 @@ func (s *Scanner) processEigenOracle(txHash common.Hash, log types.Log, orm *gor
 			err = os.Remove(statefilePath)
 			if err != nil {
 				logrus.Warnf("remove state file[%s] failed:%v", statefilePath, err)
+			} else {
+				logrus.Infof("remove state file[%s]", statefilePath)
 			}
-			logrus.Infof("remove state file[%s]", statefilePath)
 			err = os.Remove(headerfilePath)
 			if err != nil {
 				logrus.Warnf("remove header file[%s] failed:%v", headerfilePath, err)
+			} else {
+				logrus.Infof("remove header file[%s]", headerfilePath)
 			}
-			logrus.Infof("remove header file[%s]", headerfilePath)
 		}
 	}
 	return nil
@@ -173,19 +175,22 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 			historicalSummaryStatePath := fmt.Sprintf("%s/%s", s.Config.DataPath, historicalSummaryStateName)
 			err = os.Remove(withdrawalHeaderPath)
 			if err != nil {
-				logrus.Infoln("remove state file[%s] failed:%v", withdrawalHeaderPath, err)
+				logrus.Warnf("remove state file[%s] failed:%v", withdrawalHeaderPath, err)
+			} else {
+				logrus.Infof("remove state file[%s]", withdrawalHeaderPath)
 			}
-			logrus.Infof("remove state file[%s]", withdrawalHeaderPath)
 			err = os.Remove(withdrawalBodyPath)
 			if err != nil {
-				logrus.Infoln("remove state file[%s] failed:%v", withdrawalBodyPath, err)
+				logrus.Warnf("remove state file[%s] failed:%v", withdrawalBodyPath, err)
+			} else {
+				logrus.Infof("remove state file[%s]", withdrawalBodyPath)
 			}
-			logrus.Infof("remove state file[%s]", withdrawalBodyPath)
 			err = os.Remove(historicalSummaryStatePath)
 			if err != nil {
-				logrus.Infoln("remove state file[%s] failed:%v", historicalSummaryStatePath, err)
+				logrus.Warnf("remove state file[%s] failed:%v", historicalSummaryStatePath, err)
+			} else {
+				logrus.Infof("remove state file[%s]", historicalSummaryStatePath)
 			}
-			logrus.Infof("remove state file[%s]", historicalSummaryStatePath)
 		}
 	}
 	return nil

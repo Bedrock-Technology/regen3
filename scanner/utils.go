@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/sirupsen/logrus"
@@ -13,7 +14,9 @@ const TxVerifyWithdrawalCredentials = "verifyWithdrawalCredentials"
 const TxVerifyWithdrawalProof = "verifyWithdrawalProof"
 const TxQueueWithdrawals = "queueWithdrawals"
 const TxCompleteQueueWithdrawals = "completeQueueWithdrawals"
+
 const batchSizeCredential = int(2)
+const batchSizeProof = int(1)
 
 const beaconStateFormat = "%s_state_%d.json"
 const beaconHeaderFormat = "%s_header_%d.json"
@@ -96,3 +99,5 @@ func (s *Scanner) findLatestBlockNumber() (uint64, error) {
 	//	cursor.Slot--
 	//}
 }
+
+var errBaseFeeTooHigh = errors.New("base fee too high")

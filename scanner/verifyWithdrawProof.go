@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -25,8 +26,8 @@ func (s *Scanner) InitVerifyWithdrawProof() error {
 	if err != nil {
 		return err
 	}
-	s.BlockTimer.NewJob(blockNow, s.Config.CheckVerifyWithdrawCredential.IntervalBlock,
-		s.Config.CheckVerifyWithdrawCredential.FirstRun,
+	s.BlockTimer.NewJob(blockNow, s.Config.CheckVerifyWithdrawProof.IntervalBlock,
+		s.Config.CheckVerifyWithdrawProof.FirstRun,
 		&VerifyWithdrawProofRun{
 			scanner: s,
 		})
@@ -38,8 +39,6 @@ func (s *Scanner) InitVerifyWithdrawProof() error {
 type VerifyWithdrawProofRun struct {
 	scanner *Scanner
 }
-
-const batchSizeProof = int(1)
 
 func (v *VerifyWithdrawProofRun) JobRun() {
 	logrus.Info("VerifyWithdrawProofRun")
@@ -114,6 +113,7 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 				proof.WithdrawalDetails.WithdrawalBlockBodyFiles = append(proof.WithdrawalDetails.WithdrawalBlockBodyFiles, withdrawalBodyPath)
 				proof.WithdrawalDetails.HistoricalSummaryStateFiles = append(proof.WithdrawalDetails.HistoricalSummaryStateFiles, historicalSummaryStatePath)
 			}
+
 			tx, err := v.scanner.getWithdrawalProofTx(proof, pod.Owner)
 			if err != nil {
 				logrus.Errorln("getWithdrawalProofTx err:", err)
@@ -122,6 +122,9 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 			logrus.Infof("getWithdrawalProofTx tx: %v", hex.EncodeToString(tx.Data()))
 			realTx, err := v.scanner.sendVerifyWithdrawProof(tx, big.NewInt(int64(pod.PodIndex)))
 			if err != nil {
+				if errors.Is(err, errBaseFeeTooHigh) {
+					return
+				}
 				logrus.Errorf("sendVerifyWithdrawProof index %v error:%v", validators, err)
 				panic("sendVerifyWithdrawProof error")
 			}
@@ -265,7 +268,7 @@ func (s *Scanner) sendVerifyWithdrawProof(tx *types.Transaction, podId *big.Int)
 	}
 	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
 		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
-		return nil, nil
+		return nil, errBaseFeeTooHigh
 	}
 	//gasTipCap := big.NewInt(150000000) //0.15gwei
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
