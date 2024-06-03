@@ -216,11 +216,16 @@ const withdrawalHeaderFormat = "%s_withdrawal_header_%d.json"
 const withdrawalBodyFormat = "%s_withdrawal_body_%d.json"
 const historicalSummaryStateFormat = "%s_historical_summary_state_%d.json"
 
-func (s *Scanner) getWithdrawalProofTx(proof proofgen.WithdrawalProof, podOwner string) (*types.Transaction, error) {
+func (s *Scanner) getWithdrawalProofTx(proof proofgen.WithdrawalProof, podOwner string) (tx *types.Transaction, err error) {
 	proofBytes, err := json.Marshal(proof)
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if info := recover(); info != nil {
+			err = errors.New("getWithdrawalProofTx recover")
+		}
+	}()
 	logrus.Info("getWithdrawalProofTx proof:", string(proofBytes))
 	chainClient, err := txsubmitter.NewChainClient(s.EthClient, "", podOwner, 0, 0)
 	if err != nil {
@@ -234,7 +239,7 @@ func (s *Scanner) getWithdrawalProofTx(proof proofgen.WithdrawalProof, podOwner 
 		*chainClient,
 		*eigenPodProofs,
 	)
-	tx, err := proofgen.VerifyAndProcessWithdrawalsGen(submitter, proof)
+	tx, err = proofgen.VerifyAndProcessWithdrawalsGen(submitter, proof)
 	if err != nil {
 		return nil, err
 	}
