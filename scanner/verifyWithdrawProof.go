@@ -40,6 +40,17 @@ type VerifyWithdrawProofRun struct {
 	scanner *Scanner
 }
 
+func checkIfHistoricalSlot(validators []models.Validator, cursorSlot uint64) error {
+	for _, v := range validators {
+		if historicalSummaryStateSlot(v.WithdrawnOnChain) < cursorSlot {
+			logrus.Infof("summary state slot:%v , sursorSlot: %v",
+				historicalSummaryStateSlot(v.WithdrawnOnChain), cursorSlot)
+			return errors.New("slot not contained")
+		}
+	}
+	return nil
+}
+
 func (v *VerifyWithdrawProofRun) JobRun() {
 	logrus.Info("VerifyWithdrawProofRun")
 	for _, pod := range v.scanner.Pods {
@@ -58,6 +69,11 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 			if err != nil {
 				logrus.Errorln("GetCursor:", err)
 				return
+			}
+			err = checkIfHistoricalSlot(validators, cursor.Slot)
+			if err != nil {
+				logrus.Infof("checkIfHistoricalSlot")
+				continue
 			}
 
 			statefileName := fmt.Sprintf(beaconStateFormat, v.scanner.Config.Network, cursor.Slot)

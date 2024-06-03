@@ -42,6 +42,8 @@ func downloadFile(filePath, url string) error {
 			return err
 		}
 		if resp.StatusCode != http.StatusOK {
+			os.Remove(filePath)
+			logrus.Infof("rm: %s\n", filePath)
 			return fmt.Errorf("download error:%v", resp.StatusCode)
 		}
 		defer resp.Body.Close()
