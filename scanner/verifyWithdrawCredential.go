@@ -167,7 +167,12 @@ func checkIfEventContained(logs []*types.Log, needCheck []uint64, podAddress str
 
 func (s *Scanner) getVerifyWithdrawCredentialTx(oracleStateFile, oracleHeaderFile string,
 	podAddress common.Address, podOwner string,
-	validators []uint64) (*types.Transaction, error) {
+	validators []uint64) (tx *types.Transaction, err error) {
+	defer func() {
+		if info := recover(); info != nil {
+			err = errors.New("getVerifyWithdrawCredentialTx recover")
+		}
+	}()
 	chainClient, err := txsubmitter.NewChainClient(s.EthClient, "", podOwner, 0, 0)
 	if err != nil {
 		return nil, err
@@ -180,7 +185,7 @@ func (s *Scanner) getVerifyWithdrawCredentialTx(oracleStateFile, oracleHeaderFil
 		*chainClient,
 		*eigenPodProofs,
 	)
-	tx, err := proofgen.VerifyWithdrawalCredentialsGen2(submitter, oracleStateFile, oracleHeaderFile, podAddress, validators)
+	tx, err = proofgen.VerifyWithdrawalCredentialsGen2(submitter, oracleStateFile, oracleHeaderFile, podAddress, validators)
 	if err != nil {
 		return nil, err
 	}
