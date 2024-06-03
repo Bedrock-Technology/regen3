@@ -42,7 +42,7 @@ type VerifyWithdrawProofRun struct {
 
 func checkIfHistoricalSlot(validators []models.Validator, cursorSlot uint64) error {
 	for _, v := range validators {
-		if historicalSummaryStateSlot(v.WithdrawnOnChain) < cursorSlot {
+		if historicalSummaryStateSlot(v.WithdrawnOnChain) > cursorSlot {
 			logrus.Infof("summary state slot:%v , sursorSlot: %v",
 				historicalSummaryStateSlot(v.WithdrawnOnChain), cursorSlot)
 			return errors.New("slot not contained")
