@@ -78,7 +78,7 @@ const (
 )
 
 func TestEigenPodCaller_ValidatorPubkeyToInfo(t *testing.T) {
-	pubKey := "b78d2c8969f9ab62bc52a8612bc6c1217751819d42c25865048d5003d440c7986c04f730313ad84f2aff2dc256d66df4"
+	pubKey := "aee4bc69d8ea4997cea56fb7aa8a56af42a4f8c41105651b6deb316ebc436a5b43f7c6657401fdee88b2e891d0cb42a3"
 	pubKeyByte, _ := hex.DecodeString(pubKey)
 	validatorInfo, err := contract.ValidatorPubkeyToInfo(&bind.CallOpts{}, pubKeyByte)
 	if err != nil {

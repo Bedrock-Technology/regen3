@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
+	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/ethereum/go-ethereum"
@@ -52,19 +53,21 @@ func (v *QueueWithdrawRun) JobRun() {
 		if len(queueWithdrawalsNotCompleted) == 0 {
 			logrus.Infof("pod %s no queueWithdrawals found", pod.Address)
 			//todo simple, need modify on M3
-			podBalance, err := v.scanner.EthClient.BalanceAt(context.Background(), common.HexToAddress(pod.Address), nil)
+			podContract, err := EigenPod.NewEigenPod(common.HexToAddress(pod.Address), v.scanner.EthClient)
 			if err != nil {
-				logrus.Errorf("Get pod %s BalanceAt failed: %v", pod.Address, err)
+				logrus.Errorf("Get pod %s podContract: %v", pod.Address, err)
 				continue
 			}
-			eth32, _ := big.NewInt(0).SetString("32000000000000000000", 0)
-			numV := big.NewInt(0).Div(podBalance, eth32)
-			if numV.Cmp(big.NewInt(0)) <= 0 {
-				logrus.Infof("pod %s numV %s", pod.Address, numV)
+			shares, err := podContract.WithdrawableRestakedExecutionLayerGwei(&bind.CallOpts{})
+			if err != nil {
+				logrus.Errorf("Get pod %s WithdrawableRestakedExecutionLayerGwei: %v", pod.Address, err)
 				continue
 			}
-			shares := big.NewInt(0).Mul(eth32, numV)
-			realTx, err := v.scanner.sendQueueWithdrawals(shares, pod)
+			if shares == 0 {
+				logrus.Infof("WithdrawableRestakedExecutionLayerGwei 0")
+				continue
+			}
+			realTx, err := v.scanner.sendQueueWithdrawals(big.NewInt(int64(shares)), pod)
 			if err != nil {
 				if errors.Is(err, errBaseFeeTooHigh) {
 					return
@@ -95,7 +98,7 @@ func (v *QueueWithdrawRun) JobRun() {
 				logrus.Errorf("sendQueueWithdrawals tx: %v status failed:%v", txReceipt.TxHash, txRecord.Status)
 				panic("sendQueueWithdrawals")
 			}
-			err = checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, shares, v.scanner)
+			err = checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, big.NewInt(int64(shares)), v.scanner)
 			if err != nil {
 				logrus.Errorln("checkIfWithdrawalQueuedContained error:", err)
 				panic("checkIfWithdrawalQueuedContained")

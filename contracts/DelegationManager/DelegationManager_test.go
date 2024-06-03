@@ -101,7 +101,7 @@ func TestDelegationManagerCaller_StakerNonce(t *testing.T) {
 
 func TestDelegationManagerTransactor_CompleteQueuedWithdrawals(t *testing.T) {
 	//blockNum := uint64(1442069)
-	blockNum := uint64(1495178)
+	blockNum := uint64(1661236)
 	//=== RUN   TestDelegationManagerTransactor_CompleteQueuedWithdrawals
 	//    DelegationManager_test.go:130: CompleteQueuedWithdrawals err: execution reverted: DelegationManager._completeQueuedWithdrawal: minWithdrawalDelayBlocks period has not yet passed
 	it, err := contract.FilterWithdrawalQueued(&bind.FilterOpts{
@@ -129,7 +129,7 @@ func TestDelegationManagerTransactor_CompleteQueuedWithdrawals(t *testing.T) {
 	transOpts := getTransOpts("HOLESKY_ACCOUNT_0")
 	transOpts.NoSend = true
 	dmAbi, _ := DelegationManagerMetaData.GetAbi()
-	data, _ := dmAbi.Pack("completeQueuedWithdrawals", idmw, tokens, middlewareTimesIndexes, []bool{false})
+	data, _ := dmAbi.Pack("completeQueuedWithdrawals", idmw, tokens, middlewareTimesIndexes, []bool{true})
 	estimateGasLimitPack, err := provider.EstimateGas(context.Background(), ethereum.CallMsg{
 		From: common.HexToAddress(PodOwner),
 		To:   func(address common.Address) *common.Address { return &address }(common.HexToAddress(ContractAddress)),
@@ -141,7 +141,7 @@ func TestDelegationManagerTransactor_CompleteQueuedWithdrawals(t *testing.T) {
 	}
 	t.Logf("estimateGasLimitPack:%v,%v", estimateGasLimitPack, hex.EncodeToString(data))
 	//estimateGasLimitPack:90513,
-	tx, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{false})
+	tx, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{true})
 	if err != nil {
 		t.Errorf("CompleteQueuedWithdrawals err:%v", err)
 		return
@@ -156,7 +156,7 @@ func TestDelegationManagerTransactor_CompleteQueuedWithdrawals(t *testing.T) {
 	t.Log("hash:", tx.Hash().String())
 	transOpts.NoSend = false
 	transOpts.GasLimit = estimateGasLimit * 4
-	txReal, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{false})
+	txReal, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{true})
 	if err != nil {
 		t.Error("CompleteQueuedWithdrawals err:", err)
 		return
