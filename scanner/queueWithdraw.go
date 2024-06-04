@@ -190,7 +190,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) (*types.
 	if err != nil {
 		return nil, err
 	}
-	input, err := restakingAbi.Pack("queueWithdrawals", pod.PodIndex, data)
+	input, err := restakingAbi.Pack("callDelegationManager", pod.PodIndex, data)
 	if err != nil {
 		return nil, err
 	}

@@ -104,4 +104,4 @@ func (s *Scanner) DelegateTo(podIndex int64, operator string) {
 	return
 }
 
-const TxDelegateTo = "callDelegationManager"
+const TxDelegateTo = "delegateTo"
