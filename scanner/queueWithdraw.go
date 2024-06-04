@@ -121,6 +121,7 @@ func (v *QueueWithdrawRun) JobRun() {
 				logrus.Infof("minWithdrawalDelayBlocks period has not yet passed")
 				continue
 			}
+			logrus.Infof("Withdrawer: %s, owner: %s", withdrawal.Withdrawal.Withdrawer.String(), pod.Owner)
 			if withdrawal.Withdrawal.Withdrawer.String() == pod.Owner {
 				//send completeQueueWithdrawal
 				realTx, err := v.scanner.sendCompleteQueuedWithdrawals(pod, withdrawal)
@@ -256,7 +257,7 @@ func (s *Scanner) sendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	if err != nil {
 		return nil, err
 	}
-	input, err := restakingAbi.Pack("completeQueuedWithdrawals", pod.PodIndex, data)
+	input, err := restakingAbi.Pack("callDelegationManager", big.NewInt(int64(pod.PodIndex)), data)
 	if err != nil {
 		return nil, err
 	}
