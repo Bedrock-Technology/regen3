@@ -67,7 +67,8 @@ func (v *QueueWithdrawRun) JobRun() {
 				logrus.Infof("WithdrawableRestakedExecutionLayerGwei 0")
 				continue
 			}
-			realTx, err := v.scanner.sendQueueWithdrawals(big.NewInt(int64(shares)), pod)
+			sharesInwei := big.NewInt(0).Mul(big.NewInt(int64(shares)), big.NewInt(1000000000))
+			realTx, err := v.scanner.sendQueueWithdrawals(sharesInwei, pod)
 			if err != nil {
 				if errors.Is(err, errBaseFeeTooHigh) {
 					return
@@ -98,7 +99,7 @@ func (v *QueueWithdrawRun) JobRun() {
 				logrus.Errorf("sendQueueWithdrawals tx: %v status failed:%v", txReceipt.TxHash, txRecord.Status)
 				panic("sendQueueWithdrawals")
 			}
-			err = checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, big.NewInt(int64(shares)), v.scanner)
+			err = checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, v.scanner)
 			if err != nil {
 				logrus.Errorln("checkIfWithdrawalQueuedContained error:", err)
 				panic("checkIfWithdrawalQueuedContained")
@@ -156,7 +157,7 @@ func (v *QueueWithdrawRun) JobRun() {
 					panic("sendQueueWithdrawals")
 				}
 				err = checkIfCompleteWithdrawalQueuedContained(txReceipt.Logs,
-					base64.StdEncoding.EncodeToString([]byte(queue.WithdrawalRoot)), v.scanner)
+					queue.WithdrawalRoot, v.scanner)
 				if err != nil {
 					logrus.Errorln("checkIfCompleteWithdrawalQueuedContained error:", err)
 					panic("checkIfCompleteWithdrawalQueuedContained")
@@ -305,7 +306,7 @@ func (s *Scanner) sendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	return realTx, nil
 }
 
-func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner string, shares *big.Int, s *Scanner) error {
+func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner string, s *Scanner) error {
 	dmAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
 	if err != nil {
 		return err
