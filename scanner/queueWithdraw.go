@@ -107,7 +107,7 @@ func (v *QueueWithdrawRun) JobRun() {
 			logrus.Infof("pod %s has notcompleted queueWithdrawals, try complete", pod.Address)
 			queue := queueWithdrawalsNotCompleted[0]
 			withdrawal := DelegationManagerWithdrawalQueued{}
-			err := json.Unmarshal([]byte(queue.Withdrawal), &withdrawal)
+			err := json.Unmarshal([]byte(queue.Withdrawal), &withdrawal.Withdrawal)
 			if err != nil {
 				logrus.Errorf("Unmarshal QueueWithdrawals failed: %v", err)
 				continue
@@ -156,7 +156,7 @@ func (v *QueueWithdrawRun) JobRun() {
 					panic("sendQueueWithdrawals")
 				}
 				err = checkIfCompleteWithdrawalQueuedContained(txReceipt.Logs,
-					base64.StdEncoding.EncodeToString(withdrawal.WithdrawalRoot[:]), v.scanner)
+					base64.StdEncoding.EncodeToString([]byte(queue.WithdrawalRoot)), v.scanner)
 				if err != nil {
 					logrus.Errorln("checkIfCompleteWithdrawalQueuedContained error:", err)
 					panic("checkIfCompleteWithdrawalQueuedContained")
