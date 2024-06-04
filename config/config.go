@@ -62,6 +62,7 @@ type TimerSpec struct {
 	Enable        bool   `yaml:"enable"`
 	IntervalBlock uint64 `yaml:"intervalBlock"`
 	FirstRun      uint64 `yaml:"firstRun"`
+	BatchSize     int    `yaml:"batchSize"`
 }
 
 func LoadConfig(path string) (config *Config) {

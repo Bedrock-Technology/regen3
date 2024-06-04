@@ -44,10 +44,10 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 	for _, pod := range v.scanner.Pods {
 		if pod.IsCredential == 1 {
 			//get pod's validators that need to verify
-			validators := make([]uint64, 0, batchSizeCredential)
+			validators := make([]uint64, 0, v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize)
 			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").Where("pod_address = ?", pod.Address).
 				Where("credential_verified = ?", 0).Where("withdrawn_on_chain = ?", 0).
-				Where("withdrawn_on_pod = ?", 0).Limit(batchSizeCredential).Find(&validators)
+				Where("withdrawn_on_pod = ?", 0).Limit(v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize).Find(&validators)
 			if rest.Error != nil {
 				logrus.Infof("Get pod's[%s] validators that need to verify error: %v", pod.Address, rest.Error)
 				return
