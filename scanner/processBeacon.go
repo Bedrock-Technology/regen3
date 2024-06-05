@@ -104,7 +104,7 @@ func (s *Scanner) processVoluntaryExit(beaconBlock *api.Response[*spec.Versioned
 		//Update
 		slot, _ := beaconBlock.Data.Slot()
 		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
-			UpdateColumn("voluntary_exit", uint64(slot))
+			Update("voluntary_exit", uint64(slot))
 
 		if res.Error != nil {
 			return res.Error
@@ -135,7 +135,7 @@ func (s *Scanner) processWithdrawnOnChain(beaconBlock *api.Response[*spec.Versio
 		//Update
 		slot, _ := beaconBlock.Data.Slot()
 		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
-			UpdateColumn("withdrawn_on_chain", uint64(slot))
+			Update("withdrawn_on_chain", uint64(slot))
 
 		if res.Error != nil {
 			return res.Error

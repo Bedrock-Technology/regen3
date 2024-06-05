@@ -145,7 +145,7 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 			rest := orm.Model(&models.Validator{}).
 				Where("validator_index = ?", eigenPodRestaked.ValidatorIndex.Uint64()).
 				Where("pod_address = ?", log.Address.String()).
-				UpdateColumn("credential_verified", txReceipt.BlockNumber.Uint64())
+				Update("credential_verified", txReceipt.BlockNumber.Uint64())
 			logrus.Infof("ValidatorRestaked %v", eigenPodRestaked.ValidatorIndex)
 			return rest.Error
 		case "FullWithdrawalRedeemed":
@@ -162,7 +162,7 @@ func (s *Scanner) processEigenPods(txHash common.Hash, log types.Log, orm *gorm.
 			rest = orm.Model(&models.Validator{}).
 				Where("validator_index = ?", validator.ValidatorIndex).
 				Where("pod_address = ?", log.Address.String()).
-				UpdateColumn("withdrawn_on_pod", txReceipt.BlockNumber.Uint64())
+				Update("withdrawn_on_pod", txReceipt.BlockNumber.Uint64())
 			if rest.Error != nil {
 				return rest.Error
 			}
@@ -227,7 +227,7 @@ func (s *Scanner) processDelegationManager(txHash common.Hash, log types.Log, or
 					//our pods
 					rest := orm.Model(&models.Pod{}).
 						Where("owner = ?", pod.Owner).
-						UpdateColumn("delegate_to", eigenPodRestaked.Operator.String())
+						Update("delegate_to", eigenPodRestaked.Operator.String())
 					logrus.Infof("staker:%v delegate to %v", eigenPodRestaked.Staker.String(), eigenPodRestaked.Operator)
 					return rest.Error
 				}
@@ -260,7 +260,7 @@ func (s *Scanner) processDelegationManager(txHash common.Hash, log types.Log, or
 			root := base64.StdEncoding.EncodeToString(r.WithdrawalRoot[:])
 			rest := orm.Model(&models.QueueWithdrawals{}).
 				Where("withdrawal_root = ?", root).
-				UpdateColumn("completed", 1)
+				Update("completed", 1)
 			return rest.Error
 		}
 	}

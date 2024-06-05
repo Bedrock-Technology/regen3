@@ -1,6 +1,7 @@
 package Staking
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -63,4 +64,14 @@ func TestNewStaking(t *testing.T) {
 		t.Logf("info:%v", string(out))
 	}
 
+}
+
+func TestRegistry(t *testing.T) {
+	info, err := contract.ValidatorRegistry(&bind.CallOpts{}, big.NewInt(int64(97)))
+	if err != nil {
+		t.Fatal("err")
+	}
+	out, _ := json.Marshal(info)
+	t.Logf("info:%v", string(out))
+	t.Logf("pubKey:%v", hex.EncodeToString(info.Pubkey))
 }
