@@ -15,7 +15,7 @@ type BlockTimer struct {
 type EntryId uint64
 
 type IJob interface {
-	JobRun()
+	JobRun() uint64
 }
 
 type Job struct {
@@ -67,9 +67,13 @@ func (bt *BlockTimer) InvokeTimer(blockNow uint64) {
 				bt.jobs = append(bt.jobs[:i], bt.jobs[i+1:]...)
 				continue
 			}
-			bt.jobs[i].JobRun()
+			delta := bt.jobs[i].JobRun()
 			if bt.jobs[i].intervalBlock != 0 {
-				bt.jobs[i].triggerBlock = bt.jobs[i].intervalBlock + blockNow
+				if delta != 0 {
+					bt.jobs[i].triggerBlock = bt.jobs[i].intervalBlock + delta
+				} else {
+					bt.jobs[i].triggerBlock = bt.jobs[i].intervalBlock + blockNow
+				}
 				sort.Sort(bt)
 			} else {
 				bt.jobs = append(bt.jobs[:i], bt.jobs[i+1:]...)

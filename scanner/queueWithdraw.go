@@ -38,9 +38,10 @@ type QueueWithdrawRun struct {
 	scanner *Scanner
 }
 
-func (v *QueueWithdrawRun) JobRun() {
+func (v *QueueWithdrawRun) JobRun() uint64 {
 	// todo will rewrite when checkpoint system launch
 	logrus.Infof("Start QueueWithdrawRun")
+	delta := uint64(0)
 	//get not complete
 	for _, pod := range v.scanner.Pods {
 		queueWithdrawalsNotCompleted := make([]models.QueueWithdrawals, 0)
@@ -48,7 +49,7 @@ func (v *QueueWithdrawRun) JobRun() {
 			Where("pod = ?", pod.Address).Limit(1).Find(&queueWithdrawalsNotCompleted)
 		if rest.Error != nil {
 			logrus.Errorf("Get QueueWithdrawals failed: %v", rest.Error)
-			return
+			return delta
 		}
 		if len(queueWithdrawalsNotCompleted) == 0 {
 			logrus.Infof("pod %s no queueWithdrawals found", pod.Address)
@@ -71,7 +72,7 @@ func (v *QueueWithdrawRun) JobRun() {
 			realTx, err := v.scanner.sendQueueWithdrawals(sharesInwei, pod)
 			if err != nil {
 				if errors.Is(err, errBaseFeeTooHigh) {
-					return
+					return delta
 				}
 				logrus.Errorf("sendQueueWithdrawals index %v error:%v", pod.Address, err)
 				panic("sendVerifyWithdrawProof error")
@@ -128,7 +129,7 @@ func (v *QueueWithdrawRun) JobRun() {
 				realTx, err := v.scanner.SendCompleteQueuedWithdrawals(pod, withdrawal, true)
 				if err != nil {
 					if errors.Is(err, errBaseFeeTooHigh) {
-						return
+						return delta
 					}
 					logrus.Errorf("sendCompleteQueuedWithdrawals index %v error:%v", pod.Address, err)
 					panic("sendCompleteQueuedWithdrawals error")
@@ -162,9 +163,11 @@ func (v *QueueWithdrawRun) JobRun() {
 					logrus.Errorln("checkIfCompleteWithdrawalQueuedContained error:", err)
 					panic("checkIfCompleteWithdrawalQueuedContained")
 				}
+				delta = txReceipt.BlockNumber.Uint64()
 			}
 		}
 	}
+	return delta
 }
 
 type DelegationManagerWithdrawalQueued struct {

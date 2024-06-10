@@ -10,8 +10,9 @@ type Job1 struct {
 	Name string
 }
 
-func (j *Job1) JobRun() {
+func (j *Job1) JobRun() uint64 {
 	fmt.Println("job1 run")
+	return 444
 }
 
 type Job2 struct {
@@ -20,13 +21,14 @@ type Job2 struct {
 	EntryId      EntryId
 }
 
-func (j *Job2) JobRun() {
+func (j *Job2) JobRun() uint64 {
 	fmt.Println("job2 run")
 	if j.Called == 3 {
 		fmt.Println("del job2 run")
 		Bt.DelTimer(j.EntryId)
 	}
 	j.Called++
+	return 0
 }
 
 var Bt = NewBlockTimer()
@@ -35,8 +37,9 @@ type Job3 struct {
 	Job string
 }
 
-func (j *Job3) JobRun() {
+func (j *Job3) JobRun() uint64 {
 	fmt.Println("job3 run")
+	return 0
 }
 
 func TestTimer(t *testing.T) {

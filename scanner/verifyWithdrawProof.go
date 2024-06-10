@@ -51,8 +51,9 @@ func checkIfHistoricalSlot(validators []models.Validator, cursorSlot uint64) err
 	return nil
 }
 
-func (v *VerifyWithdrawProofRun) JobRun() {
+func (v *VerifyWithdrawProofRun) JobRun() uint64 {
 	logrus.Info("VerifyWithdrawProofRun")
+	delta := uint64(0)
 	for _, pod := range v.scanner.Pods {
 		//get pod's validators that need to verify
 		validators := make([]models.Validator, 0, v.scanner.Config.CheckVerifyWithdrawProof.BatchSize)
@@ -61,14 +62,14 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 			Limit(v.scanner.Config.CheckVerifyWithdrawProof.BatchSize).Find(&validators)
 		if rest.Error != nil {
 			logrus.Errorln("Get pod's[%s] validators that need to proof error: %v", pod.Address, rest.Error)
-			return
+			return delta
 		}
 		if len(validators) != 0 {
 			logrus.Infof("need send[%v] to proof", validators)
 			cursor, err := models.GetCursor(v.scanner.DBEngine, models.EigenOracle)
 			if err != nil {
 				logrus.Errorln("GetCursor:", err)
-				return
+				return delta
 			}
 			err = checkIfHistoricalSlot(validators, cursor.Slot)
 			if err != nil {
@@ -84,12 +85,12 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 			err = v.scanner.getBeaconStates(statefilePath, cursor.Slot)
 			if err != nil {
 				logrus.Errorln("getBeaconStates err:", err)
-				return
+				return delta
 			}
 			err = v.scanner.getBeaconHeaders(headerfilePath, cursor.Slot)
 			if err != nil {
 				logrus.Errorln("getBeaconHeaders err:", err)
-				return
+				return delta
 			}
 			proof := proofgen.WithdrawalProof{}
 			proof.EigenPodAddress = common.HexToAddress(pod.Address)
@@ -112,17 +113,17 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 				err = v.scanner.getBeaconStates(historicalSummaryStatePath, historicalSummaryStateSlot(validator.WithdrawnOnChain))
 				if err != nil {
 					logrus.Errorln("getBeaconStates err:", err)
-					return
+					return delta
 				}
 				err = v.scanner.getBeaconHeaders(withdrawalHeaderPath, validator.WithdrawnOnChain)
 				if err != nil {
 					logrus.Errorln("getBeaconHeaders err:", err)
-					return
+					return delta
 				}
 				err = v.scanner.getBeaconBlocks(withdrawalBodyPath, validator.WithdrawnOnChain)
 				if err != nil {
 					logrus.Errorln("getBeaconBlocks err:", err)
-					return
+					return delta
 				}
 				proof.WithdrawalDetails.ValidatorIndices = append(proof.WithdrawalDetails.ValidatorIndices, validator.ValidatorIndex)
 				proof.WithdrawalDetails.WithdrawalBlockHeaderFiles = append(proof.WithdrawalDetails.WithdrawalBlockHeaderFiles, withdrawalHeaderPath)
@@ -133,13 +134,13 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 			tx, err := v.scanner.getWithdrawalProofTx(proof, pod.Owner)
 			if err != nil {
 				logrus.Errorln("getWithdrawalProofTx err:", err)
-				return
+				return delta
 			}
 			logrus.Infof("getWithdrawalProofTx tx: %v", hex.EncodeToString(tx.Data()))
 			realTx, err := v.scanner.sendVerifyWithdrawProof(tx, big.NewInt(int64(pod.PodIndex)))
 			if err != nil {
 				if errors.Is(err, errBaseFeeTooHigh) {
-					return
+					return delta
 				}
 				logrus.Errorf("sendVerifyWithdrawProof index %v error:%v", validators, err)
 				panic("sendVerifyWithdrawProof error")
@@ -176,8 +177,10 @@ func (v *VerifyWithdrawProofRun) JobRun() {
 				logrus.Errorln("checkIfEventContained error:", err)
 				panic("checkIfEventContained")
 			}
+			delta = txReceipt.BlockNumber.Uint64()
 		}
 	}
+	return delta
 }
 
 func checkIfFullWithdrawalContained(logs []*types.Log, needCheck []uint64, podAddress string, s *Scanner) error {
