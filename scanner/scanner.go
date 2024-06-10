@@ -146,7 +146,7 @@ func (s *Scanner) scan() {
 		return
 	}
 	cursor.Slot = realEnd
-	err = models.SaveCursor(s.DBEngine, cursor)
+	err = models.SaveCursor(DbTransaction, cursor)
 	if err != nil {
 		logrus.Errorln("UpdateCursor error:", err)
 		DbTransaction.Rollback()

@@ -2,6 +2,7 @@ package blockTimer
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"sort"
 )
 
@@ -67,7 +68,9 @@ func (bt *BlockTimer) InvokeTimer(blockNow uint64) {
 				bt.jobs = append(bt.jobs[:i], bt.jobs[i+1:]...)
 				continue
 			}
+			logrus.Info("Call JobRun block:", blockNow)
 			delta := bt.jobs[i].JobRun()
+			logrus.Info("Call JobRun delta:", delta)
 			if bt.jobs[i].intervalBlock != 0 {
 				if delta != 0 {
 					bt.jobs[i].triggerBlock = bt.jobs[i].intervalBlock + delta
