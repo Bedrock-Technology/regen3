@@ -125,7 +125,7 @@ func (v *QueueWithdrawRun) JobRun() {
 			logrus.Infof("Withdrawer: %s, owner: %s", withdrawal.Withdrawal.Withdrawer.String(), pod.Owner)
 			if withdrawal.Withdrawal.Withdrawer.String() == pod.Owner {
 				//send completeQueueWithdrawal
-				realTx, err := v.scanner.sendCompleteQueuedWithdrawals(pod, withdrawal)
+				realTx, err := v.scanner.SendCompleteQueuedWithdrawals(pod, withdrawal, true)
 				if err != nil {
 					if errors.Is(err, errBaseFeeTooHigh) {
 						return
@@ -240,7 +240,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) (*types.
 	return realTx, nil
 }
 
-func (s *Scanner) sendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued DelegationManagerWithdrawalQueued) (*types.Transaction, error) {
+func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued DelegationManagerWithdrawalQueued, asToken bool) (*types.Transaction, error) {
 	dm, err := DelegationManager.DelegationManagerMetaData.GetAbi()
 	if err != nil {
 		return nil, err
@@ -249,7 +249,7 @@ func (s *Scanner) sendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 		[]DelegationManager.IDelegationManagerWithdrawal{withdrawalQueued.Withdrawal},
 		[][]common.Address{{common.HexToAddress("0x0000000000000000000000000000000000000000")}},
 		[]*big.Int{big.NewInt(0)},
-		[]bool{true},
+		[]bool{asToken},
 	)
 	if err != nil {
 		return nil, err
