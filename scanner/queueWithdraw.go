@@ -105,6 +105,7 @@ func (v *QueueWithdrawRun) JobRun() uint64 {
 				logrus.Errorln("checkIfWithdrawalQueuedContained error:", err)
 				panic("checkIfWithdrawalQueuedContained")
 			}
+			delta = txReceipt.BlockNumber.Uint64()
 		} else {
 			logrus.Infof("pod %s has notcompleted queueWithdrawals, try complete", pod.Address)
 			queue := queueWithdrawalsNotCompleted[0]
