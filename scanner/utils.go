@@ -3,7 +3,9 @@ package scanner
 import (
 	"errors"
 	"fmt"
+	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/models"
+	"github.com/attestantio/go-eth2-client/api"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -84,19 +86,57 @@ func (s *Scanner) findLatestBlockNumber() (uint64, error) {
 		logrus.Errorln("GetCursor:", err)
 		return 0, err
 	}
-	return cursor.Slot, nil
-	//for {
-	//	slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
-	//		Block: fmt.Sprintf("%d", cursor.Slot),
-	//	})
-	//	if err == nil {
-	//		executionBlockNumber, errEb := slotBody.Data.ExecutionBlockNumber()
-	//		if errEb == nil {
-	//			return executionBlockNumber, nil
-	//		}
-	//	}
-	//	cursor.Slot--
-	//}
+	for {
+		slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
+			Block: fmt.Sprintf("%d", cursor.Slot),
+		})
+		if err != nil {
+			var apiErr *api.Error
+			if errors.As(err, &apiErr) {
+				switch apiErr.StatusCode {
+				case 404:
+					logrus.Warnf("empty slot[%d]", cursor.Slot)
+					cursor.Slot--
+					continue
+				default:
+					logrus.Errorf("error[%d]:%v", apiErr.StatusCode, err)
+					return 0, err
+				}
+			}
+		}
+		executionBlockNumber, err := slotBody.Data.ExecutionBlockNumber()
+		if err != nil {
+			return 0, err
+		}
+		return executionBlockNumber, nil
+	}
+}
+
+func (s *Scanner) findLatestBlockNumberBySlot(slot uint64) (uint64, error) {
+	for {
+		slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
+			Block: fmt.Sprintf("%d", slot),
+		})
+		if err != nil {
+			var apiErr *api.Error
+			if errors.As(err, &apiErr) {
+				switch apiErr.StatusCode {
+				case 404:
+					logrus.Warnf("empty slot[%d]", slot)
+					slot--
+					continue
+				default:
+					logrus.Errorf("error[%d]:%v", apiErr.StatusCode, err)
+					return 0, err
+				}
+			}
+		}
+		executionBlockNumber, err := slotBody.Data.ExecutionBlockNumber()
+		if err != nil {
+			return 0, err
+		}
+		return executionBlockNumber, nil
+	}
 }
 
 var errBaseFeeTooHigh = errors.New("base fee too high")

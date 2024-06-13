@@ -157,7 +157,12 @@ func (s *Scanner) scan() {
 		logrus.Errorln("DbTransaction error:", rest.Error)
 		return
 	}
-	s.BlockTimer.InvokeTimer(cursor.Slot)
+	block, err := s.findLatestBlockNumberBySlot(cursor.Slot)
+	if err != nil {
+		logrus.Errorln("findLatestBlockNumberBySlot error:", err)
+		return
+	}
+	s.BlockTimer.InvokeTimer(block)
 }
 
 func (s *Scanner) scanSlotAndBlock(start, end uint64, DbTrans *gorm.DB) (realEnd uint64, err error) {
