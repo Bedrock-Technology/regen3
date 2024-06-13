@@ -162,7 +162,7 @@ func (s *Scanner) scan() {
 		logrus.Errorln("findLatestBlockNumberBySlot error:", err)
 		return
 	}
-	s.BlockTimer.InvokeTimer(block)
+	s.BlockTimer.InvokeTimer(block - 1)
 }
 
 func (s *Scanner) scanSlotAndBlock(start, end uint64, DbTrans *gorm.DB) (realEnd uint64, err error) {
