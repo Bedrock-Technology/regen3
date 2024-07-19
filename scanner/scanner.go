@@ -186,6 +186,10 @@ LOOP:
 				}
 			}
 		}
+		if slotBody == nil || slotBody.Data == nil {
+			logrus.Warnf("slotBody is nil[%d]", start)
+			return start, err
+		}
 		executionBlockNumber, err := slotBody.Data.ExecutionBlockNumber()
 		if err != nil {
 			return start, err
