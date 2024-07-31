@@ -2,135 +2,148 @@ package scanner
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
 	"github.com/Bedrock-Technology/regen3/models"
-	"github.com/Bedrock-Technology/regen3/proofgen"
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
-	txsubmitter "github.com/Layr-Labs/eigenpod-proofs-generation/tx_submitoor/tx_submitter"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/Layr-Labs/eigenpod-proofs-generation/cli/core"
+	"github.com/attestantio/go-eth2-client/api"
+	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"math/big"
+	"strconv"
 )
 
-func (s *Scanner) InitVerifyWithdrawCredential() error {
-	blockNow, err := s.findLatestBlockNumber()
-	if err != nil {
-		return err
-	}
-	s.BlockTimer.NewJob(blockNow, s.Config.CheckVerifyWithdrawCredential.IntervalBlock,
+func (s *Scanner) InitVerifyWithdrawCredential() {
+	s.BlockTimer.NewJob(s.Config.CheckVerifyWithdrawCredential.IntervalBlock,
 		s.Config.CheckVerifyWithdrawCredential.FirstRun,
-		&VerifyWithdrawCredentialRun{
-			scanner: s,
-		})
+		&VerifyWithdrawCredentialRun{scanner: s})
 	logrus.Infof("Add VerifyWithdrawCredential timer blockNow:%d, firstRun:%d, interval:%d",
-		blockNow, s.Config.CheckVerifyWithdrawCredential.FirstRun, s.Config.CheckVerifyWithdrawCredential.IntervalBlock)
-	return nil
+		s.BlockTimer.BlockNow(), s.Config.CheckVerifyWithdrawCredential.FirstRun, s.Config.CheckVerifyWithdrawCredential.IntervalBlock)
 }
 
 type VerifyWithdrawCredentialRun struct {
 	scanner *Scanner
 }
 
-func (v *VerifyWithdrawCredentialRun) JobRun() uint64 {
+func (v *VerifyWithdrawCredentialRun) JobRun() {
 	logrus.Info("VerifyWithdrawCredentialRun")
-	delta := uint64(0)
+	var beaconBlockHeader *api.Response[*apiv1.BeaconBlockHeader]
+	var beaconBlockState *api.Response[*spec.VersionedBeaconState]
+	var blockTime uint64
 	for _, pod := range v.scanner.Pods {
 		if pod.IsCredential == 1 {
-			//get pod's validators that need to verify
 			validators := make([]uint64, 0, v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize)
-			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").Where("pod_address = ?", pod.Address).
+			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").
+				Where("pod_address = ?", pod.Address).
 				Where("credential_verified = ?", 0).Where("withdrawn_on_chain = ?", 0).
-				Where("withdrawn_on_pod = ?", 0).Limit(v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize).Find(&validators)
+				Where("withdrawn_on_pod = ?", 0).Where("voluntary_exit = ?", 0).
+				Limit(v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize).Find(&validators)
 			if rest.Error != nil {
-				logrus.Infof("Get pod's[%s] validators that need to verify error: %v", pod.Address, rest.Error)
-				return delta
+				logrus.Errorln("get validators error:", rest.Error)
+				return
 			}
 			if len(validators) != 0 {
-				logrus.Infof("need send[%v] to credential", validators)
-				cursor, err := models.GetCursor(v.scanner.DBEngine, models.EigenOracle)
+				proofs, err := getValidatorProof(pod.Address, v.scanner, validators, &beaconBlockHeader, &beaconBlockState, &blockTime)
 				if err != nil {
-					logrus.Errorln("GetCursor:", err)
-					return delta
+					logrus.Errorln("getValidatorProof error:", err)
+					return
 				}
-
-				statefileName := fmt.Sprintf(beaconStateFormat, v.scanner.Config.Network, cursor.Slot)
-				statefilePath := fmt.Sprintf("%s/%s", v.scanner.Config.DataPath, statefileName)
-				headerfileName := fmt.Sprintf(beaconHeaderFormat, v.scanner.Config.Network, cursor.Slot)
-				headerfilePath := fmt.Sprintf("%s/%s", v.scanner.Config.DataPath, headerfileName)
-
-				err = v.scanner.getBeaconStates(statefilePath, cursor.Slot)
+				txData, err := packVerifyWithdrawCredentialTx(proofs, blockTime)
 				if err != nil {
-					logrus.Errorln("getBeaconStates err:", err)
-					return delta
+					logrus.Errorln("packVerifyWithdrawCredentialTx error:", err)
+					continue
 				}
-				err = v.scanner.getBeaconHeaders(headerfilePath, cursor.Slot)
+				input, err := v.scanner.packVerifyWithdrawalCredentialsInput(txData, big.NewInt(int64(pod.PodIndex)))
 				if err != nil {
-					logrus.Errorln("getBeaconHeaders err:", err)
-					return delta
+					logrus.Errorln("packVerifyWithdrawalCredentialsInput error:", err)
+					continue
 				}
-				tx, err := v.scanner.getVerifyWithdrawCredentialTx(statefilePath, headerfilePath,
-					common.HexToAddress(pod.Address), pod.Owner, validators)
-				if err != nil {
-					logrus.Errorln("getVerifyWithdrawCredentialTx err:", err)
-					return delta
-				}
-				logrus.Infof("tx data:%v", hex.EncodeToString(tx.Data()))
-				realTx, err := v.scanner.sendVerifyWithdrawCredential(tx, big.NewInt(int64(pod.PodIndex)))
+				realTx, err := v.scanner.sendRawTransaction(input, v.scanner.Config.RestakingContract)
 				if err != nil {
 					if errors.Is(err, errBaseFeeTooHigh) {
-						return delta
+						logrus.Warnf("sendRawTransaction pod %v error:%v", pod.Address, errBaseFeeTooHigh)
+						return
 					}
-					logrus.Errorf("sendVerifyWithdrawCredential index %v error:%v", validators, err)
-					panic("sendVerifyWithdrawCredential error")
+					logrus.Errorf("sendRawTransaction pod %v error:%v", pod.Address, err)
+					panic("sendRawTransaction error")
 				}
 				logrus.Infoln("waiting sendVerifyWithdrawCredential tx:", realTx.Hash())
 				txReceipt, err := bind.WaitMined(context.Background(), v.scanner.EthClient, realTx)
 				if err != nil {
-					logrus.Errorf("waiting sendVerifyWithdrawCredential index %v error:%v", validators, err)
+					logrus.Errorf("waiting sendVerifyWithdrawCredential pod %v error:%v", pod.Address, err)
 					panic("waiting error")
 				}
 				logrus.WithField("Report", "true").Infof("sendVerifyWithdrawCredential tx:%s", txReceipt.TxHash)
-				//write to db
-				fee := big.NewInt(0).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.GasUsed)))
-				txRecord := models.Transaction{
-					TxHash: txReceipt.TxHash.String(),
-					Status: txReceipt.Status,
-					TxType: TxVerifyWithdrawalCredentials,
-					Fee:    fee.String(),
+				if err := writeTransaction(v.scanner.DBEngine, txReceipt, TxVerifyWithdrawalCredentials); err != nil {
+					logrus.Errorln("writeTransaction err:", err)
+					panic("writeTransaction error")
 				}
-				rest := v.scanner.DBEngine.Create(&txRecord)
-				if rest.Error != nil {
-					logrus.Errorf("Insert txRecord[%s] err:%v", txReceipt.TxHash.String(), rest.Error)
+				if err := checkIfEventContained(txReceipt.Logs, validators, pod.Address, v.scanner); err != nil {
+					logrus.Errorln("checkIfEventContained err:", err)
+					panic("checkIfEventContained error")
 				}
-				if txReceipt.Status != 1 {
-					logrus.Errorf("sendVerifyWithdrawCredential tx: %v status failed:%v", validators, txRecord.Status)
-					panic("sendVerifyWithdrawCredential")
+				if err := updateValidatorCredential(v.scanner.DBEngine, validators, pod.Address, txReceipt.BlockNumber.Uint64()); err != nil {
+					logrus.Errorln("updateValidatorCredential err:", err)
+					panic("updateValidatorCredential error")
 				}
-				err = checkIfEventContained(txReceipt.Logs, validators, pod.Address, v.scanner)
-				if err != nil {
-					logrus.Errorln("checkIfEventContained error:", err)
-					panic("checkIfEventContained")
-				}
-				delta = txReceipt.BlockNumber.Uint64()
 			}
 		}
 	}
-	return delta
+}
+
+func getValidatorProof(podAddress string, scanner *Scanner, validatorIndices []uint64,
+	beaconBlockHeader **api.Response[*apiv1.BeaconBlockHeader], beaconBlockState **api.Response[*spec.VersionedBeaconState],
+	blockTime *uint64) (*eigenpodproofs.VerifyValidatorFieldsCallParams, error) {
+	if *beaconBlockHeader == nil || *beaconBlockState == nil || *blockTime == 0 {
+		latestBlock, err := scanner.EthClient.BlockByNumber(context.Background(), nil)
+		if err != nil {
+			return nil, fmt.Errorf("getValidatorProof err:%v", err)
+		}
+		*blockTime = latestBlock.Time()
+		eigenPod, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), scanner.EthClient)
+		if err != nil {
+			return nil, fmt.Errorf("NewEigenPod err:%v", err)
+		}
+		expectedBlockRoot, err := eigenPod.GetParentBlockRoot(nil, latestBlock.Time())
+		if err != nil {
+			return nil, fmt.Errorf("GetParentBlockRoot err:%v", err)
+		}
+		*beaconBlockHeader, err = scanner.BeaconClient.BeaconBlockHeader(beaconClient.CTX, &api.BeaconBlockHeaderOpts{
+			Block: "0x" + common.Bytes2Hex(expectedBlockRoot[:]),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("GetParentBlockRoot err:%v", err)
+		}
+		*beaconBlockState, err = scanner.BeaconClient.BeaconState(beaconClient.CTX,
+			&api.BeaconStateOpts{State: strconv.FormatUint(uint64((*beaconBlockHeader).Data.Header.Message.Slot), 10)})
+		if err != nil {
+			return nil, fmt.Errorf("BeaconState err:%v", err)
+		}
+		logrus.Infof("downloading state ok, slot[%d], podAddress[%s]", uint64((*beaconBlockHeader).Data.Header.Message.Slot), podAddress)
+	}
+	proofExecutor, err := eigenpodproofs.NewEigenPodProofs(scanner.Config.ChainId, 0)
+	if err != nil {
+		return nil, fmt.Errorf("NewEigenPodProofs err:%v", err)
+	}
+	logrus.Infof("using state to generate proofs, slot[%d], podAddress[%s]", uint64((*beaconBlockHeader).Data.Header.Message.Slot), podAddress)
+	validatorProofs, err := proofExecutor.ProveValidatorContainers((*beaconBlockHeader).Data.Header.Message, (*beaconBlockState).Data, validatorIndices)
+	if err != nil {
+		return nil, fmt.Errorf("ProveValidatorContainers err:%v", err)
+	}
+	return validatorProofs, nil
 }
 
 func checkIfEventContained(logs []*types.Log, needCheck []uint64, podAddress string, s *Scanner) error {
-	egAbi, err := EigenPod.EigenPodMetaData.GetAbi()
-	if err != nil {
-		return err
-	}
+	egAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
 	contract, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
 	if err != nil {
 		return err
@@ -143,118 +156,59 @@ func checkIfEventContained(logs []*types.Log, needCheck []uint64, podAddress str
 				return err
 			}
 			if e.Name == "ValidatorRestaked" {
-				r, err := contract.ParseValidatorRestaked(*log)
-				if err != nil {
-					return err
-				}
-				validatorContains = append(validatorContains, r.ValidatorIndex.Uint64())
+				ew, _ := contract.ParseValidatorRestaked(*log)
+				validatorContains = append(validatorContains, ew.ValidatorIndex.Uint64())
 			}
 		}
 	}
 	if len(needCheck) != len(validatorContains) {
-		return fmt.Errorf(" not equal")
+		return fmt.Errorf("not equal")
 	}
 	for _, n := range needCheck {
-		find := false
+		found := false
 		for _, c := range validatorContains {
 			if n == c {
-				find = true
+				found = true
+				break
 			}
 		}
-		if find == false {
+		if !found {
 			return fmt.Errorf("not equal")
 		}
 	}
 	return nil
 }
 
-func (s *Scanner) getVerifyWithdrawCredentialTx(oracleStateFile, oracleHeaderFile string,
-	podAddress common.Address, podOwner string,
-	validators []uint64) (tx *types.Transaction, err error) {
-	defer func() {
-		if info := recover(); info != nil {
-			err = errors.New("getVerifyWithdrawCredentialTx recover")
-		}
-	}()
-	chainClient, err := txsubmitter.NewChainClient(s.EthClient, "", podOwner, 0, 0)
-	if err != nil {
-		return nil, err
+func packVerifyWithdrawCredentialTx(proofs *eigenpodproofs.VerifyValidatorFieldsCallParams, beaconTimestamp uint64) ([]byte, error) {
+	eigenPodAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
+	stateRootProof := EigenPod.BeaconChainProofsStateRootProof{
+		Proof:           proofs.StateRootProof.Proof.ToByteSlice(),
+		BeaconStateRoot: proofs.StateRootProof.BeaconStateRoot,
 	}
-	eigenPodProofs, err := eigenpodproofs.NewEigenPodProofs(s.Config.ChainId, 0)
-	if err != nil {
-		return nil, err
+	indices := make([]*big.Int, len(proofs.ValidatorIndices))
+	for i, v := range proofs.ValidatorIndices {
+		indices[i] = big.NewInt(int64(v))
 	}
-	submitter := txsubmitter.NewEigenPodProofTxSubmitter(
-		*chainClient,
-		*eigenPodProofs,
-	)
-	tx, err = proofgen.VerifyWithdrawalCredentialsGen2(submitter, oracleStateFile, oracleHeaderFile, podAddress, validators)
-	if err != nil {
-		return nil, err
+	validatorFieldsProofs := make([][]byte, len(proofs.ValidatorFieldsProofs))
+	for i, v := range proofs.ValidatorFieldsProofs {
+		validatorFieldsProofs[i] = v.ToByteSlice()
 	}
-	return tx, nil
+	curValidatorFields := core.CastValidatorFields(proofs.ValidatorFields)
+	return eigenPodAbi.Pack("verifyWithdrawalCredentials", beaconTimestamp, stateRootProof, indices, validatorFieldsProofs, curValidatorFields)
 }
 
-func (s *Scanner) sendVerifyWithdrawCredential(tx *types.Transaction, podId *big.Int) (*types.Transaction, error) {
-	//parse data to param
-	eigenPodAbi, err := EigenPod.EigenPodMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
+func (s *Scanner) packVerifyWithdrawalCredentialsInput(txData []byte, podId *big.Int) ([]byte, error) {
+	eigenPodAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
 	m := map[string]interface{}{}
-	err = eigenPodAbi.Methods["verifyWithdrawalCredentials"].Inputs.UnpackIntoMap(m, tx.Data()[4:])
-	if err != nil {
+	if err := eigenPodAbi.Methods["verifyWithdrawalCredentials"].Inputs.UnpackIntoMap(m, txData[4:]); err != nil {
 		return nil, err
 	}
-	restakingAbi, err := Restaking.RestakingMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
-	input, err := restakingAbi.Pack("verifyWithdrawalCredentials", podId, m["oracleTimestamp"],
-		m["stateRootProof"], m["validatorIndices"], m["validatorFieldsProofs"], m["validatorFields"])
-	if err != nil {
-		return nil, err
-	}
-	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
-	if err != nil {
-		return nil, err
-	}
-	if header.BaseFee.Cmp(big.NewInt(20000000000)) > 0 {
-		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
-		return nil, errBaseFeeTooHigh
-	}
-	//gasTipCap := big.NewInt(150000000) //0.15gwei
-	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	//max 1gwei
-	if gasTipCap.Cmp(big.NewInt(1000000000)) > 0 {
-		gasTipCap = big.NewInt(1000000000)
-	}
-	gasFeeCap := new(big.Int).Add(header.BaseFee.Mul(header.BaseFee, big.NewInt(2)), gasTipCap)
-	restakingContractAddress := common.HexToAddress(s.Config.RestakingContract)
-	gasLimit, err := s.EthClient.EstimateGas(context.Background(), ethereum.CallMsg{
-		From:      common.HexToAddress(s.Config.KeyAgent.Address),
-		To:        &restakingContractAddress,
-		GasTipCap: gasTipCap,
-		GasFeeCap: gasFeeCap,
-		Data:      input,
-	})
-	if err != nil {
-		return nil, err
-	}
-	opts, err := s.signWithChainIDFromKeyAgent(common.HexToAddress(s.Config.KeyAgent.Address),
-		big.NewInt(int64(s.Config.ChainId)))
-	opts.GasTipCap = gasTipCap
-	opts.GasFeeCap = gasFeeCap
-	opts.GasLimit = addGasBuffer(gasLimit)
-	//Min( Max fee - Base fee, Max priority fee)
-	//gasPrice = Min(Base fee + Max priority fee, GasFeeCap)
-	realTx, err := bind.NewBoundContract(common.HexToAddress(s.Config.RestakingContract), abi.ABI{}, s.EthClient, s.EthClient,
-		s.EthClient).RawTransact(opts, input)
-	if err != nil {
-		return nil, err
-	}
-	return realTx, nil
+	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
+	return restakingAbi.Pack("verifyWithdrawalCredentials", podId, m["beaconTimestamp"], m["stateRootProof"], m["validatorIndices"], m["validatorFieldsProofs"], m["validatorFields"])
+}
+
+func updateValidatorCredential(db *gorm.DB, validators []uint64, podAddress string, blockNumber uint64) error {
+	return db.Model(&models.Validator{}).
+		Where("validator_index in ?", validators).Where("pod_address = ?", podAddress).
+		Update("credential_verified", blockNumber).Error
 }

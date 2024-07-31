@@ -452,7 +452,9 @@
     "type": "event"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "DELEGATION_APPROVAL_TYPEHASH",
     "outputs": [
       {
@@ -465,7 +467,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "DOMAIN_TYPEHASH",
     "outputs": [
       {
@@ -478,7 +482,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "MAX_STAKER_OPT_OUT_WINDOW_BLOCKS",
     "outputs": [
       {
@@ -491,7 +497,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "MAX_WITHDRAWAL_DELAY_BLOCKS",
     "outputs": [
       {
@@ -504,7 +512,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "STAKER_DELEGATION_TYPEHASH",
     "outputs": [
       {
@@ -517,7 +527,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "beaconChainETHStrategy",
     "outputs": [
       {
@@ -748,7 +760,9 @@
       }
     ],
     "name": "completeQueuedWithdrawal",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -813,7 +827,9 @@
       }
     ],
     "name": "completeQueuedWithdrawals",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -855,7 +871,9 @@
       }
     ],
     "name": "decreaseDelegatedShares",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -890,7 +908,9 @@
       }
     ],
     "name": "delegateTo",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -947,7 +967,9 @@
       }
     ],
     "name": "delegateToBySignature",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1014,7 +1036,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "domainSeparator",
     "outputs": [
       {
@@ -1046,7 +1070,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "eigenPodManager",
     "outputs": [
       {
@@ -1144,7 +1170,9 @@
       }
     ],
     "name": "increaseDelegatedShares",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1182,7 +1210,9 @@
       }
     ],
     "name": "initialize",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1277,12 +1307,16 @@
       }
     ],
     "name": "migrateQueuedWithdrawals",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "minWithdrawalDelayBlocks",
     "outputs": [
       {
@@ -1320,7 +1354,9 @@
       }
     ],
     "name": "modifyOperatorDetails",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1385,7 +1421,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "owner",
     "outputs": [
       {
@@ -1406,14 +1444,20 @@
       }
     ],
     "name": "pause",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "pauseAll",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1437,7 +1481,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "paused",
     "outputs": [
       {
@@ -1450,7 +1496,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "pauserRegistry",
     "outputs": [
       {
@@ -1548,14 +1596,20 @@
       }
     ],
     "name": "registerAsOperator",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "renounceOwnership",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1568,7 +1622,9 @@
       }
     ],
     "name": "setMinWithdrawalDelayBlocks",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1581,7 +1637,9 @@
       }
     ],
     "name": "setPauserRegistry",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1599,12 +1657,16 @@
       }
     ],
     "name": "setStrategyWithdrawalDelayBlocks",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "slasher",
     "outputs": [
       {
@@ -1655,7 +1717,9 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+
+    ],
     "name": "strategyManager",
     "outputs": [
       {
@@ -1695,7 +1759,9 @@
       }
     ],
     "name": "transferOwnership",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1727,7 +1793,9 @@
       }
     ],
     "name": "unpause",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1740,7 +1808,9 @@
       }
     ],
     "name": "updateOperatorMetadataURI",
-    "outputs": [],
+    "outputs": [
+
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   }

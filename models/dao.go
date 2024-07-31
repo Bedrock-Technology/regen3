@@ -3,7 +3,6 @@ package models
 import "gorm.io/gorm"
 
 const Scanner = "scanner"
-const EigenOracle = "eigenOracle"
 
 func GetCursor(orm *gorm.DB, meme string) (cursor *Cursor, err error) {
 	err = orm.Where("meme = ?", meme).First(&cursor).Error

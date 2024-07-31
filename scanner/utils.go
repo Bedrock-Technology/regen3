@@ -1,142 +1,124 @@
 package scanner
 
 import (
+	"context"
 	"errors"
-	"fmt"
-	"github.com/Bedrock-Technology/regen3/beaconClient"
+	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
-	"github.com/attestantio/go-eth2-client/api"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"os"
+	"gorm.io/gorm"
+	"math/big"
 )
 
-const TxVerifyWithdrawalCredentials = "verifyWithdrawalCredentials"
-const TxVerifyWithdrawalProof = "verifyWithdrawalProof"
-const TxQueueWithdrawals = "queueWithdrawals"
-const TxCompleteQueueWithdrawals = "completeQueueWithdrawals"
-
-const beaconStateFormat = "%s_state_%d.json"
-const beaconHeaderFormat = "%s_header_%d.json"
+const (
+	TxVerifyWithdrawalCredentials = "verifyWithdrawalCredentials"
+	TxVerifyCheckPoints           = "TxVerifyCheckPoints"
+	TxStartCheckPoints            = "TxStartCheckPoints"
+	TxQueueWithdrawals            = "queueWithdrawals"
+	TxCompleteQueueWithdrawals    = "completeQueueWithdrawals"
+	TxDelegateTo                  = "delegateTo"
+)
 
 func addGasBuffer(gasLimit uint64) uint64 {
 	return 6 * gasLimit / 5 // add 20% buffer to gas limit
 }
 
-func downloadFile(filePath, url string) error {
-	exist, _ := pathExists(filePath)
-	if exist {
-		return nil
-	} else {
-		logrus.Infoln("downloading ", url)
-		// Create the file
-		out, err := os.Create(filePath)
-		if err != nil {
-			return err
+func chunk[T any](arr []T, chunkSize uint64) [][]T {
+	if chunkSize <= 0 {
+		panic("chunkSize must be greater than 0")
+	}
+	var chunks [][]T
+	for i := uint64(0); i < uint64(len(arr)); i += chunkSize {
+		end := i + chunkSize
+		if end > uint64(len(arr)) {
+			end = uint64(len(arr))
 		}
-		defer out.Close()
-		resp, err := http.Get(url)
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode != http.StatusOK {
-			os.Remove(filePath)
-			logrus.Infof("rm: %s\n", filePath)
-			return fmt.Errorf("download error:%v", resp.StatusCode)
-		}
-		defer resp.Body.Close()
-		_, err = io.Copy(out, resp.Body)
-		if err != nil {
-			return err
-		}
+		chunks = append(chunks, arr[i:end])
+	}
+	return chunks
+}
+
+func writeTransaction(db *gorm.DB, txReceipt *types.Receipt, txType string) error {
+	fee := new(big.Int).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.GasUsed)))
+	txRecord := models.Transaction{
+		TxHash: txReceipt.TxHash.String(),
+		Status: txReceipt.Status,
+		TxType: txType,
+		Block:  txReceipt.BlockNumber.Uint64(),
+		Fee:    fee.String(),
+	}
+	if err := db.Create(&txRecord).Error; err != nil {
+		return err
+	}
+	if txReceipt.Status != 1 {
+		return errTxReceiptStatusFail
 	}
 	return nil
 }
 
-func pathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
-func (s *Scanner) getBeaconStates(filePath string, slot uint64) error {
-	url := fmt.Sprintf("%s/eth/v2/debug/beacon/states/%d", s.Config.BeaconClient, slot)
-	return downloadFile(filePath, url)
-}
-
-func (s *Scanner) getBeaconHeaders(filePath string, slot uint64) error {
-	url := fmt.Sprintf("%s/eth/v1/beacon/headers/%d", s.Config.BeaconClient, slot)
-	return downloadFile(filePath, url)
-}
-
-func (s *Scanner) getBeaconBlocks(filePath string, slot uint64) error {
-	url := fmt.Sprintf("%s/eth/v2/beacon/blocks/%d", s.Config.BeaconClient, slot)
-	return downloadFile(filePath, url)
-}
-
-func (s *Scanner) findLatestBlockNumber() (uint64, error) {
-	cursor, err := models.GetCursor(s.DBEngine, models.Scanner)
+// Min( Max fee - Base fee, Max priority fee)
+// gasPrice = Min(Base fee + Max priority fee, GasFeeCap)
+func (s *Scanner) sendRawTransaction(input []byte, toAddress string) (*types.Transaction, error) {
+	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
 	if err != nil {
-		logrus.Errorln("GetCursor:", err)
-		return 0, err
+		return nil, errBaseFeeTooHigh
 	}
-	for {
-		slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
-			Block: fmt.Sprintf("%d", cursor.Slot),
-		})
-		if err != nil {
-			var apiErr *api.Error
-			if errors.As(err, &apiErr) {
-				switch apiErr.StatusCode {
-				case 404:
-					logrus.Warnf("empty slot[%d]", cursor.Slot)
-					cursor.Slot--
-					continue
-				default:
-					logrus.Errorf("error[%d]:%v", apiErr.StatusCode, err)
-					return 0, err
-				}
-			}
-		}
-		executionBlockNumber, err := slotBody.Data.ExecutionBlockNumber()
-		if err != nil {
-			return 0, err
-		}
-		return executionBlockNumber, nil
+	if header.BaseFee.Cmp(big.NewInt(20e9)) > 0 {
+		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
+		return nil, errBaseFeeTooHigh
 	}
+	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
+	if err != nil {
+		return nil, errBaseFeeTooHigh
+	}
+	if gasTipCap.Cmp(big.NewInt(1e9)) > 0 {
+		gasTipCap = big.NewInt(1e9)
+	}
+	to := common.HexToAddress(toAddress)
+	gasFeeCap := new(big.Int).Add(new(big.Int).Mul(header.BaseFee, big.NewInt(2)), gasTipCap)
+	gasLimit, err := s.EthClient.EstimateGas(context.Background(), ethereum.CallMsg{
+		From:      common.HexToAddress(s.Config.KeyAgent.Address),
+		To:        &to,
+		GasTipCap: gasTipCap,
+		GasFeeCap: gasFeeCap,
+		Data:      input,
+	})
+	if err != nil {
+		return nil, err
+	}
+	opts, err := s.signWithChainIDFromKeyAgent(common.HexToAddress(s.Config.KeyAgent.Address), big.NewInt(int64(s.Config.ChainId)))
+	if err != nil {
+		return nil, err
+	}
+	opts.GasTipCap = gasTipCap
+	opts.GasFeeCap = gasFeeCap
+	opts.GasLimit = addGasBuffer(gasLimit)
+	return bind.NewBoundContract(common.HexToAddress(s.Config.RestakingContract), abi.ABI{}, s.EthClient, s.EthClient, s.EthClient).RawTransact(opts, input)
 }
 
-func (s *Scanner) findLatestBlockNumberBySlot(slot uint64) (uint64, error) {
-	for {
-		slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{
-			Block: fmt.Sprintf("%d", slot),
-		})
-		if err != nil {
-			var apiErr *api.Error
-			if errors.As(err, &apiErr) {
-				switch apiErr.StatusCode {
-				case 404:
-					logrus.Warnf("empty slot[%d]", slot)
-					slot--
-					continue
-				default:
-					logrus.Errorf("error[%d]:%v", apiErr.StatusCode, err)
-					return 0, err
-				}
-			}
-		}
-		executionBlockNumber, err := slotBody.Data.ExecutionBlockNumber()
-		if err != nil {
-			return 0, err
-		}
-		return executionBlockNumber, nil
+func (s *Scanner) hasActiveCheckPoint(podAddress string) (bool, error) {
+	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
+	currentTimestamp, err := eigenPod.CurrentCheckpointTimestamp(nil)
+	if err != nil {
+		return false, err
 	}
+	return currentTimestamp != 0, nil
 }
 
-var errBaseFeeTooHigh = errors.New("base fee too high")
+func (s *Scanner) baseFeeBiggerThan() (bool, error) {
+	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		return false, err
+	}
+	return header.BaseFee.Cmp(big.NewInt(20e9)) > 0, nil
+}
+
+var (
+	errBaseFeeTooHigh      = errors.New("base fee too high")
+	errTxReceiptStatusFail = errors.New("tx status fail")
+)

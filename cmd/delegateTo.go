@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/Bedrock-Technology/regen3/log"
+	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/Bedrock-Technology/regen3/scanner"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -47,13 +48,6 @@ to quickly create a Cobra application.`,
 			fmt.Println(err)
 			return
 		}
-		//force confirm
-		fmt.Printf("podIndex: %v, operator: %s press YES to continue\n", podIndexInt, operator)
-		confirm := ""
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return
-		}
 		sigs := make(chan os.Signal, 1)
 		quit := make(chan struct{}, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP)
@@ -70,6 +64,20 @@ to quickly create a Cobra application.`,
 			}
 		}()
 		scanner := scanner.New(config, quit)
+		var pod models.Pod
+		rest := scanner.DBEngine.First(&pod, "pod_index = ?", podIndex)
+		if rest.Error != nil {
+			logrus.Errorln("Get Pod Error", rest.Error)
+			return
+		}
+		//force confirm
+		fmt.Printf("podIndex: %v, podOwner:%v, podAddress:%v, operator: %s press YES to continue\n",
+			podIndexInt, pod.Owner, pod.Address, operator)
+		confirm := ""
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return
+		}
 		scanner.DelegateTo(podIndexInt, operator)
 	},
 }

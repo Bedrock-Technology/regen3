@@ -4,19 +4,26 @@ beaconClient: ""
 mysqlDsn: ""
 logLevel: ""
 slackUrl: ""
-dataPath: ""
 checkVerifyWithdrawCredential:
   enable: false
   intervalBlock: 0
   firstRun: 0
-checkVerifyWithdrawProof:
+  batchSize: 0
+checkStartCheckPoint:
   enable: false
   intervalBlock: 0
   firstRun: 0
+  batchSize: 0
 checkQueueWithdraw:
   enable: false
   intervalBlock: 0
   firstRun: 0
+  batchSize: 0
+checkVerifyCheckPoint:
+  enable: false
+  intervalBlock: 0
+  firstRun: 0
+  batchSize: 0
 keyAgent:
   keyAgentRpc: ""
   service: 0

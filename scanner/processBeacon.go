@@ -13,19 +13,13 @@ import (
 )
 
 func (s *Scanner) processBeacon(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
-	err := s.processDeposit(beaconBlock, orm)
-	if err != nil {
+	if err := s.processDeposit(beaconBlock, orm); err != nil {
 		return err
 	}
-	err = s.processVoluntaryExit(beaconBlock, orm)
-	if err != nil {
+	if err := s.processVoluntaryExit(beaconBlock, orm); err != nil {
 		return err
 	}
-	err = s.processWithdrawnOnChain(beaconBlock, orm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.processWithdrawnOnChain(beaconBlock, orm)
 }
 
 func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
@@ -33,36 +27,35 @@ func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSigned
 	if err != nil {
 		return err
 	}
-	modelValidators := make([]models.Validator, 0)
 
+	var modelValidators []models.Validator
 	for _, deposit := range deposits {
 		withdrawal := common.BytesToAddress(deposit.Data.WithdrawalCredentials[12:]).String()
 		pubKey := fmt.Sprintf("%#x", deposit.Data.PublicKey)
 		if _, exist := s.Pods[withdrawal]; exist {
-			modelValidator := models.Validator{
+			modelValidators = append(modelValidators, models.Validator{
 				PubKey:             pubKey,
-				ValidatorIndex:     0,
 				PodAddress:         withdrawal,
 				CredentialVerified: 0,
 				WithdrawnOnChain:   0,
 				WithdrawnOnPod:     0,
 				VoluntaryExit:      0,
-			}
-			modelValidators = append(modelValidators, modelValidator)
+			})
 		}
 	}
 
-	blsPubKey := make([]phase0.BLSPubKey, 0)
+	var blsPubKey []phase0.BLSPubKey
 	for _, modelValidator := range modelValidators {
-		pubKeyS := fmt.Sprintf(`"%s"`, modelValidator.PubKey)
-		pubKeyBls := phase0.BLSPubKey{}
-		_ = pubKeyBls.UnmarshalJSON([]byte(pubKeyS))
+		var pubKeyBls phase0.BLSPubKey
+		_ = pubKeyBls.UnmarshalJSON([]byte(fmt.Sprintf(`"%s"`, modelValidator.PubKey)))
 		blsPubKey = append(blsPubKey, pubKeyBls)
 	}
+
 	slot, err := beaconBlock.Data.Slot()
 	if err != nil {
 		return err
 	}
+
 	if len(blsPubKey) != 0 {
 		validators, err := s.BeaconClient.Validators(beaconClient.CTX, &api.ValidatorsOpts{
 			State:   fmt.Sprintf("%d", slot),
@@ -85,29 +78,27 @@ func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSigned
 }
 
 func (s *Scanner) processVoluntaryExit(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
-	//holesky 1663671 slot 1511574; 1663672 slot 1516502
 	voluntaryExits, err := beaconBlock.Data.VoluntaryExits()
 	if err != nil {
 		return err
 	}
-	vExitValidators := make([]uint64, 0)
+
+	var vExitValidators []uint64
 	for _, voluntaryExit := range voluntaryExits {
 		vExitValidators = append(vExitValidators, uint64(voluntaryExit.Message.ValidatorIndex))
 	}
-	validators := make([]uint64, 0)
-	res := orm.Model(&models.Validator{}).Select("validator_index").
-		Where("validator_index in ?", vExitValidators).Find(&validators)
-	if res.Error != nil {
-		return res.Error
-	}
-	if len(validators) != 0 {
-		//Update
-		slot, _ := beaconBlock.Data.Slot()
-		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
-			Update("voluntary_exit", uint64(slot))
 
-		if res.Error != nil {
-			return res.Error
+	var validators []uint64
+	if err := orm.Model(&models.Validator{}).Select("validator_index").
+		Where("validator_index in ?", vExitValidators).Find(&validators).Error; err != nil {
+		return err
+	}
+
+	if len(validators) != 0 {
+		slot, _ := beaconBlock.Data.Slot()
+		if err := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
+			Update("voluntary_exit", uint64(slot)).Error; err != nil {
+			return err
 		}
 		logrus.Infof("find VoluntaryExit len(%d), slot[%d]", len(validators), slot)
 	}
@@ -119,26 +110,25 @@ func (s *Scanner) processWithdrawnOnChain(beaconBlock *api.Response[*spec.Versio
 	if err != nil {
 		return err
 	}
-	vWithdraws := make([]uint64, 0)
+
+	var vWithdraws []uint64
 	for _, withdraw := range withdrawals {
 		if withdraw.Amount > 29000000000 {
 			vWithdraws = append(vWithdraws, uint64(withdraw.ValidatorIndex))
 		}
 	}
-	validators := make([]uint64, 0)
-	res := orm.Model(&models.Validator{}).Select("validator_index").
-		Where("validator_index in ?", vWithdraws).Find(&validators)
-	if res.Error != nil {
-		return res.Error
-	}
-	if len(validators) != 0 {
-		//Update
-		slot, _ := beaconBlock.Data.Slot()
-		res := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
-			Update("withdrawn_on_chain", uint64(slot))
 
-		if res.Error != nil {
-			return res.Error
+	var validators []uint64
+	if err := orm.Model(&models.Validator{}).Select("validator_index").
+		Where("validator_index in ?", vWithdraws).Find(&validators).Error; err != nil {
+		return err
+	}
+
+	if len(validators) != 0 {
+		slot, _ := beaconBlock.Data.Slot()
+		if err := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
+			Update("withdrawn_on_chain", uint64(slot)).Error; err != nil {
+			return err
 		}
 		logrus.Infof("find WithdrawnOnChain len(%d), slot[%d]", len(validators), slot)
 	}

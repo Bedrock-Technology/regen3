@@ -42,13 +42,15 @@ type CheckPoint struct {
 	CheckpointTimestamp uint64 `gorm:"index:idx_cp,unique;not null;default:0" json:"checkpointTimestamp"`
 	BeaconBlockRoot     string `gorm:"index:idx_cp,unique;type:varchar(128);not null;default:''" json:"beaconBlockRoot"`
 	//json array format: [123,45456,validatorIndex]
-	Proofed string `gorm:"type:blob;not null" json:"proofed"`
-	//json array format: [123,45456,validatorIndex]
-	UnProofed string `gorm:"type:blob;not null" json:"unProofed"`
+	Proofed string `gorm:"type:longblob;not null" json:"proofed"`
+	//json array format
+	Proofs string `gorm:"type:longblob;not null" json:"proofs"`
 	// check activeNum form Validator equal to pod.active on the block
 	ActiveNum uint64 `gorm:"not null;default:0" json:"activeNum"`
+	//Batch
+	BatchSize uint64 `gorm:"not null;default:20" json:"BatchSize"`
 	// if CheckpointFinalized set to 1, check len(Proofed) equal to ActiveNum
-	CheckpointFinalized uint8 `gorm:"not null;default:0" json:"checkpointFinalized"`
+	CheckpointFinalized uint64 `gorm:"not null;default:0" json:"checkpointFinalized"`
 }
 
 // QueueWithdrawals Completed set to 1 when get WithdrawalCompleted.
@@ -59,7 +61,7 @@ type QueueWithdrawals struct {
 	//json format
 	Withdrawal string `gorm:"type:varchar(2048);not null;default:''" json:"withdrawal"`
 	StartBlock uint64 `gorm:"not null;default:0" json:"startBlock"`
-	Completed  uint8  `gorm:"not null;default:0" json:"completed"`
+	Completed  uint64 `gorm:"not null;default:0" json:"completed"`
 }
 
 type Cursor struct {
@@ -74,6 +76,7 @@ type Transaction struct {
 	gorm.Model
 	TxHash string `gorm:"type:varchar(128);not null;default:''" json:"txHash"`
 	Status uint64 `gorm:"not null;default:0" json:"status"`
-	TxType string `gorm:"type:varchar(128);not null;default:''" json:"txType"`
+	TxType string `gorm:"index:idx_qw;type:varchar(128);not null;default:''" json:"txType"`
+	Block  uint64 `gorm:"not null;default:0" json:"block"`
 	Fee    string `gorm:"type:varchar(128);not null;default:''" json:"fee"`
 }

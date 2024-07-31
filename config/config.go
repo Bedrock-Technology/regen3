@@ -36,15 +36,15 @@ type Config struct {
 	MysqlDsn                       string    `yaml:"mysqlDsn"`
 	LogLevel                       string    `yaml:"logLevel"`
 	SlackUrl                       string    `yaml:"slackUrl"`
-	DataPath                       string    `yaml:"dataPath"`
 	StakingContract                string    `yaml:"-"`
 	RestakingContract              string    `yaml:"-"`
 	EigenDelegationManagerContract string    `yaml:"-"`
 	EigenOracleContract            string    `yaml:"-"`
 	MinWithdrawalDelayBlocks       uint64    `yaml:"-"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
-	CheckVerifyWithdrawProof       TimerSpec `yaml:"checkVerifyWithdrawProof"`
+	CheckStartCheckPoint           TimerSpec `yaml:"checkStartCheckPoint"`
 	CheckQueueWithdraw             TimerSpec `yaml:"checkQueueWithdraw"`
+	CheckVerifyCheckPoint          TimerSpec `yaml:"checkVerifyCheckPoint"`
 	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
 }
 

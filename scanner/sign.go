@@ -17,7 +17,6 @@ func (s *Scanner) signWithChainIDFromKeyAgent(keyAddr common.Address, chainID *b
 			if address != keyAddr {
 				return nil, fmt.Errorf("address not equal[%s], [%s]", keyAddr.String(), address.String())
 			}
-
 			sig, err := s.KeyAgentClient.Eth1SignTransaction(signer.Hash(tx).Bytes())
 			if err != nil {
 				return nil, err

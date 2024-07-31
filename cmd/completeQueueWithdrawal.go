@@ -122,6 +122,8 @@ to quickly create a Cobra application.`,
 				logrus.Errorf("sendCompleteQueuedWithdrawals tx: %v status failed:%v", txReceipt.TxHash, txRecord.Status)
 				panic("sendQueueWithdrawals")
 			}
+			rest = scanner.DBEngine.Model(&models.QueueWithdrawals{}).Where("withdrawal_root = ?", root).
+				Update("completed", txReceipt.BlockNumber.Uint64())
 		}
 	},
 }
