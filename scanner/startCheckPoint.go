@@ -127,7 +127,7 @@ func (s *StartCheckPointRun) SendCheckPoint(podId *big.Int, podAddress string) (
 					Proofed:             "[]",
 					Proofs:              "",
 					ActiveNum:           checkPoint.ProofsRemaining.Uint64(),
-					BatchSize:           uint64(s.scanner.Config.CheckVerifyCheckPoint.BatchSize),
+					BatchSize:           uint64(s.scanner.Config.CheckStartCheckPoint.BatchSize),
 					CheckpointFinalized: 0,
 				}
 				timestamp = r.CheckpointTimestamp
