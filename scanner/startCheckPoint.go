@@ -37,7 +37,7 @@ func (s *StartCheckPointRun) JobRun() {
 	logrus.Info("StartCheckPointRun")
 	for _, pod := range s.scanner.Pods {
 		//condition
-		if active, err := s.scanner.hasActiveCheckPoint(pod.Address); err != nil && active {
+		if active, err := s.scanner.hasActiveCheckPoint(pod.Address); err != nil || active {
 			logrus.Infof("pod %s has active checkpoint or err %v", pod.Address, err)
 			continue
 		}
@@ -46,7 +46,7 @@ func (s *StartCheckPointRun) JobRun() {
 			continue
 		}
 		//send startCheckPoint
-		timestamp, err := s.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
+		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("sendRawTransaction pod %v error:%v", pod.Address, errBaseFeeTooHigh)
@@ -57,7 +57,7 @@ func (s *StartCheckPointRun) JobRun() {
 		}
 		if timestamp != 0 {
 			logrus.Infof("need do FillProofs pod %v timestamp:%v", pod.Address, timestamp)
-			proofs, err := s.FillProofs(pod.Address, timestamp)
+			proofs, err := s.scanner.FillProofs(pod.Address, timestamp)
 			if err != nil {
 				logrus.Errorf("FillProofs pod %v timestamp:%v", pod.Address, timestamp)
 				panic("FillProofs")
@@ -75,31 +75,31 @@ func (s *StartCheckPointRun) JobRun() {
 	return
 }
 
-func (s *StartCheckPointRun) SendCheckPoint(podId *big.Int, podAddress string) (timestamp uint64, err error) {
+func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp uint64, err error) {
 	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
-	input, err := restakingAbi.Pack("startCheckpoint", podId, true)
+	input, err := restakingAbi.Pack("startCheckPoint", podId, true)
 	if err != nil {
 		return 0, err
 	}
-	realTx, err := s.scanner.sendRawTransaction(input, s.scanner.Config.RestakingContract)
+	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract)
 	if err != nil {
 		return 0, err
 	}
-	txReceipt, err := bind.WaitMined(context.Background(), s.scanner.EthClient, realTx)
+	txReceipt, err := bind.WaitMined(context.Background(), s.EthClient, realTx)
 	if err != nil {
 		logrus.Errorf("waiting SendCheckPoint podId %v, error:%v", podId.Uint64(), err)
 		return 0, err
 	}
 	logrus.WithField("Report", "true").Infof("SendCheckPoint tx:%s", txReceipt.TxHash)
 	//write to db
-	err = writeTransaction(s.scanner.DBEngine, txReceipt, TxStartCheckPoints)
+	err = writeTransaction(s.DBEngine, txReceipt, TxStartCheckPoints)
 	if err != nil {
 		logrus.Errorln("writeTransaction err:", err)
 		return 0, err
 	}
 	//search the log
 	egAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
-	contract, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.scanner.EthClient)
+	contract, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
 	if err != nil {
 		return 0, err
 	}
@@ -114,7 +114,7 @@ func (s *StartCheckPointRun) SendCheckPoint(podId *big.Int, podAddress string) (
 				if err != nil {
 					return 0, err
 				}
-				eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.scanner.EthClient)
+				eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
 				checkPoint, err := eigenPod.CurrentCheckpoint(nil)
 				if err != nil {
 					return 0, err
@@ -127,16 +127,16 @@ func (s *StartCheckPointRun) SendCheckPoint(podId *big.Int, podAddress string) (
 					Proofed:             "[]",
 					Proofs:              "",
 					ActiveNum:           checkPoint.ProofsRemaining.Uint64(),
-					BatchSize:           uint64(s.scanner.Config.CheckVerifyCheckPoint.BatchSize),
+					BatchSize:           uint64(s.Config.CheckStartCheckPoint.BatchSize),
 					CheckpointFinalized: 0,
 				}
 				timestamp = r.CheckpointTimestamp
 				if checkPoint.ProofsRemaining.Uint64() == 0 { //empty checkpoint
 					cp.CheckpointFinalized = txReceipt.BlockNumber.Uint64()
-					logrus.Infof("CheckpointFinalized, timestamp:%d, root:%v", timestamp, r.BeaconBlockRoot)
+					logrus.Infof("CheckpointFinalized, timestamp:%d, root:%v", timestamp, hex.EncodeToString(r.BeaconBlockRoot[:]))
 					timestamp = 0
 				}
-				if result := s.scanner.DBEngine.Create(&cp); result.Error != nil {
+				if result := s.DBEngine.Create(&cp); result.Error != nil {
 					return 0, result.Error
 				}
 			}
@@ -145,14 +145,14 @@ func (s *StartCheckPointRun) SendCheckPoint(podId *big.Int, podAddress string) (
 	return
 }
 
-func (s *StartCheckPointRun) FillProofs(podAddress string, timestamp uint64) ([]byte, error) {
+func (s *Scanner) FillProofs(podAddress string, timestamp uint64) ([]byte, error) {
 	var validators []uint64
-	rest := s.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").Where("pod_address = ?", podAddress).
+	rest := s.DBEngine.Model(&models.Validator{}).Select("validator_index").Where("pod_address = ?", podAddress).
 		Where("credential_verified != ?", 0).Where("withdrawn_on_pod = ?", 0).Find(&validators)
 	if rest.Error != nil {
 		return nil, rest.Error
 	}
-	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.scanner.EthClient)
+	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
 	checkPoint, err := eigenPod.CurrentCheckpoint(nil)
 	if err != nil {
 		return nil, err
@@ -165,18 +165,18 @@ func (s *StartCheckPointRun) FillProofs(podAddress string, timestamp uint64) ([]
 		return nil, fmt.Errorf("currentTimestamp[%v] !=timestamp[%v] or ProofsRemaining[%v] != len(validators)[%v]",
 			currentTimestamp, timestamp, checkPoint.ProofsRemaining.Uint64(), len(validators))
 	}
-	beaconBlockHeader, err := s.scanner.BeaconClient.BeaconBlockHeader(beaconClient.CTX, &api.BeaconBlockHeaderOpts{
+	beaconBlockHeader, err := s.BeaconClient.BeaconBlockHeader(beaconClient.CTX, &api.BeaconBlockHeaderOpts{
 		Block: "0x" + common.Bytes2Hex(checkPoint.BeaconBlockRoot[:]),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("GetParentBlockRoot err:%v", err)
 	}
-	beaconBlockState, err := s.scanner.BeaconClient.BeaconState(beaconClient.CTX,
+	beaconBlockState, err := s.BeaconClient.BeaconState(beaconClient.CTX,
 		&api.BeaconStateOpts{State: strconv.FormatUint(uint64((*beaconBlockHeader).Data.Header.Message.Slot), 10)})
 	if err != nil {
 		return nil, fmt.Errorf("BeaconState err:%v", err)
 	}
-	proofs, err := eigenpodproofs.NewEigenPodProofs(s.scanner.Config.ChainId, 0 /* oracleStateCacheExpirySeconds - 5min */)
+	proofs, err := eigenpodproofs.NewEigenPodProofs(s.Config.ChainId, 0 /* oracleStateCacheExpirySeconds - 5min */)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize prover: %w", err)
 	}
@@ -202,7 +202,7 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string) bool {
 	}
 	podBalanceGwei := podBalance.Div(podBalance, big.NewInt(1e9)).Uint64()
 	logrus.Infof("pod:%v, podBalanceGwei:%v, executionLayerGwei:%v", podAddress, podBalanceGwei, executionLayerGwei)
-	if podBalanceGwei-executionLayerGwei >= 32e9 { //32eth
+	if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
 		return true
 	}
 	return false

@@ -17,8 +17,8 @@ import (
 
 const (
 	TxVerifyWithdrawalCredentials = "verifyWithdrawalCredentials"
-	TxVerifyCheckPoints           = "TxVerifyCheckPoints"
-	TxStartCheckPoints            = "TxStartCheckPoints"
+	TxVerifyCheckPoints           = "verifyCheckPoints"
+	TxStartCheckPoints            = "startCheckPoints"
 	TxQueueWithdrawals            = "queueWithdrawals"
 	TxCompleteQueueWithdrawals    = "completeQueueWithdrawals"
 	TxDelegateTo                  = "delegateTo"
@@ -29,17 +29,24 @@ func addGasBuffer(gasLimit uint64) uint64 {
 }
 
 func chunk[T any](arr []T, chunkSize uint64) [][]T {
+	// Validate the chunkSize to ensure it's positive
 	if chunkSize <= 0 {
 		panic("chunkSize must be greater than 0")
 	}
+
+	// Create a slice to hold the chunks
 	var chunks [][]T
-	for i := uint64(0); i < uint64(len(arr)); i += chunkSize {
-		end := i + chunkSize
-		if end > uint64(len(arr)) {
-			end = uint64(len(arr))
+
+	// Loop through the input slice and create chunks
+	arrLen := uint64(len(arr))
+	for i := uint64(0); i < arrLen; i += chunkSize {
+		end := uint64(i + chunkSize)
+		if end > arrLen {
+			end = arrLen
 		}
 		chunks = append(chunks, arr[i:end])
 	}
+
 	return chunks
 }
 
@@ -98,7 +105,7 @@ func (s *Scanner) sendRawTransaction(input []byte, toAddress string) (*types.Tra
 	opts.GasTipCap = gasTipCap
 	opts.GasFeeCap = gasFeeCap
 	opts.GasLimit = addGasBuffer(gasLimit)
-	return bind.NewBoundContract(common.HexToAddress(s.Config.RestakingContract), abi.ABI{}, s.EthClient, s.EthClient, s.EthClient).RawTransact(opts, input)
+	return bind.NewBoundContract(to, abi.ABI{}, s.EthClient, s.EthClient, s.EthClient).RawTransact(opts, input)
 }
 
 func (s *Scanner) hasActiveCheckPoint(podAddress string) (bool, error) {

@@ -96,7 +96,6 @@ func (s *Scanner) fillFilterAddress() []common.Address {
 	}
 	address = append(address,
 		common.HexToAddress(s.Config.EigenDelegationManagerContract),
-		common.HexToAddress(s.Config.EigenOracleContract),
 	)
 	return address
 }

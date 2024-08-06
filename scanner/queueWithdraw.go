@@ -32,7 +32,7 @@ type QueueWithdrawRun struct {
 func (v *QueueWithdrawRun) JobRun() {
 	logrus.Infof("Start QueueWithdrawRun")
 	for _, pod := range v.scanner.Pods {
-		if active, err := v.scanner.hasActiveCheckPoint(pod.Address); err != nil && active {
+		if active, err := v.scanner.hasActiveCheckPoint(pod.Address); err != nil || active {
 			logrus.Infof("pod %s has active checkpoint or err:%v", pod.Address, err)
 			continue
 		}
@@ -102,7 +102,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 	if err != nil {
 		return err
 	}
-	realTx, err := s.sendRawTransaction(input, s.Config.EigenDelegationManagerContract)
+	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	if err != nil {
 		return nil, err
 	}
-	return s.sendRawTransaction(input, s.Config.EigenDelegationManagerContract)
+	return s.sendRawTransaction(input, s.Config.RestakingContract)
 }
 
 func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress string, s *Scanner) error {
@@ -223,6 +223,7 @@ func (s *Scanner) GetWithdrawalUncompletedGwei(podAddress string) (uint64, error
 		logrus.Errorln("get QueueWithdrawals error:", rest.Error)
 		return 0, rest.Error
 	}
+	logrus.Infof("GetWithdrawalUncompletedGwei len(qws):%v, pod:%s", len(qws), podAddress)
 	for _, queueWithdrawal := range qws {
 		var qwps []DelegationManager.IDelegationManagerQueuedWithdrawalParams
 		if err := json.Unmarshal([]byte(queueWithdrawal.Withdrawal), &qwps); err != nil {

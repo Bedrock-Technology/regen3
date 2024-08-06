@@ -19,7 +19,7 @@ require (
 )
 
 require (
-	github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240730152248-5c11a259293e // indirect
+	github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240812153233-46cda8c7817e // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
