@@ -33,7 +33,7 @@ func (v *QueueWithdrawRun) JobRun() {
 	logrus.Infof("Start QueueWithdrawRun")
 	for _, pod := range v.scanner.Pods {
 		if active, err := v.scanner.hasActiveCheckPoint(pod.Address); err != nil || active {
-			logrus.Infof("pod %s has active checkpoint or err:%v", pod.Address, err)
+			logrus.Infof("pod[%d] has active checkpoint or err:%v", pod.PodIndex, err)
 			continue
 		}
 		var queueWithdrawalsNotCompleted []models.QueueWithdrawals
@@ -44,37 +44,35 @@ func (v *QueueWithdrawRun) JobRun() {
 			return
 		}
 		if len(queueWithdrawalsNotCompleted) == 1 {
-			logrus.Infof("pod %s has not completed QueueWithdraw", pod.Address)
+			logrus.Infof("pod[%d] tryCompleteQueue", pod.PodIndex)
 			_ = v.scanner.tryCompleteQueue(queueWithdrawalsNotCompleted[0], pod)
-		} else {
-			logrus.Infof("pod %s no need QueueWithdraw", pod.Address)
 		}
-		sumUncompleteGwei, err := v.scanner.GetWithdrawalUncompletedGwei(pod.Address)
+		sumUncompleteGwei, err := v.scanner.GetWithdrawalUncompletedGwei(pod.Address, pod.PodIndex)
 		if err != nil {
-			logrus.Errorf("GetWithdrawalUncompletedGwei pod:%s error:%v", pod.Address, err)
+			logrus.Errorf("GetWithdrawalUncompletedGwei pod[%d] error:%v", pod.PodIndex, err)
 			return
 		}
 		podContract, _ := EigenPod.NewEigenPod(common.HexToAddress(pod.Address), v.scanner.EthClient)
 		shares, err := podContract.WithdrawableRestakedExecutionLayerGwei(&bind.CallOpts{})
 		if err != nil {
-			logrus.Errorf("Get pod %s WithdrawableRestakedExecutionLayerGwei: %v", pod.Address, err)
+			logrus.Errorf("Get pod[%d] WithdrawableRestakedExecutionLayerGwei: %v", pod.PodIndex, err)
 			return
 		}
-		logrus.Infof("pod %s shares:%v, sumUncompleteGwei:%v", pod.Address, shares, sumUncompleteGwei)
 		queueGwei := shares - sumUncompleteGwei
+		logrus.Infof("pod[%d] shares:%d, sumUncompleteGwei:%v, minus:%v", pod.PodIndex, shares, sumUncompleteGwei, queueGwei)
 		if queueGwei > 0 {
 			sharesWei := big.NewInt(0).Mul(big.NewInt(int64(queueGwei)), big.NewInt(1e9))
 			err := v.scanner.sendQueueWithdrawals(sharesWei, pod)
 			if err != nil {
 				if errors.Is(err, errBaseFeeTooHigh) {
-					logrus.Warnf("sendRawTransaction pod %v error:%v", pod.Address, errBaseFeeTooHigh)
+					logrus.Warnf("sendRawTransaction pod[%d] error:%v", pod.PodIndex, errBaseFeeTooHigh)
 					return
 				}
-				logrus.Errorf("end sendQueueWithdrawals pod %v error:%v", pod.Address, err)
+				logrus.Errorf("end sendQueueWithdrawals pod[%d] error:%v", pod.PodIndex, err)
 				panic("send sendQueueWithdrawals err")
 			}
 		} else {
-			logrus.Infof("pod %s no need QueueWithdraw", pod.Address)
+			logrus.Infof("pod[%d] no need QueueWithdraw", pod.PodIndex)
 		}
 	}
 }
@@ -108,10 +106,11 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 	}
 	txReceipt, err := bind.WaitMined(context.Background(), s.EthClient, realTx)
 	if err != nil {
-		logrus.Errorf("waiting SendCheckPoint podId %v, error:%v", pod.Address, err)
+		logrus.Errorf("waiting %s podId[%d], error:%v", TxQueueWithdrawals, pod.PodIndex, err)
 		return err
 	}
-	logrus.WithField("Report", "true").Infof("sendVerifyWithdrawCredential tx:%s", txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%v tx:%s", TxQueueWithdrawals, pod.PodIndex,
+		big.NewInt(0).Div(shares, big.NewInt(1e9)), txReceipt.TxHash)
 	err = writeTransaction(s.DBEngine, txReceipt, TxQueueWithdrawals)
 	if err != nil {
 		logrus.Errorln("writeTransaction err:", err)
@@ -214,7 +213,7 @@ func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot 
 	return fmt.Errorf("not found")
 }
 
-func (s *Scanner) GetWithdrawalUncompletedGwei(podAddress string) (uint64, error) {
+func (s *Scanner) GetWithdrawalUncompletedGwei(podAddress string, podIndex uint64) (uint64, error) {
 	queueWithdrawalUnCompletedShareSumWei := big.NewInt(0)
 	var qws []models.QueueWithdrawals
 	rest := s.DBEngine.Model(&models.QueueWithdrawals{}).Where("pod = ?", podAddress).
@@ -223,7 +222,7 @@ func (s *Scanner) GetWithdrawalUncompletedGwei(podAddress string) (uint64, error
 		logrus.Errorln("get QueueWithdrawals error:", rest.Error)
 		return 0, rest.Error
 	}
-	logrus.Infof("GetWithdrawalUncompletedGwei len(qws):%v, pod:%s", len(qws), podAddress)
+	logrus.Infof("pod[%d] GetWithdrawalUncompletedGwei len(qws):%v", podIndex, len(qws))
 	for _, queueWithdrawal := range qws {
 		var qwp DelegationManager.IDelegationManagerQueuedWithdrawalParams
 		if err := json.Unmarshal([]byte(queueWithdrawal.Withdrawal), &qwp); err != nil {
@@ -249,27 +248,28 @@ func (s *Scanner) tryCompleteQueue(queueWithdrawalsNotCompleted models.QueueWith
 		return nil
 	}
 	if uint64(withdrawal.Withdrawal.StartBlock)+s.Config.MinWithdrawalDelayBlocks > block {
-		logrus.Infof("minWithdrawalDelayBlocks period has not yet passed")
+		logrus.Infof("pod[%d] minWithdrawalDelayBlocks[%d] startBlock[%d] block[%d] period has not yet passed", pod.PodIndex,
+			s.Config.MinWithdrawalDelayBlocks, withdrawal.Withdrawal.StartBlock, block)
 		return nil
 	}
-	logrus.Infof("Withdrawer: %s, owner: %s", withdrawal.Withdrawal.Withdrawer.String(), pod.Owner)
 	if withdrawal.Withdrawal.Withdrawer.String() == pod.Owner {
 		realTx, err := s.SendCompleteQueuedWithdrawals(pod, withdrawal, true)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
-				logrus.Warnf("sendRawTransaction pod %v error:%v", pod.Address, errBaseFeeTooHigh)
+				logrus.Warnf("%s pod[%d] error:%v", TxCompleteQueueWithdrawals, pod.PodIndex, errBaseFeeTooHigh)
 				return nil
 			}
-			logrus.Errorf("sendCompleteQueuedWithdrawals index %v error:%v", pod.Address, err)
+			logrus.Errorf("sendCompleteQueuedWithdrawals pod[%d] error:%v", pod.PodIndex, err)
 			panic("sendCompleteQueuedWithdrawals error")
 		}
-		logrus.Infoln("waiting sendCompleteQueuedWithdrawals tx:", realTx.Hash())
+		logrus.Infof("waiting %s pod[%d] tx:%s", TxCompleteQueueWithdrawals, pod.PodIndex, realTx.Hash())
 		txReceipt, err := bind.WaitMined(context.Background(), s.EthClient, realTx)
 		if err != nil {
 			logrus.Errorf("waiting sendCompleteQueuedWithdrawals index %v error:%v", pod.Address, err)
 			panic("waiting error")
 		}
-		logrus.WithField("Report", "true").Infof("sendCompleteQueuedWithdrawals tx:%s", txReceipt.TxHash)
+		logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%v tx:%s", TxCompleteQueueWithdrawals,
+			pod.PodIndex, big.NewInt(0).Div(withdrawal.Withdrawal.Shares[0], big.NewInt(1e9)), txReceipt.TxHash)
 		if err := writeTransaction(s.DBEngine, txReceipt, TxCompleteQueueWithdrawals); err != nil {
 			logrus.Errorln("writeTransaction err:", err)
 			panic("writeTransaction error")

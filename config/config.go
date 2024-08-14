@@ -12,9 +12,9 @@ type Addresses struct {
 }
 
 var MainnetAddresses = Addresses{
-	stakingContract:                "",
-	restakingContract:              "",
-	eigenDelegationManagerContract: "",
+	stakingContract:                "0x4beFa2aA9c305238AA3E0b5D17eB20C045269E9d",
+	restakingContract:              "0x3F4eaCeb930b0Edfa78a1DFCbaE5c5494E6e9850",
+	eigenDelegationManagerContract: "0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338",
 }
 
 var HoleskyAddresses = Addresses{
@@ -23,8 +23,8 @@ var HoleskyAddresses = Addresses{
 	eigenDelegationManagerContract: "0xA44151489861Fe9e3055d95adC98FbD462B948e7",
 }
 
-const HoleskyMinWithdrawalDelayBlocks = 7200 // 1 day
-const MainnetMinWithdrawalDelayBlocks = 216000
+const HoleskyMinWithdrawalDelayBlocks = 3600 // half day
+const MainnetMinWithdrawalDelayBlocks = 216003
 
 type Config struct {
 	Network                        string    `yaml:"network"`

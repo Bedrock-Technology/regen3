@@ -13,11 +13,13 @@ import (
 	"github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"math"
 	"math/big"
 	"strconv"
 )
@@ -52,6 +54,15 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				return
 			}
 			if len(validators) != 0 {
+				logrus.Infof("pod[%d], need do TxVerifyWithdrawalCredentials", pod.PodIndex)
+				if !canValidatorVerifyCredential(v.scanner, validators) {
+					logrus.WithField("Report", "true").Infof("pod[%d], VerifyWithdrawalCredentials need delay", pod.PodIndex)
+					continue
+				}
+				if bigger, err := v.scanner.baseFeeBiggerThan(); err != nil || bigger {
+					logrus.Warnf("pod[%d], VerifyWithdrawalCredentials baseFeeBiggerThan", pod.PodIndex)
+					return
+				}
 				proofs, err := getValidatorProof(pod.Address, v.scanner, validators, &beaconBlockHeader, &beaconBlockState, &blockTime)
 				if err != nil {
 					logrus.Errorln("getValidatorProof error:", err)
@@ -76,13 +87,14 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Errorf("sendRawTransaction pod %v error:%v", pod.Address, err)
 					panic("sendRawTransaction error")
 				}
-				logrus.Infoln("waiting sendVerifyWithdrawCredential tx:", realTx.Hash())
+				logrus.Infof("waiting %s pod[%d] tx:%s", TxVerifyWithdrawalCredentials, pod.PodIndex, realTx.Hash())
 				txReceipt, err := bind.WaitMined(context.Background(), v.scanner.EthClient, realTx)
 				if err != nil {
-					logrus.Errorf("waiting sendVerifyWithdrawCredential pod %v error:%v", pod.Address, err)
+					logrus.Errorf("waiting %s pod[%d] error:%v", TxVerifyWithdrawalCredentials, pod.PodIndex, err)
 					panic("waiting error")
 				}
-				logrus.WithField("Report", "true").Infof("sendVerifyWithdrawCredential tx:%s", txReceipt.TxHash)
+				logrus.WithField("Report", "true").Infof("%s pod[%d] vcount[%d] tx:%s", TxVerifyWithdrawalCredentials,
+					pod.PodIndex, len(validators), txReceipt.TxHash)
 				if err := writeTransaction(v.scanner.DBEngine, txReceipt, TxVerifyWithdrawalCredentials); err != nil {
 					logrus.Errorln("writeTransaction err:", err)
 					panic("writeTransaction error")
@@ -98,6 +110,26 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 			}
 		}
 	}
+}
+
+func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) bool {
+	var vi []phase0.ValidatorIndex
+	for _, v := range validatorIndices {
+		vi = append(vi, phase0.ValidatorIndex(v))
+	}
+	resp, err := scanner.BeaconClient.Validators(beaconClient.CTX, &api.ValidatorsOpts{
+		Indices: vi,
+	})
+	if err != nil || len(resp.Data) != len(validatorIndices) {
+		logrus.Errorln("get validator status error")
+		return false
+	}
+	for _, v := range resp.Data {
+		if v.Validator.ActivationEpoch == math.MaxUint64 {
+			return false
+		}
+	}
+	return true
 }
 
 func getValidatorProof(podAddress string, scanner *Scanner, validatorIndices []uint64,

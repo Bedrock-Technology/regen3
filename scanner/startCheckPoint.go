@@ -38,28 +38,27 @@ func (s *StartCheckPointRun) JobRun() {
 	for _, pod := range s.scanner.Pods {
 		//condition
 		if active, err := s.scanner.hasActiveCheckPoint(pod.Address); err != nil || active {
-			logrus.Infof("pod %s has active checkpoint or err %v", pod.Address, err)
+			logrus.Infof("pod[%d] has active checkpoint or err %v", pod.PodIndex, err)
 			continue
 		}
-		if !s.NeedDoCheckPoint(pod.Address) {
-			logrus.Infof("pod %v no need do checkPoint", pod.Address)
+		if !s.NeedDoCheckPoint(pod.Address, pod.PodIndex) {
 			continue
 		}
 		//send startCheckPoint
 		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
-				logrus.Warnf("sendRawTransaction pod %v error:%v", pod.Address, errBaseFeeTooHigh)
+				logrus.Warnf("%s pod[%d] error:%v", TxStartCheckPoints, pod.PodIndex, errBaseFeeTooHigh)
 				return
 			}
-			logrus.Errorf("send checkpoint pod %v error:%v", pod.Address, err)
+			logrus.Errorf("send checkpoint pod[%d] error:%v", pod.PodIndex, err)
 			panic("send checkpoint err")
 		}
 		if timestamp != 0 {
-			logrus.Infof("need do FillProofs pod %v timestamp:%v", pod.Address, timestamp)
+			logrus.Infof("need do FillProofs pod[%d] timestamp:%v", pod.PodIndex, timestamp)
 			proofs, err := s.scanner.FillProofs(pod.Address, timestamp)
 			if err != nil {
-				logrus.Errorf("FillProofs pod %v timestamp:%v", pod.Address, timestamp)
+				logrus.Errorf("FillProofs pod[%d] timestamp:%v", pod.PodIndex, timestamp)
 				panic("FillProofs")
 			}
 			//write to db
@@ -67,7 +66,7 @@ func (s *StartCheckPointRun) JobRun() {
 				Where("checkpoint_timestamp = ?", timestamp).Where("checkpoint_finalized = ?", 0).
 				Update("proofs", string(proofs))
 			if rest.Error != nil {
-				logrus.Errorf("update pod %v timestamp:%v", pod.Address, timestamp)
+				logrus.Errorf("update pod[%d] timestamp:%v", pod.PodIndex, timestamp)
 				panic("update")
 			}
 		}
@@ -90,7 +89,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 		logrus.Errorf("waiting SendCheckPoint podId %v, error:%v", podId.Uint64(), err)
 		return 0, err
 	}
-	logrus.WithField("Report", "true").Infof("SendCheckPoint tx:%s", txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("%s pod[%d] tx:%s", TxStartCheckPoints, podId.Uint64(), txReceipt.TxHash)
 	//write to db
 	err = writeTransaction(s.DBEngine, txReceipt, TxStartCheckPoints)
 	if err != nil {
@@ -133,7 +132,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 				timestamp = r.CheckpointTimestamp
 				if checkPoint.ProofsRemaining.Uint64() == 0 { //empty checkpoint
 					cp.CheckpointFinalized = txReceipt.BlockNumber.Uint64()
-					logrus.Infof("CheckpointFinalized, timestamp:%d, root:%v", timestamp, hex.EncodeToString(r.BeaconBlockRoot[:]))
+					logrus.Infof("CheckpointFinalized, pod[%d] timestamp:%d", podId.Uint64(), timestamp)
 					timestamp = 0
 				}
 				if result := s.DBEngine.Create(&cp); result.Error != nil {
@@ -188,7 +187,7 @@ func (s *Scanner) FillProofs(podAddress string, timestamp uint64) ([]byte, error
 	return json.Marshal(proof)
 }
 
-func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string) bool {
+func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64) bool {
 	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.scanner.EthClient)
 	executionLayerGwei, err := eigenPod.WithdrawableRestakedExecutionLayerGwei(nil)
 	if err != nil {
@@ -201,7 +200,8 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string) bool {
 		return false
 	}
 	podBalanceGwei := podBalance.Div(podBalance, big.NewInt(1e9)).Uint64()
-	logrus.Infof("pod:%v, podBalanceGwei:%v, executionLayerGwei:%v", podAddress, podBalanceGwei, executionLayerGwei)
+	logrus.Infof("pod[%d], podBalanceGwei:%v, executionLayerGwei:%v, minus:%v, threshold:%v", podIndex, podBalanceGwei,
+		executionLayerGwei, podBalanceGwei-executionLayerGwei, s.scanner.Config.CheckPointThreshold)
 	if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
 		return true
 	}
