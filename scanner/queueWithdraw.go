@@ -225,15 +225,13 @@ func (s *Scanner) GetWithdrawalUncompletedGwei(podAddress string) (uint64, error
 	}
 	logrus.Infof("GetWithdrawalUncompletedGwei len(qws):%v, pod:%s", len(qws), podAddress)
 	for _, queueWithdrawal := range qws {
-		var qwps []DelegationManager.IDelegationManagerQueuedWithdrawalParams
-		if err := json.Unmarshal([]byte(queueWithdrawal.Withdrawal), &qwps); err != nil {
+		var qwp DelegationManager.IDelegationManagerQueuedWithdrawalParams
+		if err := json.Unmarshal([]byte(queueWithdrawal.Withdrawal), &qwp); err != nil {
 			logrus.Errorln("Unmarshal error:", err)
 			return 0, err
 		}
-		for _, qwp := range qwps {
-			for _, share := range qwp.Shares {
-				queueWithdrawalUnCompletedShareSumWei.Add(queueWithdrawalUnCompletedShareSumWei, share)
-			}
+		for _, share := range qwp.Shares {
+			queueWithdrawalUnCompletedShareSumWei.Add(queueWithdrawalUnCompletedShareSumWei, share)
 		}
 	}
 	return queueWithdrawalUnCompletedShareSumWei.Div(queueWithdrawalUnCompletedShareSumWei, big.NewInt(1e9)).Uint64(), nil
