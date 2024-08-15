@@ -34,7 +34,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 		eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(pod.Address), s.scanner.EthClient)
 		currentTimestamp, err := eigenPod.CurrentCheckpointTimestamp(nil)
 		if err != nil || currentTimestamp == 0 {
-			logrus.Infof("pod %s no need verify checkpoint", pod.Address)
+			logrus.Infof("pod[%d] no need verify checkpoint", pod.PodIndex)
 			continue
 		}
 
