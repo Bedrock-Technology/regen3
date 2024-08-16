@@ -3,13 +3,16 @@ module github.com/Bedrock-Technology/regen3
 go 1.22.2
 
 require (
+	github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240812153233-46cda8c7817e
 	github.com/attestantio/go-eth2-client v0.21.9
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ethereum/go-ethereum v1.14.7
 	github.com/joho/godotenv v1.5.1
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/zerolog v1.32.0
+	github.com/shopspring/decimal v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/crypto v0.23.0
@@ -19,7 +22,6 @@ require (
 )
 
 require (
-	github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240812153233-46cda8c7817e // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -65,9 +67,7 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240328144219-a1caa50c3a1e // indirect
 	github.com/r3labs/sse/v2 v2.10.0 // indirect
-	github.com/robfig/cron/v3 v3.0.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
-	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect

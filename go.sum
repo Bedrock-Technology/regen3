@@ -1,9 +1,5 @@
 github.com/DataDog/zstd v1.4.5 h1:EndNeuB0l9syBZhut0wns3gV1hL8zX8LIu6ZiVHWLIQ=
 github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
-github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable h1:E3bgItnu6dTDzee9orBfYpAIiuSoUPI/gc9hYV44Cn0=
-github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable/go.mod h1:3EICAs2vM3RbFhChkMywwKvPSYdxMldz3e1rY4brp/Q=
-github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240730152248-5c11a259293e h1:DvW0/kWHV9mZsbH2KOjEHKTSIONNPUj6X05FJvUohy4=
-github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240730152248-5c11a259293e/go.mod h1:T7tYN8bTdca2pkMnz9G2+ZwXYWw5gWqQUIu4KLgC/vM=
 github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240812153233-46cda8c7817e h1:JoPK2crAtLa5R7KtZN7OLR83rns37as0KOALiGIWJwE=
 github.com/Layr-Labs/eigenpod-proofs-generation v0.0.14-stable.0.20240812153233-46cda8c7817e/go.mod h1:T7tYN8bTdca2pkMnz9G2+ZwXYWw5gWqQUIu4KLgC/vM=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
