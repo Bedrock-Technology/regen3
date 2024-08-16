@@ -43,7 +43,7 @@ func (s *Scanner) DelegateTo(podIndex int64, operator string) {
 		logrus.Errorf("waiting delegateTo index %v error:%v", podIndex, err)
 		panic("waiting error")
 	}
-	logrus.WithField("Report", "true").Infof("delegateTo tx:%s", txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("pod[%d] %s tx:%s", podIndex, TxDelegateTo, txReceipt.TxHash)
 	if err := writeTransaction(s.DBEngine, txReceipt, TxDelegateTo); err != nil {
 		logrus.Errorf("writeTransaction err:%v", err)
 		return

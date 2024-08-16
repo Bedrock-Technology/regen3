@@ -39,6 +39,7 @@ type Config struct {
 	RestakingContract              string    `yaml:"-"`
 	EigenDelegationManagerContract string    `yaml:"-"`
 	MinWithdrawalDelayBlocks       uint64    `yaml:"-"`
+	ReportSpec                     string    `yaml:"reportSpec"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 	CheckStartCheckPoint           TimerSpec `yaml:"checkStartCheckPoint"`
 	CheckQueueWithdraw             TimerSpec `yaml:"checkQueueWithdraw"`

@@ -4,6 +4,7 @@ beaconClient: ""
 mysqlDsn: ""
 logLevel: ""
 slackUrl: ""
+reportSpec: ""
 checkVerifyWithdrawCredential:
   enable: false
   intervalBlock: 0

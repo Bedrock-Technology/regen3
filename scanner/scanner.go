@@ -3,6 +3,7 @@ package scanner
 import (
 	"errors"
 	"fmt"
+	"github.com/Bedrock-Technology/regen3/crons"
 	"time"
 
 	"github.com/Bedrock-Technology/regen3/beaconClient"
@@ -27,6 +28,7 @@ type Scanner struct {
 	Pods           map[string]models.Pod
 	FilterAddress  []common.Address
 	KeyAgentClient *keyAgentRpc.Client
+	Cron           *crons.ScanCron
 	Quit           chan struct{}
 }
 
@@ -61,6 +63,11 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 	scanner.initBlockTimers()
 	scanner.KeyAgentClient = keyAgentRpc.NewClient(scanner.Config.KeyAgent)
 
+	scanner.Cron = crons.New()
+	if err := scanner.initCrontabs(); err != nil {
+		panic(fmt.Sprintf("initCrontabs err:%v", err))
+	}
+
 	return scanner
 }
 
@@ -89,6 +96,17 @@ func (s *Scanner) initBlockTimers() {
 	}
 }
 
+func (s *Scanner) initCrontabs() error {
+	if s.Config.ReportSpec != "" {
+		reportSpec := &ReportSpec{Scanner: s}
+		if _, err := s.Cron.AddSpec(s.Config.ReportSpec, reportSpec); err != nil {
+			return err
+		}
+		logrus.Info("add ReportSpec")
+	}
+	return nil
+}
+
 func (s *Scanner) fillFilterAddress() []common.Address {
 	address := make([]common.Address, 0, len(s.Pods)+2)
 	for _, pod := range s.Pods {
@@ -104,6 +122,8 @@ func (s *Scanner) Scan() {
 	scanTicker := time.NewTicker(12 * time.Second)
 	defer scanTicker.Stop()
 
+	s.Cron.Start()
+
 	for {
 		select {
 		case <-scanTicker.C:
@@ -111,6 +131,11 @@ func (s *Scanner) Scan() {
 		case <-s.Quit:
 			logrus.Info("Quit")
 			beaconClient.Cancel()
+			context := s.Cron.Stop()
+			select {
+			case <-context.Done():
+				logrus.Infoln("Quit Done")
+			}
 			return
 		}
 	}
