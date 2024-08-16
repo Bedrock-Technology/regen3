@@ -98,7 +98,7 @@ func (s *Scanner) initBlockTimers() {
 
 func (s *Scanner) initCrontabs() error {
 	if s.Config.ReportSpec != "" {
-		reportSpec := &ReportSpec{Scanner: s}
+		reportSpec := &ReportSpec{Scanner: s, LastReportTime: time.Now().UTC()}
 		if _, err := s.Cron.AddSpec(s.Config.ReportSpec, reportSpec); err != nil {
 			return err
 		}

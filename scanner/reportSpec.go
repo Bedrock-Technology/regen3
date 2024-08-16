@@ -10,7 +10,8 @@ import (
 )
 
 type ReportSpec struct {
-	Scanner *Scanner
+	Scanner        *Scanner
+	LastReportTime time.Time
 }
 
 type Transactions struct {
@@ -27,10 +28,10 @@ func (r *ReportSpec) Run() {
 		return
 	}
 	balanceDecimal := decimal.NewFromBigInt(balance, -18)
-	ago := time.Now().UTC().Add(-12 * time.Hour)
 	trans := Transactions{}
+	logrus.Infof("LastReportTime:%s", r.LastReportTime.String())
 	rst := r.Scanner.
-		DBEngine.Raw("SELECT COUNT(*) AS total, COUNT(CASE WHEN created_at > ? THEN 1 END) AS incr FROM transactions", ago).Scan(&trans)
+		DBEngine.Raw("SELECT COUNT(*) AS total, COUNT(CASE WHEN created_at > ? THEN 1 END) AS incr FROM transactions", r.LastReportTime).Scan(&trans)
 	if rst.Error != nil {
 		logrus.Errorln("get validatorNums error:", rst.Error)
 		return
@@ -46,6 +47,7 @@ func (r *ReportSpec) Run() {
 		return
 	}
 	diff := end - cursor.Slot
+	r.LastReportTime = time.Now().UTC()
 	logrus.WithField("Report", "true").Infof("balance:%s, total:%d, incr:%d, diff:%d",
 		balanceDecimal.Truncate(9), trans.Total, trans.Incr, diff)
 }
