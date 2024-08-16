@@ -38,13 +38,13 @@ func (v *QueueWithdrawRun) JobRun() {
 		}
 		var queueWithdrawalsNotCompleted []models.QueueWithdrawals
 		rest := v.scanner.DBEngine.Model(&models.QueueWithdrawals{}).Where("completed = ?", 0).
-			Where("pod = ?", pod.Address).Limit(1).Find(&queueWithdrawalsNotCompleted)
+			Where("pod = ?", pod.Address).Order("start_block asc").Limit(1).Find(&queueWithdrawalsNotCompleted)
 		if rest.Error != nil {
 			logrus.Errorf("Get QueueWithdrawals failed: %v", rest.Error)
 			return
 		}
 		if len(queueWithdrawalsNotCompleted) == 1 {
-			logrus.Infof("pod[%d] tryCompleteQueue", pod.PodIndex)
+			logrus.Infof("pod[%d] tryCompleteQueue root:%s", pod.PodIndex, queueWithdrawalsNotCompleted[0].WithdrawalRoot)
 			_ = v.scanner.tryCompleteQueue(queueWithdrawalsNotCompleted[0], pod)
 		}
 		sumUncompleteGwei, err := v.scanner.GetWithdrawalUncompletedGwei(pod.Address, pod.PodIndex)
@@ -248,8 +248,8 @@ func (s *Scanner) tryCompleteQueue(queueWithdrawalsNotCompleted models.QueueWith
 		return nil
 	}
 	if uint64(withdrawal.Withdrawal.StartBlock)+s.Config.MinWithdrawalDelayBlocks > block {
-		logrus.Infof("pod[%d] minWithdrawalDelayBlocks[%d] startBlock[%d] block[%d] period has not yet passed", pod.PodIndex,
-			s.Config.MinWithdrawalDelayBlocks, withdrawal.Withdrawal.StartBlock, block)
+		logrus.Infof("pod[%d] minWithdrawalDelayBlocks[%d] startBlock[%d] block[%d] diff[%d] period has not yet passed", pod.PodIndex,
+			s.Config.MinWithdrawalDelayBlocks, withdrawal.Withdrawal.StartBlock, block, block-uint64(withdrawal.Withdrawal.StartBlock))
 		return nil
 	}
 	if withdrawal.Withdrawal.Withdrawer.String() == pod.Owner {
