@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"math/big"
 )
@@ -59,7 +60,10 @@ func (v *QueueWithdrawRun) JobRun() {
 			return
 		}
 		queueGwei := shares - sumUncompleteGwei
-		logrus.Infof("pod[%d] shares:%d, sumUncompleteGwei:%v, minus:%v", pod.PodIndex, shares, sumUncompleteGwei, queueGwei)
+		logrus.Infof("pod[%d] shares:%s, sumUncompleteGwei:%s, minus:%s", pod.PodIndex,
+			decimal.NewFromUint64(shares).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(sumUncompleteGwei).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(queueGwei).Mul(decimal.New(1, -9)))
 		if queueGwei > 0 {
 			sharesWei := big.NewInt(0).Mul(big.NewInt(int64(queueGwei)), big.NewInt(1e9))
 			err := v.scanner.sendQueueWithdrawals(sharesWei, pod)
@@ -109,8 +113,8 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 		logrus.Errorf("waiting %s podId[%d], error:%v", TxQueueWithdrawals, pod.PodIndex, err)
 		return err
 	}
-	logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%v tx:%s", TxQueueWithdrawals, pod.PodIndex,
-		big.NewInt(0).Div(shares, big.NewInt(1e9)), txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%s tx:%s", TxQueueWithdrawals, pod.PodIndex,
+		decimal.NewFromBigInt(shares, -18).Truncate(9), txReceipt.TxHash)
 	err = writeTransaction(s.DBEngine, txReceipt, TxQueueWithdrawals)
 	if err != nil {
 		logrus.Errorln("writeTransaction err:", err)
@@ -268,8 +272,9 @@ func (s *Scanner) tryCompleteQueue(queueWithdrawalsNotCompleted models.QueueWith
 			logrus.Errorf("waiting sendCompleteQueuedWithdrawals index %v error:%v", pod.Address, err)
 			panic("waiting error")
 		}
-		logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%v tx:%s", TxCompleteQueueWithdrawals,
-			pod.PodIndex, big.NewInt(0).Div(withdrawal.Withdrawal.Shares[0], big.NewInt(1e9)), txReceipt.TxHash)
+		//big.NewInt(0).Div(withdrawal.Withdrawal.Shares[0], big.NewInt(1e9))
+		logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%s tx:%s", TxCompleteQueueWithdrawals,
+			pod.PodIndex, decimal.NewFromBigInt(withdrawal.Withdrawal.Shares[0], -18).Truncate(9), txReceipt.TxHash)
 		if err := writeTransaction(s.DBEngine, txReceipt, TxCompleteQueueWithdrawals); err != nil {
 			logrus.Errorln("writeTransaction err:", err)
 			panic("writeTransaction error")

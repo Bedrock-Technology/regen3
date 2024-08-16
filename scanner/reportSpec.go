@@ -47,5 +47,5 @@ func (r *ReportSpec) Run() {
 	}
 	diff := end - cursor.Slot
 	logrus.WithField("Report", "true").Infof("balance:%s, total:%d, incr:%d, diff:%d",
-		balanceDecimal.Round(6), trans.Total, trans.Incr, diff)
+		balanceDecimal.Truncate(9), trans.Total, trans.Incr, diff)
 }

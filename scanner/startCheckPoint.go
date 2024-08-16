@@ -14,6 +14,7 @@ import (
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"strconv"
@@ -200,8 +201,11 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		return false
 	}
 	podBalanceGwei := podBalance.Div(podBalance, big.NewInt(1e9)).Uint64()
-	logrus.Infof("pod[%d], podBalanceGwei:%v, executionLayerGwei:%v, minus:%v, threshold:%v", podIndex, podBalanceGwei,
-		executionLayerGwei, podBalanceGwei-executionLayerGwei, s.scanner.Config.CheckPointThreshold)
+	logrus.Infof("pod[%d], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
+		decimal.NewFromUint64(podBalanceGwei).Mul(decimal.New(1, -9)),
+		decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
+		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
+		decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
 	if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
 		return true
 	}
