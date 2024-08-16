@@ -21,6 +21,7 @@ type Transactions struct {
 
 func (r *ReportSpec) Run() {
 	logrus.Info("ReportSpec Run")
+	now := time.Now().UTC()
 	balance, err := r.Scanner.EthClient.BalanceAt(context.Background(),
 		common.HexToAddress(r.Scanner.Config.KeyAgent.Address), nil)
 	if err != nil {
@@ -47,7 +48,7 @@ func (r *ReportSpec) Run() {
 		return
 	}
 	diff := end - cursor.Slot
-	r.LastReportTime = time.Now().UTC()
+	r.LastReportTime = now
 	logrus.WithField("Report", "true").Infof("balance:%s, total:%d, incr:%d, diff:%d",
 		balanceDecimal.Truncate(9), trans.Total, trans.Incr, diff)
 }

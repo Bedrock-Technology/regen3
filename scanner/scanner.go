@@ -102,7 +102,7 @@ func (s *Scanner) initCrontabs() error {
 		if _, err := s.Cron.AddSpec(s.Config.ReportSpec, reportSpec); err != nil {
 			return err
 		}
-		logrus.Info("add ReportSpec")
+		logrus.Info("Add ReportSpec")
 	}
 	return nil
 }
