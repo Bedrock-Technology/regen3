@@ -60,6 +60,6 @@ FROM
 	totalFee, _ := decimal.NewFromString(trans.TotalFee)
 	incrFee, _ := decimal.NewFromString(trans.IncrFee)
 	logrus.WithField("Report", "true").Infof("balance:%s, total:%d[%s], incr:%d[%s], diff:%d",
-		balanceDecimal.Truncate(9), trans.Total, totalFee.Mul(decimal.New(1, -18)), trans.Incr,
-		incrFee.Mul(decimal.New(1, -18)), diff)
+		balanceDecimal.Truncate(9), trans.Total, totalFee.Mul(decimal.New(1, -18)).Truncate(9),
+		trans.Incr, incrFee.Mul(decimal.New(1, -18)).Truncate(9), diff)
 }
