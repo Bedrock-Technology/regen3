@@ -40,7 +40,7 @@ func (r *ReportSpec) Run() {
     SUM(fee) AS total_fee,
     SUM(CASE WHEN created_at > ? THEN fee ELSE 0 END) AS incr_fee
 FROM
-    transactions`, r.LastReportTime, r.LastReportTime).(&trans)
+    transactions`, r.LastReportTime, r.LastReportTime).Scan(&trans)
 	if rst.Error != nil {
 		logrus.Errorln("get validatorNums error:", rst.Error)
 		return
