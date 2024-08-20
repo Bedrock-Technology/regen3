@@ -47,7 +47,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").
 				Where("pod_address = ?", pod.Address).
 				Where("credential_verified = ?", 0).Where("withdrawn_on_chain = ?", 0).
-				Where("withdrawn_on_pod = ?", 0).Where("voluntary_exit = ?", 0).
+				Where("withdrawn_on_pod = ?", 0).Where("voluntary_exit = ?", 0).Order("created_at asc").
 				Limit(v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize).Find(&validators)
 			if rest.Error != nil {
 				logrus.Errorln("get validators error:", rest.Error)
@@ -55,7 +55,8 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 			}
 			if len(validators) != 0 {
 				logrus.Infof("pod[%d], need do TxVerifyWithdrawalCredentials", pod.PodIndex)
-				if !canValidatorVerifyCredential(v.scanner, validators) {
+				canVerify, err := canValidatorVerifyCredential(v.scanner, validators)
+				if err != nil || len(canVerify) == 0 {
 					logrus.WithField("Report", "true").Infof("pod[%d], VerifyWithdrawalCredentials need delay", pod.PodIndex)
 					continue
 				}
@@ -112,7 +113,8 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 	}
 }
 
-func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) bool {
+func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) ([]uint64, error) {
+	var canVerify []uint64
 	var vi []phase0.ValidatorIndex
 	for _, v := range validatorIndices {
 		vi = append(vi, phase0.ValidatorIndex(v))
@@ -120,16 +122,15 @@ func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) b
 	resp, err := scanner.BeaconClient.Validators(beaconClient.CTX, &api.ValidatorsOpts{
 		Indices: vi,
 	})
-	if err != nil || len(resp.Data) != len(validatorIndices) {
-		logrus.Errorln("get validator status error")
-		return false
+	if err != nil {
+		return nil, err
 	}
 	for _, v := range resp.Data {
 		if v.Validator.ActivationEpoch == math.MaxUint64 {
-			return false
+			canVerify = append(canVerify, uint64(v.Index))
 		}
 	}
-	return true
+	return canVerify, nil
 }
 
 func getValidatorProof(podAddress string, scanner *Scanner, validatorIndices []uint64,
