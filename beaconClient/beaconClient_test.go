@@ -212,3 +212,31 @@ func TestNewClient(t *testing.T) {
 	}
 	t.Logf("header:%v", header)
 }
+
+func TestValidatorStatus(t *testing.T) {
+	validatorIndices := []uint64{1796388,
+		1799558,
+		1799559,
+		1799560,
+		1799561,
+		1799562,
+		1799563,
+		1799564,
+		1799565,
+		1799566,
+	}
+	var vi []phase0.ValidatorIndex
+	for _, v := range validatorIndices {
+		vi = append(vi, phase0.ValidatorIndex(v))
+	}
+
+	validatorOnbeacon, err := client.Validators(context.Background(), &api.ValidatorsOpts{
+		State:   "head",
+		Indices: vi,
+	})
+	if err != nil {
+		t.Logf("err:%v", err)
+		return
+	}
+	fmt.Println(validatorOnbeacon.Data)
+}

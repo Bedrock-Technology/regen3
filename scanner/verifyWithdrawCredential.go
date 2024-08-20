@@ -64,7 +64,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Warnf("pod[%d], VerifyWithdrawalCredentials baseFeeBiggerThan", pod.PodIndex)
 					return
 				}
-				proofs, err := getValidatorProof(pod.Address, v.scanner, validators, &beaconBlockHeader, &beaconBlockState, &blockTime)
+				proofs, err := getValidatorProof(pod.Address, v.scanner, canVerify, &beaconBlockHeader, &beaconBlockState, &blockTime)
 				if err != nil {
 					logrus.Errorln("getValidatorProof error:", err)
 					return
@@ -95,16 +95,16 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					panic("waiting error")
 				}
 				logrus.WithField("Report", "true").Infof("%s pod[%d] vcount[%d] tx:%s", TxVerifyWithdrawalCredentials,
-					pod.PodIndex, len(validators), txReceipt.TxHash)
+					pod.PodIndex, len(canVerify), txReceipt.TxHash)
 				if err := writeTransaction(v.scanner.DBEngine, txReceipt, TxVerifyWithdrawalCredentials); err != nil {
 					logrus.Errorln("writeTransaction err:", err)
 					panic("writeTransaction error")
 				}
-				if err := checkIfEventContained(txReceipt.Logs, validators, pod.Address, v.scanner); err != nil {
+				if err := checkIfEventContained(txReceipt.Logs, canVerify, pod.Address, v.scanner); err != nil {
 					logrus.Errorln("checkIfEventContained err:", err)
 					panic("checkIfEventContained error")
 				}
-				if err := updateValidatorCredential(v.scanner.DBEngine, validators, pod.Address, txReceipt.BlockNumber.Uint64()); err != nil {
+				if err := updateValidatorCredential(v.scanner.DBEngine, canVerify, pod.Address, txReceipt.BlockNumber.Uint64()); err != nil {
 					logrus.Errorln("updateValidatorCredential err:", err)
 					panic("updateValidatorCredential error")
 				}
@@ -120,6 +120,7 @@ func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) (
 		vi = append(vi, phase0.ValidatorIndex(v))
 	}
 	resp, err := scanner.BeaconClient.Validators(beaconClient.CTX, &api.ValidatorsOpts{
+		State:   "head",
 		Indices: vi,
 	})
 	if err != nil {
