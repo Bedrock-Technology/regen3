@@ -127,7 +127,7 @@ func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) (
 		return nil, err
 	}
 	for _, v := range resp.Data {
-		if v.Validator.ActivationEpoch == math.MaxUint64 {
+		if v.Validator.ActivationEpoch != math.MaxUint64 {
 			canVerify = append(canVerify, uint64(v.Index))
 		}
 	}
