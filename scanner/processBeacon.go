@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/models"
@@ -72,7 +73,13 @@ func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSigned
 			}
 		}
 		logrus.Infof("find Deposit len(%d), slot[%d]", len(blsPubKey), slot)
-		return orm.Create(&modelValidators).Error
+		result := orm.Create(&modelValidators)
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			logrus.Warnf("duplicated key, slot[%d],error:%v", slot, result.Error)
+			return nil
+		} else {
+			return result.Error
+		}
 	}
 	return nil
 }

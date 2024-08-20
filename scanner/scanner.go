@@ -36,7 +36,7 @@ func New(config *config.Config, quit chan struct{}) *Scanner {
 	scanner := &Scanner{Config: config, Quit: quit}
 
 	var err error
-	scanner.DBEngine, err = gorm.Open(mysql.Open(config.MysqlDsn))
+	scanner.DBEngine, err = gorm.Open(mysql.Open(config.MysqlDsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		panic(fmt.Sprintf("Open Mysql err:%v", err))
 	}
