@@ -75,8 +75,8 @@ func (s *Scanner) sendRawTransaction(input []byte, toAddress string) (*types.Tra
 	if err != nil {
 		return nil, errBaseFeeTooHigh
 	}
-	if header.BaseFee.Cmp(big.NewInt(20e9)) > 0 {
-		logrus.Warnf("Base fee bigger than 20gwei:%s", header.BaseFee)
+	if header.BaseFee.Cmp(big.NewInt(10e9)) > 0 {
+		logrus.Warnf("Base fee bigger than 10gwei:%s", header.BaseFee)
 		return nil, errBaseFeeTooHigh
 	}
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
@@ -122,7 +122,7 @@ func (s *Scanner) baseFeeBiggerThan() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return header.BaseFee.Cmp(big.NewInt(20e9)) > 0, nil
+	return header.BaseFee.Cmp(big.NewInt(10e9)) > 0, nil
 }
 
 var (

@@ -57,7 +57,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				logrus.Infof("pod[%d], need do TxVerifyWithdrawalCredentials", pod.PodIndex)
 				canVerify, err := canValidatorVerifyCredential(v.scanner, validators)
 				if err != nil || len(canVerify) == 0 {
-					logrus.WithField("Report", "true").Infof("pod[%d], VerifyWithdrawalCredentials need delay", pod.PodIndex)
+					logrus.Infof("pod[%d], VerifyWithdrawalCredentials need delay", pod.PodIndex)
 					continue
 				}
 				if bigger, err := v.scanner.baseFeeBiggerThan(); err != nil || bigger {
