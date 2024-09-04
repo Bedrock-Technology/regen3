@@ -86,14 +86,14 @@ func (s *Scanner) Setup(slot string) {
 
 			pubKeyBls := phase0.BLSPubKey{}
 			_ = pubKeyBls.UnmarshalJSON([]byte(fmt.Sprintf(`"%s"`, validator.PubKey)))
-
+		Retry:
 			validatorBeacon, err := s.BeaconClient.Validators(beaconClient.CTX, &api.ValidatorsOpts{
 				State:   slot,
 				PubKeys: []phase0.BLSPubKey{pubKeyBls},
 			})
 			if err != nil {
 				logrus.Errorf("get %s error:%v", validator.PubKey, err)
-				return
+				goto Retry
 			}
 
 			if len(validatorBeacon.Data) != 0 {
