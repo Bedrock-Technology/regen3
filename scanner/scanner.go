@@ -75,7 +75,7 @@ func (s *Scanner) initBlockTimers() {
 	cursor, err := models.GetCursor(s.DBEngine, models.Scanner)
 	if err != nil {
 		logrus.Errorln("GetCursor:", err)
-		panic("get cursor err")
+		//panic("get cursor err")
 	}
 	s.BlockTimer = blockTimer.NewBlockTimer(cursor.Slot)
 

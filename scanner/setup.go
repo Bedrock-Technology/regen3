@@ -3,6 +3,7 @@ package scanner
 import (
 	"encoding/hex"
 	"fmt"
+	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"math/big"
 	"strconv"
 
@@ -97,7 +98,7 @@ func (s *Scanner) Setup(slot string) {
 
 			if len(validatorBeacon.Data) != 0 {
 				for _, v := range validatorBeacon.Data {
-					if v.Validator.PublicKey.String() == validator.PubKey {
+					if v.Validator.PublicKey.String() == validator.PubKey && v.Status != v1.ValidatorStateWithdrawalDone {
 						validator.ValidatorIndex = uint64(v.Index)
 						validators = append(validators, validator)
 					}
