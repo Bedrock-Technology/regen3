@@ -2,9 +2,11 @@ package DelegationManager
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/Bedrock-Technology/regen3/models"
 	"math/big"
 	"os"
 	"strconv"
@@ -38,6 +40,7 @@ var (
 func init() {
 	err := godotenv.Load("../../.env")
 	if err != nil {
+		fmt.Println("err:", err)
 		panic(err)
 	}
 
@@ -206,8 +209,8 @@ func TestDelegationManagerCaller_GetDelegatableShares(t *testing.T) {
 
 func TestNewDelegationManager_FilterLogs(t *testing.T) {
 	logs, err := provider.FilterLogs(context.Background(), ethereum.FilterQuery{
-		FromBlock: big.NewInt(1448012),
-		ToBlock:   big.NewInt(1448094),
+		FromBlock: big.NewInt(20683347),
+		ToBlock:   big.NewInt(20683347),
 		Addresses: []common.Address{common.HexToAddress(ContractAddress)},
 		Topics:    nil,
 	})
@@ -336,7 +339,18 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 				t.Error("ParseWithdrawalQueued err:", log)
 				return
 			}
-			t.Log("wq:", wq)
+			withdrawal, _ := json.Marshal(&wq.Withdrawal)
+			queue := models.QueueWithdrawals{
+				Pod:            "0x926720Ae39114D0e2043b79570A1e08f00D01cCE",
+				WithdrawalRoot: base64.StdEncoding.EncodeToString(wq.WithdrawalRoot[:]),
+				Withdrawal:     string(withdrawal),
+				StartBlock:     uint64(wq.Withdrawal.StartBlock),
+				Completed:      0,
+			}
+			t.Logf("withdrawal:%s", string(withdrawal))
+			t.Logf("root:%s", hex.EncodeToString(wq.WithdrawalRoot[:]))
+			queueJson, _ := json.Marshal(&queue)
+			t.Logf("json:%s", string(queueJson))
 		case "Initialized":
 			init, err := contract.ParseInitialized(log)
 			if err != nil {

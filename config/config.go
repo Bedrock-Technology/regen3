@@ -14,7 +14,7 @@ type Addresses struct {
 var MainnetAddresses = Addresses{
 	stakingContract:                "0x4beFa2aA9c305238AA3E0b5D17eB20C045269E9d",
 	restakingContract:              "0x3F4eaCeb930b0Edfa78a1DFCbaE5c5494E6e9850",
-	eigenDelegationManagerContract: "0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338",
+	eigenDelegationManagerContract: "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A",
 }
 
 var HoleskyAddresses = Addresses{
