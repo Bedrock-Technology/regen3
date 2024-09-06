@@ -70,7 +70,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("sendRawTransaction pod[%d] error:%v", pod.PodIndex, errBaseFeeTooHigh)
-				continue
+				return
 			}
 			logrus.Errorf("send VerifyCheckPointRun pod[%d] error:%v", pod.PodIndex, err)
 			panic("VerifyCheckPointRun error")

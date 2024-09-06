@@ -18,6 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"strconv"
+	"time"
 )
 
 func (s *Scanner) InitStartCheckPoint() {
@@ -207,6 +208,20 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
 	if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
+		var latestCp []models.CheckPoint
+		rest := s.scanner.DBEngine.Where("pod = ?", podAddress).Order("updated_at desc").Limit(1).Find(&latestCp)
+		if rest.Error != nil {
+			logrus.Errorln("Get latest checkpoint error:", rest.Error)
+			return false
+		}
+		if len(latestCp) != 1 {
+			return true
+		}
+		now := time.Now().UTC()
+		if now.Sub(latestCp[0].UpdatedAt) < 24*time.Hour {
+			logrus.Warnf("pod[%d], latest cp at %v", podIndex, latestCp[0].UpdatedAt)
+			return false
+		}
 		return true
 	}
 	return false
