@@ -24,7 +24,7 @@ var HoleskyAddresses = Addresses{
 }
 
 const HoleskyMinWithdrawalDelayBlocks = 3600 // half day
-const MainnetMinWithdrawalDelayBlocks = 216003
+const MainnetMinWithdrawalDelayBlocks = 50403
 
 type Config struct {
 	Network                        string    `yaml:"network"`
