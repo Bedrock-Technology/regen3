@@ -2,11 +2,12 @@ package scanner
 
 import (
 	"context"
+	"time"
+
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type ReportSpec struct {
@@ -15,10 +16,10 @@ type ReportSpec struct {
 }
 
 type Transactions struct {
-	Total    uint64
-	Incr     uint64
 	TotalFee string
 	IncrFee  string
+	Total    uint64
+	Incr     uint64
 }
 
 func (r *ReportSpec) Run() {
@@ -39,7 +40,7 @@ func (r *ReportSpec) Run() {
     COUNT(CASE WHEN created_at > ? THEN 1 END) AS incr,
     SUM(fee) AS total_fee,
     SUM(CASE WHEN created_at > ? THEN fee ELSE 0 END) AS incr_fee
-FROM
+	FROM
     transactions`, r.LastReportTime, r.LastReportTime).Scan(&trans)
 	if rst.Error != nil {
 		logrus.Errorln("get validatorNums error:", rst.Error)

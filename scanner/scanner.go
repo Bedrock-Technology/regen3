@@ -3,12 +3,12 @@ package scanner
 import (
 	"errors"
 	"fmt"
-	"github.com/Bedrock-Technology/regen3/crons"
 	"time"
 
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/blockTimer"
 	"github.com/Bedrock-Technology/regen3/config"
+	"github.com/Bedrock-Technology/regen3/crons"
 	"github.com/Bedrock-Technology/regen3/keyAgentRpc"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/attestantio/go-eth2-client/api"
@@ -26,10 +26,10 @@ type Scanner struct {
 	BeaconClient   *beaconClient.Client
 	BlockTimer     *blockTimer.BlockTimer
 	Pods           map[string]models.Pod
-	FilterAddress  []common.Address
 	KeyAgentClient *keyAgentRpc.Client
 	Cron           *crons.ScanCron
 	Quit           chan struct{}
+	FilterAddress  []common.Address
 }
 
 func New(config *config.Config, quit chan struct{}) *Scanner {
@@ -75,7 +75,7 @@ func (s *Scanner) initBlockTimers() {
 	cursor, err := models.GetCursor(s.DBEngine, models.Scanner)
 	if err != nil {
 		logrus.Errorln("GetCursor:", err)
-		//panic("get cursor err")
+		// panic("get cursor err")
 	}
 	s.BlockTimer = blockTimer.NewBlockTimer(cursor.Slot)
 
@@ -132,10 +132,8 @@ func (s *Scanner) Scan() {
 			logrus.Info("Quit")
 			beaconClient.Cancel()
 			context := s.Cron.Stop()
-			select {
-			case <-context.Done():
-				logrus.Infoln("Quit Done")
-			}
+			<-context.Done()
+			logrus.Infoln("Quit Done")
 			return
 		}
 	}

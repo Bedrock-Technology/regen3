@@ -11,16 +11,16 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
+	"math/big"
+	"net/http"
+
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/pbkdf2"
-	"io"
-	"math/big"
-	"net/http"
 )
 
 type Client struct {
@@ -64,7 +64,7 @@ func checkResponse(rsp *http.Response) (body []byte, err error) {
 	}
 
 	if !successCode(rsp.StatusCode) {
-		err = errors.New(fmt.Sprintf("Http Error Status Code:%v,Body:%v", rsp.StatusCode, string(body)))
+		err = fmt.Errorf("Http Error Status Code:%v,Body:%v", rsp.StatusCode, string(body))
 		return nil, err
 	}
 
@@ -132,7 +132,7 @@ func (client *Client) Eth1SignTransaction(digestHash []byte) (sig []byte, err er
 		err = fmt.Errorf("verify error")
 		return
 	}
-	//decode
+	// decode
 	respContentDecrypt, _ := aesDecrypt(respContent, aesKey)
 	eth1SignResponse := Eth1SignResponse{}
 	_ = json.Unmarshal(respContentDecrypt, &eth1SignResponse)
@@ -180,7 +180,7 @@ func (client *Client) Eth1Address() (address string, err error) {
 		err = fmt.Errorf("verify error")
 		return
 	}
-	//decode
+	// decode
 	respContentDecrypt, _ := aesDecrypt(respContent, aesKey)
 	eth1AddressResponse := Eth1AddressResponse{}
 	_ = json.Unmarshal(respContentDecrypt, &eth1AddressResponse)
@@ -243,18 +243,14 @@ func verify(data, sign []byte, publicKeys [][]byte) bool {
 	for i := len(publicKeys) - 1; i >= 0; i-- {
 		isVerified, err := schnorrVerify(hash[:], sign, publicKeys[i])
 		if err != nil {
+			continue
 		}
 		if isVerified {
 			verify = true
 			break
-		} else {
 		}
 	}
-	if !verify {
-		return false
-	}
-
-	return true
+	return verify
 }
 
 func schnorrSign(privateKey, hash []byte) ([]byte, error) {
@@ -282,6 +278,6 @@ func schnorrVerify(hash, sign, pubKey []byte) (bool, error) {
 }
 
 func ecdhGetSecret(publicKey *ecdsa.PublicKey, key *ecdsa.PrivateKey) *big.Int {
-	secret, _ := key.Curve.ScalarMult(publicKey.X, publicKey.Y, key.D.Bytes())
+	secret, _ := key.ScalarMult(publicKey.X, publicKey.Y, key.D.Bytes())
 	return secret
 }

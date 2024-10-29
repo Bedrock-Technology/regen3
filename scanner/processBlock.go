@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"math/big"
+
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
@@ -11,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"gorm.io/gorm"
-	"math/big"
 )
 
 func (s *Scanner) processBlock(blockNumber uint64, orm *gorm.DB) error {

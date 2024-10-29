@@ -5,16 +5,17 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/Bedrock-Technology/regen3/config"
-	"github.com/Bedrock-Technology/regen3/log"
-	"github.com/Bedrock-Technology/regen3/models"
-	"github.com/Bedrock-Technology/regen3/scanner"
-	"github.com/sirupsen/logrus"
 	"math/big"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+
+	"github.com/Bedrock-Technology/regen3/config"
+	"github.com/Bedrock-Technology/regen3/log"
+	"github.com/Bedrock-Technology/regen3/models"
+	"github.com/Bedrock-Technology/regen3/scanner"
+	"github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -70,7 +71,7 @@ to quickly create a Cobra application.`,
 			logrus.Errorln("Get Pod Error", rest.Error)
 			return
 		}
-		//force confirm
+		// force confirm
 		fmt.Printf("podIndex: %v, podOwner:%v, podAddress:%v press YES to continue\n",
 			podIndexInt, pod.Owner, pod.Address)
 		confirm := ""
@@ -78,7 +79,7 @@ to quickly create a Cobra application.`,
 		if confirm != "YES" {
 			return
 		}
-		//send startCheckPoint
+		// send startCheckPoint
 		timestamp, err := scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
 		if err != nil {
 			logrus.Errorf("send checkpoint pod %v error:%v", pod.Address, err)
@@ -91,7 +92,7 @@ to quickly create a Cobra application.`,
 				logrus.Errorf("FillProofs pod %v timestamp:%v", pod.Address, timestamp)
 				panic("FillProofs")
 			}
-			//write to db
+			// write to db
 			rest := scanner.DBEngine.Model(&models.CheckPoint{}).Where("pod = ?", pod.Address).
 				Where("checkpoint_timestamp = ?", timestamp).Where("checkpoint_finalized = ?", 0).
 				Update("proofs", string(proofs))

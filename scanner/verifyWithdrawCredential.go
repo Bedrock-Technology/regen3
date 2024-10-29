@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"math/big"
+	"strconv"
+
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -19,9 +23,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"math"
-	"math/big"
-	"strconv"
 )
 
 func (s *Scanner) InitVerifyWithdrawCredential() {
@@ -60,7 +61,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Infof("pod[%d], VerifyWithdrawalCredentials need delay", pod.PodIndex)
 					continue
 				}
-				if bigger, err := v.scanner.baseFeeBiggerThan(); err != nil || bigger {
+				if bigger, err1 := v.scanner.baseFeeBiggerThan(); err1 != nil || bigger {
 					logrus.Warnf("pod[%d], VerifyWithdrawalCredentials baseFeeBiggerThan", pod.PodIndex)
 					return
 				}
@@ -136,7 +137,8 @@ func canValidatorVerifyCredential(scanner *Scanner, validatorIndices []uint64) (
 
 func getValidatorProof(podAddress string, scanner *Scanner, validatorIndices []uint64,
 	beaconBlockHeader **api.Response[*apiv1.BeaconBlockHeader], beaconBlockState **api.Response[*spec.VersionedBeaconState],
-	blockTime *uint64) (*eigenpodproofs.VerifyValidatorFieldsCallParams, error) {
+	blockTime *uint64,
+) (*eigenpodproofs.VerifyValidatorFieldsCallParams, error) {
 	if *beaconBlockHeader == nil || *beaconBlockState == nil || *blockTime == 0 {
 		latestBlock, err := scanner.EthClient.BlockByNumber(context.Background(), nil)
 		if err != nil {

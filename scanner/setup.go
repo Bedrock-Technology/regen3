@@ -3,7 +3,6 @@ package scanner
 import (
 	"encoding/hex"
 	"fmt"
-	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"math/big"
 	"strconv"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/Bedrock-Technology/regen3/contracts/Staking"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/attestantio/go-eth2-client/api"
+	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -33,13 +33,13 @@ func (s *Scanner) Setup(slot string) {
 
 	pods := make([]models.Pod, 0, podsNum.Uint64())
 	for i := uint64(0); i < podsNum.Uint64(); i++ {
-		podInfo, err := contract.GetPod(&bind.CallOpts{}, big.NewInt(int64(i)))
-		if err != nil {
+		podInfo, err1 := contract.GetPod(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err1 != nil {
 			logrus.Errorln("podInfo err:", podInfo)
 			return
 		}
-		podOwner, err := contract.PodOwners(&bind.CallOpts{}, big.NewInt(int64(i)))
-		if err != nil {
+		podOwner, err2 := contract.PodOwners(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err2 != nil {
 			logrus.Errorln("PodOwners err:", podInfo)
 			return
 		}

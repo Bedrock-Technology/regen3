@@ -2,8 +2,9 @@ package crons
 
 import (
 	"context"
-	"github.com/robfig/cron/v3"
 	"time"
+
+	"github.com/robfig/cron/v3"
 )
 
 type ScanCron struct {

@@ -10,7 +10,7 @@ import (
 )
 
 func TestModelsInit(t *testing.T) {
-	//create schema eigen collate utf8mb4_unicode_ci;
+	// create schema eigen collate utf8mb4_unicode_ci;
 	dsn := "root:123456@tcp(127.0.0.1:3306)/eigen?charset=utf8mb4&parseTime=True&loc=UTC"
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{

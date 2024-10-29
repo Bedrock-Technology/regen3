@@ -3,9 +3,10 @@ package hooks
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func NewSlackHook(url string) *SlackHook {

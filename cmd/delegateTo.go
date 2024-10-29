@@ -5,15 +5,16 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/Bedrock-Technology/regen3/log"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/Bedrock-Technology/regen3/scanner"
 	"github.com/sirupsen/logrus"
-	"os"
-	"os/signal"
-	"strconv"
-	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -70,7 +71,7 @@ to quickly create a Cobra application.`,
 			logrus.Errorln("Get Pod Error", rest.Error)
 			return
 		}
-		//force confirm
+		// force confirm
 		fmt.Printf("podIndex: %v, podOwner:%v, podAddress:%v, operator: %s press YES to continue\n",
 			podIndexInt, pod.Owner, pod.Address, operator)
 		confirm := ""

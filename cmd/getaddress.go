@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/Bedrock-Technology/regen3/keyAgentRpc"
 	"github.com/spf13/cobra"

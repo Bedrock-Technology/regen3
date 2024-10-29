@@ -11,17 +11,13 @@ import (
 // Number of CredentialVerified == 1 and WithdrawnOnPod == 0 should be equal to pod.active
 type Validator struct {
 	gorm.Model
-	PubKey         string `gorm:"index:idx_pubKey,unique;type:varchar(128);not null;default:''" json:"pubKey"`
-	ValidatorIndex uint64 `gorm:"index:idx_validator,unique;not null;default:0" json:"validatorIndex"`
-	PodAddress     string `gorm:"index:idx_validator,unique;type:varchar(128);not null;default:''" json:"podAddress"`
-	// Eth Block Number
+	PubKey             string `gorm:"index:idx_pubKey,unique;type:varchar(128);not null;default:''" json:"pubKey"`
+	PodAddress         string `gorm:"index:idx_validator,unique;type:varchar(128);not null;default:''" json:"podAddress"`
+	ValidatorIndex     uint64 `gorm:"index:idx_validator,unique;not null;default:0" json:"validatorIndex"`
 	CredentialVerified uint64 `gorm:"not null;default:0" json:"credentialVerified"`
-	// Beacon Slot
-	WithdrawnOnChain uint64 `gorm:"not null;default:0" json:"withdrawnOnChain"`
-	// Eth Block Number
-	WithdrawnOnPod uint64 `gorm:"not null;default:0" json:"withdrawnOnPod"`
-	// Beacon Slot
-	VoluntaryExit uint64 `gorm:"not null;default:0" json:"voluntaryExit"`
+	WithdrawnOnChain   uint64 `gorm:"not null;default:0" json:"withdrawnOnChain"`
+	WithdrawnOnPod     uint64 `gorm:"not null;default:0" json:"withdrawnOnPod"`
+	VoluntaryExit      uint64 `gorm:"not null;default:0" json:"voluntaryExit"`
 }
 
 // Pod for some pods will not enable checkPoint system, will not do verifyWithdrawalCredentials.
@@ -29,8 +25,8 @@ type Pod struct {
 	gorm.Model
 	Address      string `gorm:"index:idx_chain,unique;type:varchar(128);not null;default:''" json:"podAddress"`
 	Owner        string `gorm:"index:idx_chain,unique;type:varchar(128);not null;default:''" json:"owner"`
-	PodIndex     uint64 `gorm:"not null;default:0" json:"podIndex"`
 	DelegateTo   string `gorm:"type:varchar(128);not null;default:''" json:"delegateTo"`
+	PodIndex     uint64 `gorm:"not null;default:0" json:"podIndex"`
 	IsCredential uint8  `gorm:"not null;default:0" json:"isCredential"`
 }
 
@@ -39,17 +35,12 @@ type Pod struct {
 type CheckPoint struct {
 	gorm.Model
 	Pod                 string `gorm:"index:idx_cp,unique;type:varchar(128);not null;default:''" json:"pod"`
-	CheckpointTimestamp uint64 `gorm:"index:idx_cp,unique;not null;default:0" json:"checkpointTimestamp"`
 	BeaconBlockRoot     string `gorm:"index:idx_cp,unique;type:varchar(128);not null;default:''" json:"beaconBlockRoot"`
-	//json array format: [123,45456,validatorIndex]
-	Proofed string `gorm:"type:longblob;not null" json:"proofed"`
-	//json array format
-	Proofs string `gorm:"type:longblob;not null" json:"proofs"`
-	// check activeNum form Validator equal to pod.active on the block
-	ActiveNum uint64 `gorm:"not null;default:0" json:"activeNum"`
-	//Batch
-	BatchSize uint64 `gorm:"not null;default:20" json:"BatchSize"`
-	// if CheckpointFinalized set to 1, check len(Proofed) equal to ActiveNum
+	Proofed             string `gorm:"type:longblob;not null" json:"proofed"`
+	Proofs              string `gorm:"type:longblob;not null" json:"proofs"`
+	CheckpointTimestamp uint64 `gorm:"index:idx_cp,unique;not null;default:0" json:"checkpointTimestamp"`
+	ActiveNum           uint64 `gorm:"not null;default:0" json:"activeNum"`
+	BatchSize           uint64 `gorm:"not null;default:20" json:"BatchSize"`
 	CheckpointFinalized uint64 `gorm:"not null;default:0" json:"checkpointFinalized"`
 }
 
@@ -58,7 +49,7 @@ type QueueWithdrawals struct {
 	gorm.Model
 	Pod            string `gorm:"index:idx_qw,unique;type:varchar(128);not null;default:''" json:"pod"`
 	WithdrawalRoot string `gorm:"index:idx_qw,unique;type:varchar(128);not null;default:''" json:"withdrawalRoot"`
-	//json format
+	// json format
 	Withdrawal string `gorm:"type:varchar(2048);not null;default:''" json:"withdrawal"`
 	StartBlock uint64 `gorm:"not null;default:0" json:"startBlock"`
 	Completed  uint64 `gorm:"not null;default:0" json:"completed"`
@@ -66,17 +57,16 @@ type QueueWithdrawals struct {
 
 type Cursor struct {
 	gorm.Model
-	//slot start to process
-	Slot uint64 `gorm:"not null;default:0" json:"slot"`
 	Meme string `gorm:"not null;default:''" json:"meme"`
+	Slot uint64 `gorm:"not null;default:0" json:"slot"`
 }
 
 // Transaction record transaction fee that we spent
 type Transaction struct {
 	gorm.Model
 	TxHash string `gorm:"type:varchar(128);not null;default:''" json:"txHash"`
-	Status uint64 `gorm:"not null;default:0" json:"status"`
 	TxType string `gorm:"index:idx_qw;type:varchar(128);not null;default:''" json:"txType"`
-	Block  uint64 `gorm:"not null;default:0" json:"block"`
 	Fee    string `gorm:"type:varchar(128);not null;default:''" json:"fee"`
+	Status uint64 `gorm:"not null;default:0" json:"status"`
+	Block  uint64 `gorm:"not null;default:0" json:"block"`
 }

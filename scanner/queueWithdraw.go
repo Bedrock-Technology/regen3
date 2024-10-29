@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
+
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -15,7 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"math/big"
 )
 
 func (s *Scanner) InitQueueWithdraw() {
@@ -82,8 +83,8 @@ func (v *QueueWithdrawRun) JobRun() {
 }
 
 type DelegationManagerWithdrawalQueued struct {
-	WithdrawalRoot [32]byte
 	Withdrawal     DelegationManager.IDelegationManagerWithdrawal
+	WithdrawalRoot [32]byte
 }
 
 func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
@@ -272,7 +273,7 @@ func (s *Scanner) tryCompleteQueue(queueWithdrawalsNotCompleted models.QueueWith
 			logrus.Errorf("waiting sendCompleteQueuedWithdrawals index %v error:%v", pod.Address, err)
 			panic("waiting error")
 		}
-		//big.NewInt(0).Div(withdrawal.Withdrawal.Shares[0], big.NewInt(1e9))
+		// big.NewInt(0).Div(withdrawal.Withdrawal.Shares[0], big.NewInt(1e9))
 		logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%s tx:%s", TxCompleteQueueWithdrawals,
 			pod.PodIndex, decimal.NewFromBigInt(withdrawal.Withdrawal.Shares[0], -18).Truncate(9), txReceipt.TxHash)
 		if err := writeTransaction(s.DBEngine, txReceipt, TxCompleteQueueWithdrawals); err != nil {

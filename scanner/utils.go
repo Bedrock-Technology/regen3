@@ -3,6 +3,8 @@ package scanner
 import (
 	"context"
 	"errors"
+	"math/big"
+
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/ethereum/go-ethereum"
@@ -12,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"math/big"
 )
 
 const (

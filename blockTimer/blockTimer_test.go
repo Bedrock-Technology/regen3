@@ -12,7 +12,6 @@ type Job1 struct {
 
 func (j *Job1) JobRun() {
 	fmt.Println("job run:", j.Name)
-	return
 }
 
 type Job2 struct {
@@ -27,7 +26,6 @@ func (j *Job2) JobRun() {
 		fmt.Println("del job2 run")
 	}
 	j.Called++
-	return
 }
 
 type Job3 struct {
@@ -36,7 +34,6 @@ type Job3 struct {
 
 func (j *Job3) JobRun() {
 	fmt.Println("job3 run")
-	return
 }
 
 func TestTimer(t *testing.T) {

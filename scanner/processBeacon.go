@@ -3,6 +3,7 @@ package scanner
 import (
 	"errors"
 	"fmt"
+
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/attestantio/go-eth2-client/api"

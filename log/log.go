@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"runtime"
+	"time"
+
 	"github.com/Bedrock-Technology/regen3/log/hooks"
 	"github.com/davecgh/go-spew/spew"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	gormlogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
-	"io"
-	"os"
-	"runtime"
-	"time"
 )
 
 func Init(level string, logPath, serverName string, slackUrl string) (err error) {
@@ -30,15 +31,15 @@ func Init(level string, logPath, serverName string, slackUrl string) (err error)
 		logPath+".%Y%m%d",
 		rotatelogs.WithLinkName(logPath),
 		rotatelogs.WithRotationTime(24*time.Hour),
-		rotatelogs.WithMaxAge(30*24*time.Hour), //30 days
+		rotatelogs.WithMaxAge(30*24*time.Hour), // 30 days
 	)
 	if err != nil {
 		return
 	}
 
 	mw := io.MultiWriter(os.Stdout, rotateLog)
-	//Use stdout for current dev
-	//mw := io.MultiWriter(os.Stdout)
+	// Use stdout for current dev
+	// mw := io.MultiWriter(os.Stdout)
 	logrus.SetOutput(mw)
 	logrus.SetLevel(l)
 	logrus.AddHook(hooks.NewCallStackHook())
@@ -94,15 +95,15 @@ func (l *GormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 }
 
 func (l *GormLogger) Info(ctx context.Context, s string, args ...interface{}) {
-	l.logger.WithContext(ctx).Infof(s, args)
+	l.logger.WithContext(ctx).Logf(logrus.InfoLevel, s, []interface{}{args}...)
 }
 
 func (l *GormLogger) Warn(ctx context.Context, s string, args ...interface{}) {
-	l.logger.WithContext(ctx).Warnf(s, args)
+	l.logger.WithContext(ctx).Logf(logrus.WarnLevel, s, []interface{}{args}...)
 }
 
 func (l *GormLogger) Error(ctx context.Context, s string, args ...interface{}) {
-	l.logger.WithContext(ctx).Errorf(s, args)
+	l.logger.WithContext(ctx).Logf(logrus.ErrorLevel, s, []interface{}{args}...)
 }
 
 var (

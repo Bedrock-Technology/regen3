@@ -7,16 +7,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/Bedrock-Technology/regen3/config"
 	"github.com/Bedrock-Technology/regen3/log"
 	"github.com/Bedrock-Technology/regen3/models"
 	s "github.com/Bedrock-Technology/regen3/scanner"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/sirupsen/logrus"
-	"math/big"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -46,7 +47,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return
 		}
-		//force confirm
+		// force confirm
 		fmt.Printf("root: %v, asToken: %s press YES to continue\n", root, asToken)
 		confirm := ""
 		fmt.Scanln(&confirm)
@@ -106,7 +107,7 @@ to quickly create a Cobra application.`,
 				panic("waiting error")
 			}
 			logrus.WithField("Report", "true").Infof("sendCompleteQueuedWithdrawals tx:%s", txReceipt.TxHash)
-			//write to db
+			// write to db
 			fee := big.NewInt(0).Mul(txReceipt.EffectiveGasPrice, big.NewInt(int64(txReceipt.GasUsed)))
 			txRecord := models.Transaction{
 				TxHash: txReceipt.TxHash.String(),

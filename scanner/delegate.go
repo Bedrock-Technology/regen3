@@ -2,13 +2,14 @@ package scanner
 
 import (
 	"context"
+	"math/big"
+
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/sirupsen/logrus"
-	"math/big"
 )
 
 func (s *Scanner) DelegateTo(podIndex int64, operator string) {

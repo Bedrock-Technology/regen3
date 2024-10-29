@@ -5,14 +5,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/Bedrock-Technology/regen3/config"
-	"github.com/Bedrock-Technology/regen3/log"
-	"github.com/Bedrock-Technology/regen3/scanner"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/Bedrock-Technology/regen3/config"
+	"github.com/Bedrock-Technology/regen3/log"
+	"github.com/Bedrock-Technology/regen3/scanner"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 

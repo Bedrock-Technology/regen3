@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
@@ -143,7 +144,8 @@ func updateCheckPoint(db *gorm.DB, proofed []uint64, finalized, block uint64, po
 	trans := db.Begin()
 	rest := trans.Model(&models.CheckPoint{}).Where("pod = ?", podAddress).
 		Where("checkpoint_timestamp = ?", timestamp).Updates(map[string]interface{}{
-		"proofed": string(proofedJson), "checkpoint_finalized": finalized})
+		"proofed": string(proofedJson), "checkpoint_finalized": finalized,
+	})
 	if rest.Error != nil {
 		trans.Rollback()
 		return rest.Error

@@ -2,11 +2,11 @@ package beaconClient
 
 import (
 	"context"
-	"github.com/attestantio/go-eth2-client/api"
-	"github.com/rs/zerolog"
 	"time"
 
+	"github.com/attestantio/go-eth2-client/api"
 	"github.com/attestantio/go-eth2-client/http"
+	"github.com/rs/zerolog"
 )
 
 type Client struct {

@@ -5,8 +5,7 @@ import (
 	"sort"
 )
 
-//Simple SingleThread Block Timer, not suitable for
-
+// Simple SingleThread Block Timer, not suitable for
 type BlockTimer struct {
 	jobs     []*Job
 	jobId    uint64
@@ -24,10 +23,10 @@ type IJob interface {
 }
 
 type Job struct {
+	IJob
 	triggerBlock  uint64
 	intervalBlock uint64
 	jobId         uint64
-	IJob
 }
 
 func NewBlockTimer(blockNow uint64) *BlockTimer {

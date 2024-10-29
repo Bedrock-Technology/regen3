@@ -12,8 +12,7 @@ func NewCallStackHook() *CallStackHook {
 	return &CallStackHook{}
 }
 
-type CallStackHook struct {
-}
+type CallStackHook struct{}
 
 func (hook *CallStackHook) Fire(entry *logrus.Entry) error {
 	_, file, line := findCaller()

@@ -79,12 +79,12 @@ func TestGetBlockDepositsSlot(t *testing.T) {
 	}
 	t.Logf("eblock:%v", eblock)
 	deposits, _ := block.Data.Deposits()
-	//jsonByte, _ := json.Marshal(&deposits)
-	//t.Logf("deposite:%v", string(jsonByte))
+	// jsonByte, _ := json.Marshal(&deposits)
+	// t.Logf("deposite:%v", string(jsonByte))
 	for _, v := range deposits {
 		t.Logf("%v", common.BytesToAddress(v.Data.WithdrawalCredentials[12:]))
 		t.Logf("publicKey:%v", fmt.Sprintf("%#x", v.Data.PublicKey))
-		//t.Logf("publicKey:%v", hex.EncodeToString(v.Data.PublicKey[:]))
+		// t.Logf("publicKey:%v", hex.EncodeToString(v.Data.PublicKey[:]))
 	}
 }
 
@@ -110,11 +110,11 @@ func TestGetBlockWithdrawalSlot(t *testing.T) {
 	}
 	t.Logf("eblock:%v", eblock)
 	withdrawals, _ := block.Data.Withdrawals()
-	//jsonByte, _ := json.Marshal(&deposits)
-	//t.Logf("deposite:%v", string(jsonByte))
+	// jsonByte, _ := json.Marshal(&deposits)
+	// t.Logf("deposite:%v", string(jsonByte))
 	for _, v := range withdrawals {
 		t.Logf("index:%v, address:%v, amount:%d", v.Index, common.BytesToAddress(v.Address[:]), v.Amount)
-		//t.Logf("publicKey:%v", hex.EncodeToString(v.Data.PublicKey[:]))
+		// t.Logf("publicKey:%v", hex.EncodeToString(v.Data.PublicKey[:]))
 	}
 }
 
@@ -126,7 +126,7 @@ func TestGetValidatorStateSlot(t *testing.T) {
 		t.Fatal("err:", err)
 	}
 	v, err := client.Validators(context.TODO(), &api.ValidatorsOpts{
-		//State:   "1592408",
+		// State:   "1592408",
 		State:   "head",
 		PubKeys: []phase0.BLSPubKey{pubKeyBls},
 	})
@@ -149,14 +149,14 @@ func TestGetVoluntaryExitInBlock(t *testing.T) {
 		if errors.As(err, &apiErr) {
 			switch apiErr.StatusCode {
 			case 404:
-				//panic("empty slot")
+				// panic("empty slot")
 				t.Errorf("empty slot")
 				return
 			case 503:
-				//panic("node is syncing")
+				// panic("node is syncing")
 			}
 		}
-		//t.Fatal(err)
+		// t.Fatal(err)
 	}
 	v, err := block.Data.VoluntaryExits()
 	if err != nil {
@@ -214,7 +214,8 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestValidatorStatus(t *testing.T) {
-	validatorIndices := []uint64{1796388,
+	validatorIndices := []uint64{
+		1796388,
 		1799558,
 		1799559,
 		1799560,
