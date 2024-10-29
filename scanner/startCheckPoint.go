@@ -206,7 +206,7 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		decimal.NewFromUint64(podBalanceGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
-		decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
+		s.getCheckPointThreshold(podIndex))
 	if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
 		(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
 		var latestCp []models.CheckPoint
@@ -226,4 +226,11 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		return true
 	}
 	return false
+}
+
+func (s *StartCheckPointRun) getCheckPointThreshold(podIndex uint64) string {
+	if podIndex == 0 {
+		return decimal.NewFromUint64(s.scanner.Config.Pod0CheckPointThreshold).Mul(decimal.New(1, -9)).String()
+	}
+	return decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)).String()
 }
