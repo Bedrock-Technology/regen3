@@ -1,8 +1,9 @@
 package config
 
 import (
-	"gopkg.in/yaml.v3"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Addresses struct {
@@ -23,38 +24,41 @@ var HoleskyAddresses = Addresses{
 	eigenDelegationManagerContract: "0xA44151489861Fe9e3055d95adC98FbD462B948e7",
 }
 
-const HoleskyMinWithdrawalDelayBlocks = 3600 // half day
-const MainnetMinWithdrawalDelayBlocks = 50403
+const (
+	HoleskyMinWithdrawalDelayBlocks = 3600 // half day
+	MainnetMinWithdrawalDelayBlocks = 50403
+)
 
 type Config struct {
-	Network                        string    `yaml:"network"`
-	ChainId                        uint64    `yaml:"-"`
-	CheckPointThreshold            uint64    `yaml:"-"`
-	EthClient                      string    `yaml:"ethClient"`
-	BeaconClient                   string    `yaml:"beaconClient"`
+	ReportSpec                     string    `yaml:"reportSpec"`
 	MysqlDsn                       string    `yaml:"mysqlDsn"`
+	EthClient                      string    `yaml:"ethClient"`
+	Network                        string    `yaml:"network"`
+	BeaconClient                   string    `yaml:"beaconClient"`
+	EigenDelegationManagerContract string    `yaml:"-"`
 	LogLevel                       string    `yaml:"logLevel"`
 	SlackUrl                       string    `yaml:"slackUrl"`
-	StakingContract                string    `yaml:"-"`
 	RestakingContract              string    `yaml:"-"`
-	EigenDelegationManagerContract string    `yaml:"-"`
-	MinWithdrawalDelayBlocks       uint64    `yaml:"-"`
-	ReportSpec                     string    `yaml:"reportSpec"`
+	StakingContract                string    `yaml:"-"`
+	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 	CheckStartCheckPoint           TimerSpec `yaml:"checkStartCheckPoint"`
 	CheckQueueWithdraw             TimerSpec `yaml:"checkQueueWithdraw"`
 	CheckVerifyCheckPoint          TimerSpec `yaml:"checkVerifyCheckPoint"`
-	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
+	ChainId                        uint64    `yaml:"-"`
+	CheckPointThreshold            uint64    `yaml:"-"`
+	Pod0CheckPointThreshold        uint64    `yaml:"-"`
+	MinWithdrawalDelayBlocks       uint64    `yaml:"-"`
 }
 
 type KeyAgent struct {
 	KeyAgentRpc        string `yaml:"keyAgentRpc"`
-	Service            uint64 `yaml:"service"`
-	Index              uint64 `yaml:"index"`
 	Address            string `yaml:"address"`
 	SignPri            string `yaml:"signPri"`
 	KeyAgentSignPub    string `yaml:"keyAgentSignPub"`
 	KeyAgentEncryptPub string `yaml:"keyAgentEncryptPub"`
+	Service            uint64 `yaml:"service"`
+	Index              uint64 `yaml:"index"`
 }
 
 type TimerSpec struct {
@@ -73,21 +77,24 @@ func LoadConfig(path string) (config *Config) {
 	if err != nil {
 		panic(err)
 	}
-	if config.Network == "holesky" {
+	switch config.Network {
+	case "holesky":
 		config.StakingContract = HoleskyAddresses.stakingContract
 		config.RestakingContract = HoleskyAddresses.restakingContract
 		config.EigenDelegationManagerContract = HoleskyAddresses.eigenDelegationManagerContract
 		config.MinWithdrawalDelayBlocks = HoleskyMinWithdrawalDelayBlocks
 		config.ChainId = 17000
 		config.CheckPointThreshold = 1e9
-	} else if config.Network == "mainnet" {
+		config.Pod0CheckPointThreshold = 1e9
+	case "mainnet":
 		config.StakingContract = MainnetAddresses.stakingContract
 		config.RestakingContract = MainnetAddresses.restakingContract
 		config.EigenDelegationManagerContract = MainnetAddresses.eigenDelegationManagerContract
 		config.MinWithdrawalDelayBlocks = MainnetMinWithdrawalDelayBlocks
 		config.ChainId = 1
-		config.CheckPointThreshold = 32e9
-	} else {
+		config.CheckPointThreshold = 5 * 32e9
+		config.Pod0CheckPointThreshold = 20 * 32e9
+	default:
 		panic("invalid network")
 	}
 	return

@@ -6,6 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
+	"strconv"
+	"time"
+
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
@@ -16,9 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"math/big"
-	"strconv"
-	"time"
 )
 
 func (s *Scanner) InitStartCheckPoint() {
@@ -38,7 +39,7 @@ type StartCheckPointRun struct {
 func (s *StartCheckPointRun) JobRun() {
 	logrus.Info("StartCheckPointRun")
 	for _, pod := range s.scanner.Pods {
-		//condition
+		// condition
 		if active, err := s.scanner.hasActiveCheckPoint(pod.Address); err != nil || active {
 			logrus.Infof("pod[%d] has active checkpoint or err %v", pod.PodIndex, err)
 			continue
@@ -46,7 +47,7 @@ func (s *StartCheckPointRun) JobRun() {
 		if !s.NeedDoCheckPoint(pod.Address, pod.PodIndex) {
 			continue
 		}
-		//send startCheckPoint
+		// send startCheckPoint
 		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
@@ -63,7 +64,7 @@ func (s *StartCheckPointRun) JobRun() {
 				logrus.Errorf("FillProofs pod[%d] timestamp:%v", pod.PodIndex, timestamp)
 				panic("FillProofs")
 			}
-			//write to db
+			// write to db
 			rest := s.scanner.DBEngine.Model(&models.CheckPoint{}).Where("pod = ?", pod.Address).
 				Where("checkpoint_timestamp = ?", timestamp).Where("checkpoint_finalized = ?", 0).
 				Update("proofs", string(proofs))
@@ -73,7 +74,6 @@ func (s *StartCheckPointRun) JobRun() {
 			}
 		}
 	}
-	return
 }
 
 func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp uint64, err error) {
@@ -92,13 +92,13 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 		return 0, err
 	}
 	logrus.WithField("Report", "true").Infof("%s pod[%d] tx:%s", TxStartCheckPoints, podId.Uint64(), txReceipt.TxHash)
-	//write to db
+	// write to db
 	err = writeTransaction(s.DBEngine, txReceipt, TxStartCheckPoints)
 	if err != nil {
 		logrus.Errorln("writeTransaction err:", err)
 		return 0, err
 	}
-	//search the log
+	// search the log
 	egAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
 	contract, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 				if err != nil {
 					return 0, err
 				}
-				//write to db
+				// write to db
 				cp := models.CheckPoint{
 					Pod:                 podAddress,
 					CheckpointTimestamp: r.CheckpointTimestamp,
@@ -132,7 +132,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 					CheckpointFinalized: 0,
 				}
 				timestamp = r.CheckpointTimestamp
-				if checkPoint.ProofsRemaining.Uint64() == 0 { //empty checkpoint
+				if checkPoint.ProofsRemaining.Uint64() == 0 { // empty checkpoint
 					cp.CheckpointFinalized = txReceipt.BlockNumber.Uint64()
 					logrus.Infof("CheckpointFinalized, pod[%d] timestamp:%d", podId.Uint64(), timestamp)
 					timestamp = 0
@@ -207,7 +207,8 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
-	if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
+	if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
+		(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
 		var latestCp []models.CheckPoint
 		rest := s.scanner.DBEngine.Where("pod = ?", podAddress).Order("updated_at desc").Limit(1).Find(&latestCp)
 		if rest.Error != nil {
