@@ -220,8 +220,8 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		return false
 	}
 	// no validator
-	if activeCount == 0 {
-		logrus.Infof("podIndex %d, have no validators", podIndex)
+	if activeCount <= 5 {
+		logrus.Infof("podIndex %d, have activeCount %d", podIndex, activeCount)
 		if podBalanceGwei-executionLayerGwei >= 32e9 {
 			return s.ifCheckPointDuration(podAddress, podIndex)
 		}
