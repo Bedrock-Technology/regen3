@@ -214,7 +214,7 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 	}
 	// get pod's active validator num
 	var activeCount int64
-	rest := s.scanner.DBEngine.Model(&models.Validator{}).Where("pod = ?", podAddress).Where("voluntary_exit = ?", 0).Count(&activeCount)
+	rest := s.scanner.DBEngine.Model(&models.Validator{}).Where("pod_address = ?", podAddress).Where("voluntary_exit = ?", 0).Count(&activeCount)
 	if rest.Error != nil {
 		logrus.Errorln("Get activeCount error:", rest.Error)
 		return false
