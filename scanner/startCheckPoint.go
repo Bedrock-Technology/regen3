@@ -207,25 +207,45 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
 		s.getCheckPointThreshold(podIndex))
+
 	if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
 		(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
-		var latestCp []models.CheckPoint
-		rest := s.scanner.DBEngine.Where("pod = ?", podAddress).Order("updated_at desc").Limit(1).Find(&latestCp)
-		if rest.Error != nil {
-			logrus.Errorln("Get latest checkpoint error:", rest.Error)
-			return false
+		return s.ifCheckPointDuration(podAddress, podIndex)
+	}
+	// get pod's active validator num
+	var activeCount int64
+	rest := s.scanner.DBEngine.Model(&models.Validator{}).Where("pod = ?", podAddress).Where("voluntary_exit = ?", 0).Count(&activeCount)
+	if rest.Error != nil {
+		logrus.Errorln("Get activeCount error:", rest.Error)
+		return false
+	}
+	// no validator
+	if activeCount == 0 {
+		logrus.Infof("podIndex %d, have no validators", podIndex)
+		if podBalanceGwei-executionLayerGwei >= 32e9 {
+			return s.ifCheckPointDuration(podAddress, podIndex)
 		}
-		if len(latestCp) != 1 {
-			return true
-		}
-		now := time.Now().UTC()
-		if now.Sub(latestCp[0].UpdatedAt) < 24*time.Hour {
-			logrus.Warnf("pod[%d], latest cp at %v", podIndex, latestCp[0].UpdatedAt)
-			return false
-		}
-		return true
+		logrus.Infof("podIndex %d, No balance", podIndex)
 	}
 	return false
+}
+
+func (s *StartCheckPointRun) ifCheckPointDuration(podAddress string, podIndex uint64) bool {
+	var latestCp []models.CheckPoint
+	rest := s.scanner.DBEngine.Where("pod = ?", podAddress).Order("updated_at desc").Limit(1).Find(&latestCp)
+	if rest.Error != nil {
+		logrus.Errorln("Get latest checkpoint error:", rest.Error)
+		return false
+	}
+	if len(latestCp) != 1 {
+		return true
+	}
+	now := time.Now().UTC()
+	if now.Sub(latestCp[0].UpdatedAt) < 24*time.Hour {
+		logrus.Warnf("pod[%d], latest cp at %v", podIndex, latestCp[0].UpdatedAt)
+		return false
+	}
+	return true
 }
 
 func (s *StartCheckPointRun) getCheckPointThreshold(podIndex uint64) string {
