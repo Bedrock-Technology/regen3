@@ -33,7 +33,7 @@ func (s *Scanner) DelegateTo(podIndex int64, operator string) {
 		logrus.Errorln("Pack err:", err)
 		return
 	}
-	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract)
+	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract, uint64(podIndex), TxDelegateTo)
 	if err != nil {
 		logrus.Errorf("delegateTo pod %v error:%v", podIndex, err)
 		return

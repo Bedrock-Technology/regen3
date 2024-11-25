@@ -105,7 +105,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 	if err != nil {
 		return err
 	}
-	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract)
+	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract, pod.PodIndex, TxQueueWithdrawals)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	if err != nil {
 		return nil, err
 	}
-	return s.sendRawTransaction(input, s.Config.RestakingContract)
+	return s.sendRawTransaction(input, s.Config.RestakingContract, pod.PodIndex, TxCompleteQueueWithdrawals)
 }
 
 func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress string, s *Scanner) error {

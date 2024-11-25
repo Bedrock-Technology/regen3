@@ -67,7 +67,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 			Proof:                proof.ValidatorBalancesRootProof.Proof.ToByteSlice(),
 		}, core.CastBalanceProofs(balanceProofs))
 
-		realTx, err := s.scanner.sendRawTransaction(input, pod.Address)
+		realTx, err := s.scanner.sendRawTransaction(input, pod.Address, pod.PodIndex, TxVerifyCheckPoints)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("sendRawTransaction pod[%d] error:%v", pod.PodIndex, errBaseFeeTooHigh)

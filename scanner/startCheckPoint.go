@@ -82,7 +82,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 	if err != nil {
 		return 0, err
 	}
-	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract)
+	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract, podId.Uint64(), TxStartCheckPoints)
 	if err != nil {
 		return 0, err
 	}

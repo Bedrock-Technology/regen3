@@ -69,15 +69,25 @@ func writeTransaction(db *gorm.DB, txReceipt *types.Receipt, txType string) erro
 	return nil
 }
 
+func maxBaseFee(podIndex uint64, transType string) int64 {
+	if transType == TxVerifyCheckPoints {
+		if podIndex == 0 {
+			return 5e9
+		}
+	}
+	return 10e9
+}
+
 // Min( Max fee - Base fee, Max priority fee)
 // gasPrice = Min(Base fee + Max priority fee, GasFeeCap)
-func (s *Scanner) sendRawTransaction(input []byte, toAddress string) (*types.Transaction, error) {
+func (s *Scanner) sendRawTransaction(input []byte, toAddress string, podIndex uint64, transType string) (*types.Transaction, error) {
 	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		return nil, errBaseFeeTooHigh
 	}
-	if header.BaseFee.Cmp(big.NewInt(10e9)) > 0 {
-		logrus.Warnf("Base fee bigger than 10gwei:%s", header.BaseFee)
+	maxBaseFee := maxBaseFee(podIndex, transType)
+	if header.BaseFee.Cmp(big.NewInt(maxBaseFee)) > 0 {
+		logrus.Warnf("Base fee bigger than %d gwei,wei:%s", maxBaseFee, header.BaseFee)
 		return nil, errBaseFeeTooHigh
 	}
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())

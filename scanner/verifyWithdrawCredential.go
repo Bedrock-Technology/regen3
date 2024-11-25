@@ -80,7 +80,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Errorln("packVerifyWithdrawalCredentialsInput error:", err)
 					continue
 				}
-				realTx, err := v.scanner.sendRawTransaction(input, v.scanner.Config.RestakingContract)
+				realTx, err := v.scanner.sendRawTransaction(input, v.scanner.Config.RestakingContract, pod.PodIndex, TxVerifyWithdrawalCredentials)
 				if err != nil {
 					if errors.Is(err, errBaseFeeTooHigh) {
 						logrus.Warnf("sendRawTransaction pod %v error:%v", pod.Address, errBaseFeeTooHigh)
