@@ -43,13 +43,22 @@ func (s *Scanner) GetAllPod() {
 			logrus.Errorln("PodOwners err:", podInfo)
 			return
 		}
-		pods = append(pods, models.Pod{
-			PodIndex: i,
-			Address:  podInfo.String(),
-			Owner:    podOwner.String(),
-		})
+		if i > 10 {
+			pods = append(pods, models.Pod{
+				PodIndex:     i,
+				Address:      podInfo.String(),
+				Owner:        podOwner.String(),
+				IsCredential: 1,
+			})
+		}
 		logrus.Infof("pod %d, podAddress: %s, podOwner: %s", i, podInfo.String(), podOwner.String())
 	}
+	rest := s.DBEngine.CreateInBatches(&pods, 50)
+	if rest.Error != nil {
+		logrus.Errorln("Insert error:", err)
+		return
+	}
+	logrus.Infof("insert num:%d", rest.RowsAffected)
 }
 
 func (s *Scanner) Setup(slot string) {
