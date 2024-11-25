@@ -43,7 +43,7 @@ func (s *Scanner) GetAllPod() {
 			logrus.Errorln("PodOwners err:", podInfo)
 			return
 		}
-		if i > 10 {
+		if i >= 10 {
 			pods = append(pods, models.Pod{
 				PodIndex:     i,
 				Address:      podInfo.String(),
