@@ -18,6 +18,40 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func (s *Scanner) GetAllPod() {
+	contract, err := Restaking.NewRestaking(common.HexToAddress(s.Config.RestakingContract), s.EthClient)
+	if err != nil {
+		logrus.Errorln("NewRestaking err", err)
+		return
+	}
+
+	podsNum, err := contract.GetTotalPods(&bind.CallOpts{})
+	if err != nil {
+		logrus.Errorln("GetTotalPods ", err)
+	}
+	logrus.Infof("podsNum [%v]", podsNum.Uint64())
+
+	pods := make([]models.Pod, 0, podsNum.Uint64())
+	for i := uint64(0); i < podsNum.Uint64(); i++ {
+		podInfo, err1 := contract.GetPod(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err1 != nil {
+			logrus.Errorln("podInfo err:", podInfo)
+			return
+		}
+		podOwner, err2 := contract.PodOwners(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err2 != nil {
+			logrus.Errorln("PodOwners err:", podInfo)
+			return
+		}
+		pods = append(pods, models.Pod{
+			PodIndex: i,
+			Address:  podInfo.String(),
+			Owner:    podOwner.String(),
+		})
+		logrus.Infof("pod %d, podAddress: %s, podOwner: %s", i, podInfo.String(), podOwner.String())
+	}
+}
+
 func (s *Scanner) Setup(slot string) {
 	contract, err := Restaking.NewRestaking(common.HexToAddress(s.Config.RestakingContract), s.EthClient)
 	if err != nil {
