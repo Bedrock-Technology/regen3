@@ -73,6 +73,7 @@ func (s *StartCheckPointRun) JobRun() {
 				panic("update")
 			}
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 

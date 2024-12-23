@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
@@ -62,7 +63,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 		latestChunk := len(proofedSlice) - 1
 		balanceProofs := allProofChunks[latestChunk+1]
 		eigenAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
-		input, err := eigenAbi.Pack("verifyCheckpointProofs", onchain.BeaconChainProofsBalanceContainerProof{
+		input, _ := eigenAbi.Pack("verifyCheckpointProofs", onchain.BeaconChainProofsBalanceContainerProof{
 			BalanceContainerRoot: proof.ValidatorBalancesRootProof.ValidatorBalancesRoot,
 			Proof:                proof.ValidatorBalancesRootProof.Proof.ToByteSlice(),
 		}, core.CastBalanceProofs(balanceProofs))
@@ -111,6 +112,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 			checkPointInDb[0].CheckpointTimestamp, withdrawn); err != nil {
 			panic("updateCheckPoint")
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 

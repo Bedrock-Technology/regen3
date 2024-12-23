@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/big"
 	"strconv"
+	"time"
 
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
@@ -111,6 +112,7 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				}
 			}
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 

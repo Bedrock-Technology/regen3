@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/Bedrock-Technology/regen3/contracts/DelegationManager"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
@@ -79,6 +80,7 @@ func (v *QueueWithdrawRun) JobRun() {
 		} else {
 			logrus.Infof("pod[%d] no need QueueWithdraw", pod.PodIndex)
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 

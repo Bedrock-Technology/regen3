@@ -72,7 +72,7 @@ func writeTransaction(db *gorm.DB, txReceipt *types.Receipt, txType string) erro
 func maxBaseFee(podIndex uint64, transType string) int64 {
 	if transType == TxVerifyCheckPoints {
 		if podIndex == 0 {
-			return 5e9
+			return 10e9
 		}
 	}
 	return 10e9
