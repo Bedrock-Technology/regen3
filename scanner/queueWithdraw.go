@@ -191,7 +191,7 @@ func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress st
 	return fmt.Errorf("not found")
 }
 
-func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot string, s *Scanner) error {
+func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot string, podAddress string, shares *big.Int, s *Scanner) error {
 	dmAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
 	if err != nil {
 		return err
@@ -200,7 +200,27 @@ func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot 
 	if err != nil {
 		return err
 	}
+	egAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
+	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
+	// pod ...
 	for _, log := range logs {
+		if log.Address == common.HexToAddress(podAddress) {
+			e, err := egAbi.EventByID(log.Topics[0])
+			if err != nil {
+				return err
+			}
+			if e.Name == "RestakedBeaconChainETHWithdrawn" {
+				r, err := eigenPod.ParseRestakedBeaconChainETHWithdrawn(*log)
+				if err != nil {
+					return err
+				}
+				if r.Amount.Cmp(shares) != 0 {
+					return fmt.Errorf("must be slashed, want:%v, actual:%v", shares, r.Amount)
+				}
+				logrus.Info("Not Slash:", r.Amount)
+			}
+		}
+
 		if log.Address == common.HexToAddress(s.Config.EigenDelegationManagerContract) {
 			e, err := dmAbi.EventByID(log.Topics[0])
 			if err != nil {
@@ -285,7 +305,7 @@ func (s *Scanner) tryCompleteQueue(queueWithdrawalsNotCompleted models.QueueWith
 			logrus.Errorln("writeTransaction err:", err)
 			panic("writeTransaction error")
 		}
-		if err := checkIfCompleteWithdrawalQueuedContained(txReceipt.Logs, queueWithdrawalsNotCompleted.WithdrawalRoot, s); err != nil {
+		if err := checkIfCompleteWithdrawalQueuedContained(txReceipt.Logs, queueWithdrawalsNotCompleted.WithdrawalRoot, pod.Address, withdrawal.Withdrawal.ScaledShares[0], s); err != nil {
 			logrus.Errorln("checkIfCompleteWithdrawalQueuedContained error:", err)
 			panic("checkIfCompleteWithdrawalQueuedContained")
 		}
