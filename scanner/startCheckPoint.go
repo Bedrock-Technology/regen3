@@ -223,7 +223,7 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 	// no validator
 	if activeCount <= 5 {
 		logrus.Infof("podIndex %d, have activeCount %d", podIndex, activeCount)
-		if podBalanceGwei-executionLayerGwei >= 32e9 {
+		if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
 			return s.ifCheckPointDuration(podAddress, podIndex)
 		}
 		logrus.Infof("podIndex %d, No balance", podIndex)
@@ -232,6 +232,10 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 }
 
 func (s *StartCheckPointRun) ifCheckPointDuration(podAddress string, podIndex uint64) bool {
+	if s.scanner.Config.Network != "mainnet" {
+		logrus.Infof("not mainnet:%v", s.scanner.Config.Network)
+		return true
+	}
 	var latestCp []models.CheckPoint
 	rest := s.scanner.DBEngine.Where("pod = ?", podAddress).Order("updated_at desc").Limit(1).Find(&latestCp)
 	if rest.Error != nil {
