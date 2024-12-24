@@ -6,12 +6,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/Bedrock-Technology/regen3/models"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/Bedrock-Technology/regen3/models"
 
 	"github.com/joho/godotenv"
 
@@ -24,8 +25,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-var provider *ethclient.Client
-var contract *DelegationManager
+var (
+	provider *ethclient.Client
+	contract *DelegationManager
+)
 
 var (
 	RpcHost = ""
@@ -88,83 +91,83 @@ func TestNewDelegationManagerEventsName(t *testing.T) {
 }
 
 func TestDelegationManagerCaller_StakerNonce(t *testing.T) {
-	nonce, err := contract.StakerNonce(&bind.CallOpts{
-		Pending:     false,
-		From:        common.HexToAddress(PodOwner),
-		BlockNumber: nil,
-		BlockHash:   common.Hash{},
-		Context:     nil,
-	}, common.HexToAddress(PodOwner))
-	if err != nil {
-		t.Error("call error:", err)
-		return
-	}
-	t.Log("nonce:", nonce)
+	// nonce, err := contract.StakerNonce(&bind.CallOpts{
+	// 	Pending:     false,
+	// 	From:        common.HexToAddress(PodOwner),
+	// 	BlockNumber: nil,
+	// 	BlockHash:   common.Hash{},
+	// 	Context:     nil,
+	// }, common.HexToAddress(PodOwner))
+	// if err != nil {
+	// 	t.Error("call error:", err)
+	// 	return
+	// }
+	// t.Log("nonce:", nonce)
 }
 
 func TestDelegationManagerTransactor_CompleteQueuedWithdrawals(t *testing.T) {
-	//blockNum := uint64(1442069)
-	blockNum := uint64(1661236)
+	// blockNum := uint64(1442069)
+	// blockNum := uint64(1661236)
 	//=== RUN   TestDelegationManagerTransactor_CompleteQueuedWithdrawals
 	//    DelegationManager_test.go:130: CompleteQueuedWithdrawals err: execution reverted: DelegationManager._completeQueuedWithdrawal: minWithdrawalDelayBlocks period has not yet passed
-	it, err := contract.FilterWithdrawalQueued(&bind.FilterOpts{
-		Start:   blockNum,
-		End:     &blockNum,
-		Context: nil,
-	})
-	if err != nil {
-		t.Error("err:", err)
-		return
-	}
-	var idmw []IDelegationManagerWithdrawal
-	for it.Next() {
-		//jsonString, _ := json.Marshal(it.Event)
-		//t.Log("event", string(jsonString))
-		idmw = append(idmw, it.Event.Withdrawal)
-	}
-	if it.Error() != nil {
-		t.Error("it err:", it.Error())
-		return
-	}
-	var tokens [][]common.Address
-	tokens = append(tokens, []common.Address{common.HexToAddress("0x0000000000000000000000000000000000000000")})
-	middlewareTimesIndexes := []*big.Int{big.NewInt(0)}
-	transOpts := getTransOpts("HOLESKY_ACCOUNT_0")
-	transOpts.NoSend = true
-	dmAbi, _ := DelegationManagerMetaData.GetAbi()
-	data, _ := dmAbi.Pack("completeQueuedWithdrawals", idmw, tokens, middlewareTimesIndexes, []bool{true})
-	estimateGasLimitPack, err := provider.EstimateGas(context.Background(), ethereum.CallMsg{
-		From: common.HexToAddress(PodOwner),
-		To:   func(address common.Address) *common.Address { return &address }(common.HexToAddress(ContractAddress)),
-		Data: data,
-	})
-	if err != nil {
-		t.Logf("estimate gas limit err: %v", err)
-		return
-	}
-	t.Logf("estimateGasLimitPack:%v,%v", estimateGasLimitPack, hex.EncodeToString(data))
-	//estimateGasLimitPack:90513,
-	tx, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{true})
-	if err != nil {
-		t.Errorf("CompleteQueuedWithdrawals err:%v", err)
-		return
-	}
-	estimateGasLimit, err := provider.EstimateGas(context.Background(), ethereum.CallMsg{
-		From: transOpts.From,
-		To:   tx.To(),
-		Data: tx.Data(),
-	})
-	t.Logf("estimateGasLimit: %v, data: %v", estimateGasLimit, hex.EncodeToString(tx.Data()))
-	//estimateGasLimit: 90513
-	t.Log("hash:", tx.Hash().String())
-	transOpts.NoSend = false
-	transOpts.GasLimit = estimateGasLimit * 4
-	txReal, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{true})
-	if err != nil {
-		t.Error("CompleteQueuedWithdrawals err:", err)
-		return
-	}
-	t.Logf("txReal: %v, data: %v", txReal.Hash().String(), hex.EncodeToString(txReal.Data()))
+	// it, err := contract.FilterWithdrawalQueued(&bind.FilterOpts{
+	// 	Start:   blockNum,
+	// 	End:     &blockNum,
+	// 	Context: nil,
+	// })
+	// if err != nil {
+	// 	t.Error("err:", err)
+	// 	return
+	// }
+	// var idmw []IDelegationManagerWithdrawal
+	// for it.Next() {
+	// 	// jsonString, _ := json.Marshal(it.Event)
+	// 	// t.Log("event", string(jsonString))
+	// 	idmw = append(idmw, it.Event.Withdrawal)
+	// }
+	// if it.Error() != nil {
+	// 	t.Error("it err:", it.Error())
+	// 	return
+	// }
+	// var tokens [][]common.Address
+	// tokens = append(tokens, []common.Address{common.HexToAddress("0x0000000000000000000000000000000000000000")})
+	// middlewareTimesIndexes := []*big.Int{big.NewInt(0)}
+	// transOpts := getTransOpts("HOLESKY_ACCOUNT_0")
+	// transOpts.NoSend = true
+	// dmAbi, _ := DelegationManagerMetaData.GetAbi()
+	// data, _ := dmAbi.Pack("completeQueuedWithdrawals", idmw, tokens, middlewareTimesIndexes, []bool{true})
+	// estimateGasLimitPack, err := provider.EstimateGas(context.Background(), ethereum.CallMsg{
+	// 	From: common.HexToAddress(PodOwner),
+	// 	To:   func(address common.Address) *common.Address { return &address }(common.HexToAddress(ContractAddress)),
+	// 	Data: data,
+	// })
+	// if err != nil {
+	// 	t.Logf("estimate gas limit err: %v", err)
+	// 	return
+	// }
+	// t.Logf("estimateGasLimitPack:%v,%v", estimateGasLimitPack, hex.EncodeToString(data))
+	// // estimateGasLimitPack:90513,
+	// tx, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{true})
+	// if err != nil {
+	// 	t.Errorf("CompleteQueuedWithdrawals err:%v", err)
+	// 	return
+	// }
+	// estimateGasLimit, err := provider.EstimateGas(context.Background(), ethereum.CallMsg{
+	// 	From: transOpts.From,
+	// 	To:   tx.To(),
+	// 	Data: tx.Data(),
+	// })
+	// t.Logf("estimateGasLimit: %v, data: %v", estimateGasLimit, hex.EncodeToString(tx.Data()))
+	// // estimateGasLimit: 90513
+	// t.Log("hash:", tx.Hash().String())
+	// transOpts.NoSend = false
+	// transOpts.GasLimit = estimateGasLimit * 4
+	// txReal, err := contract.CompleteQueuedWithdrawals(transOpts, idmw, tokens, middlewareTimesIndexes, []bool{true})
+	// if err != nil {
+	// 	t.Error("CompleteQueuedWithdrawals err:", err)
+	// 	return
+	// }
+	// t.Logf("txReal: %v, data: %v", txReal.Hash().String(), hex.EncodeToString(txReal.Data()))
 }
 
 func TestDelegationManagerTransactor_DelegateTo(t *testing.T) {
@@ -199,18 +202,18 @@ func TestDelegationManagerCaller_DelegatedTo(t *testing.T) {
 }
 
 func TestDelegationManagerCaller_GetDelegatableShares(t *testing.T) {
-	add, amount, err := contract.GetDelegatableShares(&bind.CallOpts{}, common.HexToAddress(PodOwner))
-	if err != nil {
-		t.Error("err:", err)
-		return
-	}
-	t.Logf("add:%v,amount:%v", add, amount)
+	// add, amount, err := contract.GetDelegatableShares(&bind.CallOpts{}, common.HexToAddress(PodOwner))
+	// if err != nil {
+	// 	t.Error("err:", err)
+	// 	return
+	// }
+	// t.Logf("add:%v,amount:%v", add, amount)
 }
 
 func TestNewDelegationManager_FilterLogs(t *testing.T) {
 	logs, err := provider.FilterLogs(context.Background(), ethereum.FilterQuery{
-		FromBlock: big.NewInt(20683347),
-		ToBlock:   big.NewInt(20683347),
+		FromBlock: big.NewInt(2998700),
+		ToBlock:   big.NewInt(2998700),
 		Addresses: []common.Address{common.HexToAddress(ContractAddress)},
 		Topics:    nil,
 	})
@@ -223,8 +226,8 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 		t.Error("GetAbi err:", err)
 		return
 	}
-	//logsJson, _ := json.Marshal(&logs)
-	//t.Log("logs:", string(logsJson))
+	// logsJson, _ := json.Marshal(&logs)
+	// t.Log("logs:", string(logsJson))
 	for _, log := range logs {
 		t.Log("topic:", log.Topics[0].Hex())
 		t.Log("txHash:", log.TxHash.String())
@@ -235,8 +238,8 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 		}
 		t.Log("event:", event.Name)
 		switch event.Name {
-		case "WithdrawalCompleted":
-			wc, err := contract.ParseWithdrawalCompleted(log)
+		case "SlashingWithdrawalCompleted":
+			wc, err := contract.ParseSlashingWithdrawalCompleted(log)
 			if err != nil {
 				t.Error("ParseWithdrawalCompleted err:", err)
 				return
@@ -263,13 +266,6 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 				return
 			}
 			t.Log("opShareDec:", opShareDec)
-		case "StrategyWithdrawalDelayBlocksSet":
-			swdbs, err := contract.ParseStrategyWithdrawalDelayBlocksSet(log)
-			if err != nil {
-				t.Error("ParseStrategyWithdrawalDelayBlocksSet err:", err)
-				return
-			}
-			t.Log("swdbs:", swdbs)
 		case "StakerUndelegated":
 			stakerUndelegated, err := contract.ParseStakerUndelegated(log)
 			if err != nil {
@@ -277,20 +273,6 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 				return
 			}
 			t.Log("stakerUndelegated:", stakerUndelegated)
-		case "WithdrawalMigrated":
-			wm, err := contract.ParseWithdrawalMigrated(log)
-			if err != nil {
-				t.Error("ParseWithdrawalMigrated err:", err)
-				return
-			}
-			t.Log("WithdrawalMigrated:", wm)
-		case "OperatorDetailsModified":
-			odm, err := contract.ParseOperatorDetailsModified(log)
-			if err != nil {
-				t.Error("ParseOperatorDetailsModified err:", err)
-				return
-			}
-			t.Log("odm:", odm)
 		case "OperatorSharesIncreased":
 			osi, err := contract.ParseOperatorSharesIncreased(log)
 			if err != nil {
@@ -312,20 +294,6 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 				return
 			}
 			t.Log("sfu:", sfu)
-		case "MinWithdrawalDelayBlocksSet":
-			mwdbs, err := contract.ParseMinWithdrawalDelayBlocksSet(log)
-			if err != nil {
-				t.Error("ParseMinWithdrawalDelayBlocksSet err:", log)
-				return
-			}
-			t.Log("mwdbs:", mwdbs)
-		case "PauserRegistrySet":
-			prs, err := contract.ParsePauserRegistrySet(log)
-			if err != nil {
-				t.Error("ParsePauserRegistrySet err:", log)
-				return
-			}
-			t.Log("prs:", prs)
 		case "Unpaused":
 			unpaused, err := contract.ParseUnpaused(log)
 			if err != nil {
@@ -333,15 +301,15 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 				return
 			}
 			t.Log("unpaused:", unpaused)
-		case "WithdrawalQueued":
-			wq, err := contract.ParseWithdrawalQueued(log)
+		case "SlashingWithdrawalQueued":
+			wq, err := contract.ParseSlashingWithdrawalQueued(log)
 			if err != nil {
 				t.Error("ParseWithdrawalQueued err:", log)
 				return
 			}
 			withdrawal, _ := json.Marshal(&wq.Withdrawal)
 			queue := models.QueueWithdrawals{
-				Pod:            "0x926720Ae39114D0e2043b79570A1e08f00D01cCE",
+				Pod:            wq.Withdrawal.Staker.String(),
 				WithdrawalRoot: base64.StdEncoding.EncodeToString(wq.WithdrawalRoot[:]),
 				Withdrawal:     string(withdrawal),
 				StartBlock:     uint64(wq.Withdrawal.StartBlock),
@@ -378,62 +346,62 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 }
 
 func TestDelegationManagerTransactor_QueueWithdrawals(t *testing.T) {
-	shares, _ := big.NewInt(0).SetString("25000000000000000000", 0)
-	qwp := IDelegationManagerQueuedWithdrawalParams{
-		Strategies: []common.Address{common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0")},
-		Shares:     []*big.Int{shares},
-		Withdrawer: common.HexToAddress(PodOwner),
-	}
-	qwps := []IDelegationManagerQueuedWithdrawalParams{qwp}
-	opts := getTransOpts("HOLESKY_ACCOUNT_0")
-	tx, err := contract.QueueWithdrawals(opts, qwps)
-	if err != nil {
-		t.Error("QueueWithdrawals err:", err)
-		return
-	}
-	txReceipt, err := bind.WaitMined(context.Background(), provider, tx)
-	if err != nil {
-		t.Error("WaitMined err:", err)
-		return
-	}
-	//GetDelegatableShares Decreased
-	t.Log("txReceipt:", txReceipt)
-	//parseLog
-	if txReceipt.Status != 1 {
-		t.Log("status:", txReceipt.Status)
-		return
-	}
-	dmAbi, err := DelegationManagerMetaData.GetAbi()
-	if err != nil {
-		t.Error("GetAbi err:", err)
-		return
-	}
-
-	for _, log := range txReceipt.Logs {
-		event, err := dmAbi.EventByID(log.Topics[0])
-		if err != nil {
-			t.Error("EventByID err:", err)
-			return
-		}
-		if event.Name == "OperatorSharesDecreased" {
-			osd, err := contract.ParseOperatorSharesDecreased(*log)
-			if err != nil {
-				t.Error("ParseOperatorSharesDecreased err:", err)
-				return
-			}
-			t.Logf("osd Operator:%v, Staker:%v, Stratedy:%v, Shares:%v", osd.Operator, osd.Staker, osd.Strategy, osd.Shares)
-		} else if event.Name == "WithdrawalQueued" {
-			//where to query WithdrawalQueued?? PendingWithdrawals only return true of false
-			wq, err := contract.ParseWithdrawalQueued(*log)
-			if err != nil {
-				t.Error("ParseWithdrawalQueued err:", err)
-				return
-			}
-			withdrawlJson, _ := json.Marshal(&wq.Withdrawal)
-			t.Logf("wq withdrawalRoot:%v, Withdrawal:%v", string(wq.WithdrawalRoot[:]), string(withdrawlJson))
-			//Withdrawal:{"Staker":"0x7f1fba3d5572a8a267c236d28b492f388c4db002","DelegatedTo":"0xa275a0a402874addd807c479487182431d42e397","Withdrawer":"0x7f1fba3d5572a8a267c236d28b492f388c4db002","Nonce":11,"StartBlock":1486674,"Strategies":["0xbeac0eeeeeeeeeeeeeeeeeeeeeeeeeeeeeebeac0"],"Shares":[15000000000000000000]}
-		} else {
-			t.Log("Not find:", event)
-		}
-	}
+	// shares, _ := big.NewInt(0).SetString("25000000000000000000", 0)
+	// qwp := IDelegationManagerQueuedWithdrawalParams{
+	// 	Strategies: []common.Address{common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0")},
+	// 	Shares:     []*big.Int{shares},
+	// 	Withdrawer: common.HexToAddress(PodOwner),
+	// }
+	// qwps := []IDelegationManagerQueuedWithdrawalParams{qwp}
+	// opts := getTransOpts("HOLESKY_ACCOUNT_0")
+	// tx, err := contract.QueueWithdrawals(opts, qwps)
+	// if err != nil {
+	// 	t.Error("QueueWithdrawals err:", err)
+	// 	return
+	// }
+	// txReceipt, err := bind.WaitMined(context.Background(), provider, tx)
+	// if err != nil {
+	// 	t.Error("WaitMined err:", err)
+	// 	return
+	// }
+	// // GetDelegatableShares Decreased
+	// t.Log("txReceipt:", txReceipt)
+	// // parseLog
+	// if txReceipt.Status != 1 {
+	// 	t.Log("status:", txReceipt.Status)
+	// 	return
+	// }
+	// dmAbi, err := DelegationManagerMetaData.GetAbi()
+	// if err != nil {
+	// 	t.Error("GetAbi err:", err)
+	// 	return
+	// }
+	//
+	// for _, log := range txReceipt.Logs {
+	// 	event, err := dmAbi.EventByID(log.Topics[0])
+	// 	if err != nil {
+	// 		t.Error("EventByID err:", err)
+	// 		return
+	// 	}
+	// 	if event.Name == "OperatorSharesDecreased" {
+	// 		osd, err := contract.ParseOperatorSharesDecreased(*log)
+	// 		if err != nil {
+	// 			t.Error("ParseOperatorSharesDecreased err:", err)
+	// 			return
+	// 		}
+	// 		t.Logf("osd Operator:%v, Staker:%v, Stratedy:%v, Shares:%v", osd.Operator, osd.Staker, osd.Strategy, osd.Shares)
+	// 	} else if event.Name == "WithdrawalQueued" {
+	// 		// where to query WithdrawalQueued?? PendingWithdrawals only return true of false
+	// 		wq, err := contract.ParseWithdrawalQueued(*log)
+	// 		if err != nil {
+	// 			t.Error("ParseWithdrawalQueued err:", err)
+	// 			return
+	// 		}
+	// 		withdrawlJson, _ := json.Marshal(&wq.Withdrawal)
+	// 		t.Logf("wq withdrawalRoot:%v, Withdrawal:%v", string(wq.WithdrawalRoot[:]), string(withdrawlJson))
+	// 		// Withdrawal:{"Staker":"0x7f1fba3d5572a8a267c236d28b492f388c4db002","DelegatedTo":"0xa275a0a402874addd807c479487182431d42e397","Withdrawer":"0x7f1fba3d5572a8a267c236d28b492f388c4db002","Nonce":11,"StartBlock":1486674,"Strategies":["0xbeac0eeeeeeeeeeeeeeeeeeeeeeeeeeeeeebeac0"],"Shares":[15000000000000000000]}
+	// 	} else {
+	// 		t.Log("Not find:", event)
+	// 	}
+	// }
 }

@@ -118,8 +118,8 @@ func (s *Scanner) processDelegationManager(txHash common.Hash, log types.Log, or
 					Update("delegate_to", eigenPodRestaked.Operator.String()).Error
 			}
 		}
-	case "WithdrawalQueued":
-		r, err := contract.ParseWithdrawalQueued(log)
+	case "SlashingWithdrawalQueued":
+		r, err := contract.ParseSlashingWithdrawalQueued(log)
 		if err != nil {
 			return err
 		}
@@ -136,8 +136,8 @@ func (s *Scanner) processDelegationManager(txHash common.Hash, log types.Log, or
 				return orm.Create(&queue).Error
 			}
 		}
-	case "WithdrawalCompleted":
-		r, err := contract.ParseWithdrawalCompleted(log)
+	case "SlashingWithdrawalCompleted":
+		r, err := contract.ParseSlashingWithdrawalCompleted(log)
 		if err != nil {
 			return err
 		}
