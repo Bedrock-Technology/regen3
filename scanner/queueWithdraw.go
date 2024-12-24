@@ -123,7 +123,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 		logrus.Errorln("writeTransaction err:", err)
 		return err
 	}
-	return checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, pod.Address, s)
+	return checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, pod.Address, s, shares)
 }
 
 func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued DelegationManagerWithdrawalQueued, asToken bool) (*types.Transaction, error) {
@@ -151,7 +151,7 @@ func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	return s.sendRawTransaction(input, s.Config.RestakingContract, pod.PodIndex, TxCompleteQueueWithdrawals)
 }
 
-func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress string, s *Scanner) error {
+func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress string, s *Scanner, shares *big.Int) error {
 	dmAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
 	if err != nil {
 		return err
@@ -179,6 +179,9 @@ func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress st
 						Withdrawal:     string(withdrawal),
 						StartBlock:     uint64(r.Withdrawal.StartBlock),
 						Completed:      0,
+					}
+					if r.Withdrawal.ScaledShares[0].Cmp(shares) != 0 {
+						return fmt.Errorf("ScaledShares not eq shares, maybe slashed")
 					}
 					return s.DBEngine.Create(&queue).Error
 				}
