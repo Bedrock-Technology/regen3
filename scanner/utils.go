@@ -23,6 +23,7 @@ const (
 	TxQueueWithdrawals            = "queueWithdrawals"
 	TxCompleteQueueWithdrawals    = "completeQueueWithdrawals"
 	TxDelegateTo                  = "delegateTo"
+	TxClaimReward                 = "processClaim"
 )
 
 func addGasBuffer(gasLimit uint64) uint64 {

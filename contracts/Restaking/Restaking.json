@@ -1,8 +1,6 @@
 [
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -43,6 +41,31 @@
       }
     ],
     "name": "Pending",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardWithdrawn",
     "type": "event"
   },
   {
@@ -121,9 +144,7 @@
     "type": "event"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [
       {
@@ -136,9 +157,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "OPERATOR_ROLE",
     "outputs": [
       {
@@ -151,9 +170,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "beacon",
     "outputs": [
       {
@@ -190,20 +207,14 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "createPod",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "delayedWithdrawalRouter",
     "outputs": [
       {
@@ -216,9 +227,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "delegationManager",
     "outputs": [
       {
@@ -231,9 +240,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "eigenPod",
     "outputs": [
       {
@@ -246,9 +253,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "eigenPodManager",
     "outputs": [
       {
@@ -285,9 +290,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "getPendingWithdrawalAmount",
     "outputs": [
       {
@@ -338,9 +341,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "getTotalPods",
     "outputs": [
       {
@@ -366,9 +367,7 @@
       }
     ],
     "name": "grantRole",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -405,9 +404,7 @@
       }
     ],
     "name": "initializeV3",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -433,6 +430,85 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "podId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint32",
+            "name": "rootIndex",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "earnerIndex",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "earnerTreeProof",
+            "type": "bytes"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "earner",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "earnerTokenRoot",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct IRewardsCoordinator.EarnerTreeMerkleLeaf",
+            "name": "earnerLeaf",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint32[]",
+            "name": "tokenIndices",
+            "type": "uint32[]"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "tokenTreeProofs",
+            "type": "bytes[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "contract IERC20",
+                "name": "token",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "cumulativeEarnings",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct IRewardsCoordinator.TokenTreeMerkleLeaf[]",
+            "name": "tokenLeaves",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct IRewardsCoordinator.RewardsMerkleClaim",
+        "name": "claim",
+        "type": "tuple"
+      }
+    ],
+    "name": "processClaim",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -444,9 +520,7 @@
       }
     ],
     "name": "renounceRole",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -464,16 +538,38 @@
       }
     ],
     "name": "revokeRole",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-
+    "inputs": [],
+    "name": "rewardsCoordinator",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "rewardsCdr",
+        "type": "address"
+      }
+    ],
+    "name": "setRewardsCoordinator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "stakingAddress",
     "outputs": [
       {
@@ -499,16 +595,12 @@
       }
     ],
     "name": "startCheckPoint",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "strategyManager",
     "outputs": [
       {
@@ -553,20 +645,14 @@
       }
     ],
     "name": "transfer",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "update",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -579,9 +665,7 @@
       }
     ],
     "name": "upgradeBeacon",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -631,9 +715,30 @@
       }
     ],
     "name": "verifyWithdrawalCredentials",
-    "outputs": [
-
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
+    "name": "withdrawReward",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -642,3 +747,4 @@
     "type": "receive"
   }
 ]
+

@@ -125,6 +125,9 @@ to quickly create a Cobra application.`,
 			}
 			rest = scanner.DBEngine.Model(&models.QueueWithdrawals{}).Where("withdrawal_root = ?", root).
 				Update("completed", txReceipt.BlockNumber.Uint64())
+			if rest.Error != nil {
+				logrus.Errorf("write db error:%v", rest.Error)
+			}
 		}
 	},
 }
