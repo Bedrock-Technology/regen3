@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
-	"github.com/ethereum/go-ethereum"
 	"math/big"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
+	"github.com/ethereum/go-ethereum"
 
 	"github.com/joho/godotenv"
 
@@ -194,4 +195,14 @@ func TestParseCredentialProof(t *testing.T) {
 		return
 	}
 	t.Logf("m:%v", m)
+}
+func TestGetCurrentCheckPoint(t *testing.T) {
+	t.Log("url:", RpcHost)
+	cp, err := contract.CurrentCheckpoint(nil)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	jsonBytes, _ := json.Marshal(cp)
+	t.Log("cp:", string(jsonBytes))
 }
