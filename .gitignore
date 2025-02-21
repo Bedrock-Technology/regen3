@@ -10,6 +10,6 @@ logs/
 data/
 configHolesky.yaml
 LICENSE
-regen3
+regen3*
 regen3.exe
 rewardProofs/
