@@ -101,6 +101,8 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp u
 	}
 	// search the log
 	egAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
+	// hold on senconds for rpc sync? maybe balance to another one
+	time.Sleep(time.Minute)
 	contract, err := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
 	if err != nil {
 		return 0, err
