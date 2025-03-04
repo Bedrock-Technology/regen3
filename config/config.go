@@ -107,7 +107,7 @@ func LoadConfig(path string) (config *Config) {
 		config.EigenToken = MainnetAddresses.eigenToken
 		config.MinWithdrawalDelayBlocks = MainnetMinWithdrawalDelayBlocks
 		config.ChainId = 1
-		config.CheckPointThreshold = 5 * 32e9
+		config.CheckPointThreshold = 1 * 32e9
 		config.Pod0CheckPointThreshold = 20 * 32e9
 		config.EigenTokenThreshold = 10_000 * 1e9
 	default:
