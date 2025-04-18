@@ -32,7 +32,7 @@ var HoleskyAddresses = Addresses{
 
 const (
 	HoleskyMinWithdrawalDelayBlocks = 3600 // half day
-	MainnetMinWithdrawalDelayBlocks = 50403
+	MainnetMinWithdrawalDelayBlocks = 100803
 )
 
 type Config struct {
