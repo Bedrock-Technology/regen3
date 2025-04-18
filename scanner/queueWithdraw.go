@@ -85,17 +85,17 @@ func (v *QueueWithdrawRun) JobRun() {
 }
 
 type DelegationManagerWithdrawalQueued struct {
-	Withdrawal     DelegationManager.IDelegationManagerWithdrawal
+	Withdrawal     DelegationManager.IDelegationManagerTypesWithdrawal
 	WithdrawalRoot [32]byte
 }
 
 func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 	dm, _ := DelegationManager.DelegationManagerMetaData.GetAbi()
-	params := []DelegationManager.IDelegationManagerQueuedWithdrawalParams{
+	params := []DelegationManager.IDelegationManagerTypesQueuedWithdrawalParams{
 		{
-			Strategies: []common.Address{common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0")},
-			Shares:     []*big.Int{shares},
-			Withdrawer: common.HexToAddress(pod.Owner),
+			Strategies:    []common.Address{common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0")},
+			DepositShares: []*big.Int{shares},
+			Withdrawer:    common.HexToAddress(pod.Owner),
 		},
 	}
 	data, err := dm.Pack("queueWithdrawals", params)
@@ -123,7 +123,7 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 		logrus.Errorln("writeTransaction err:", err)
 		return err
 	}
-	return checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, pod.Address, s)
+	return checkIfWithdrawalQueuedContained(txReceipt.Logs, pod.Owner, pod.Address, s, shares)
 }
 
 func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued DelegationManagerWithdrawalQueued, asToken bool) (*types.Transaction, error) {
@@ -132,9 +132,9 @@ func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 		return nil, err
 	}
 	data, err := dm.Pack("completeQueuedWithdrawals",
-		[]DelegationManager.IDelegationManagerWithdrawal{withdrawalQueued.Withdrawal},
+		[]DelegationManager.IDelegationManagerTypesWithdrawal{withdrawalQueued.Withdrawal},
 		[][]common.Address{{common.HexToAddress("0x0000000000000000000000000000000000000000")}},
-		[]*big.Int{big.NewInt(0)},
+		// []*big.Int{big.NewInt(0)},
 		[]bool{asToken},
 	)
 	if err != nil {
@@ -151,7 +151,7 @@ func (s *Scanner) SendCompleteQueuedWithdrawals(pod models.Pod, withdrawalQueued
 	return s.sendRawTransaction(input, s.Config.RestakingContract, pod.PodIndex, TxCompleteQueueWithdrawals)
 }
 
-func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress string, s *Scanner) error {
+func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress string, s *Scanner, shares *big.Int) error {
 	dmAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
 	if err != nil {
 		return err
@@ -166,8 +166,8 @@ func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress st
 			if err != nil {
 				return err
 			}
-			if e.Name == "WithdrawalQueued" {
-				r, err := contract.ParseWithdrawalQueued(*log)
+			if e.Name == "SlashingWithdrawalQueued" {
+				r, err := contract.ParseSlashingWithdrawalQueued(*log)
 				if err != nil {
 					return err
 				}
@@ -180,6 +180,9 @@ func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress st
 						StartBlock:     uint64(r.Withdrawal.StartBlock),
 						Completed:      0,
 					}
+					if r.Withdrawal.ScaledShares[0].Cmp(shares) != 0 {
+						return fmt.Errorf("ScaledShares not eq shares, maybe slashed")
+					}
 					return s.DBEngine.Create(&queue).Error
 				}
 			}
@@ -188,7 +191,7 @@ func checkIfWithdrawalQueuedContained(logs []*types.Log, podOwner, podAddress st
 	return fmt.Errorf("not found")
 }
 
-func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot string, s *Scanner) error {
+func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot string, podAddress string, shares *big.Int, s *Scanner) error {
 	dmAbi, err := DelegationManager.DelegationManagerMetaData.GetAbi()
 	if err != nil {
 		return err
@@ -197,14 +200,34 @@ func checkIfCompleteWithdrawalQueuedContained(logs []*types.Log, withdrawalRoot 
 	if err != nil {
 		return err
 	}
+	egAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
+	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.EthClient)
+	// pod ...
 	for _, log := range logs {
+		if log.Address == common.HexToAddress(podAddress) {
+			e, err := egAbi.EventByID(log.Topics[0])
+			if err != nil {
+				return err
+			}
+			if e.Name == "RestakedBeaconChainETHWithdrawn" {
+				r, err := eigenPod.ParseRestakedBeaconChainETHWithdrawn(*log)
+				if err != nil {
+					return err
+				}
+				if r.Amount.Cmp(shares) != 0 {
+					return fmt.Errorf("must be slashed, want:%v, actual:%v", shares, r.Amount)
+				}
+				logrus.Info("Not Slash:", r.Amount)
+			}
+		}
+
 		if log.Address == common.HexToAddress(s.Config.EigenDelegationManagerContract) {
 			e, err := dmAbi.EventByID(log.Topics[0])
 			if err != nil {
 				return err
 			}
-			if e.Name == "WithdrawalCompleted" {
-				r, err := contract.ParseWithdrawalCompleted(*log)
+			if e.Name == "SlashingWithdrawalCompleted" {
+				r, err := contract.ParseSlashingWithdrawalCompleted(*log)
 				if err != nil {
 					return err
 				}
@@ -231,12 +254,12 @@ func (s *Scanner) GetWithdrawalUncompletedGwei(podAddress string, podIndex uint6
 	}
 	logrus.Infof("pod[%d] GetWithdrawalUncompletedGwei len(qws):%v", podIndex, len(qws))
 	for _, queueWithdrawal := range qws {
-		var qwp DelegationManager.IDelegationManagerQueuedWithdrawalParams
+		var qwp DelegationManager.IDelegationManagerTypesWithdrawal
 		if err := json.Unmarshal([]byte(queueWithdrawal.Withdrawal), &qwp); err != nil {
 			logrus.Errorln("Unmarshal error:", err)
 			return 0, err
 		}
-		for _, share := range qwp.Shares {
+		for _, share := range qwp.ScaledShares {
 			queueWithdrawalUnCompletedShareSumWei.Add(queueWithdrawalUnCompletedShareSumWei, share)
 		}
 	}
@@ -277,12 +300,12 @@ func (s *Scanner) tryCompleteQueue(queueWithdrawalsNotCompleted models.QueueWith
 		}
 		// big.NewInt(0).Div(withdrawal.Withdrawal.Shares[0], big.NewInt(1e9))
 		logrus.WithField("Report", "true").Infof("%s pod[%d] shares:%s tx:%s", TxCompleteQueueWithdrawals,
-			pod.PodIndex, decimal.NewFromBigInt(withdrawal.Withdrawal.Shares[0], -18).Truncate(9), txReceipt.TxHash)
+			pod.PodIndex, decimal.NewFromBigInt(withdrawal.Withdrawal.ScaledShares[0], -18).Truncate(9), txReceipt.TxHash)
 		if err := writeTransaction(s.DBEngine, txReceipt, TxCompleteQueueWithdrawals); err != nil {
 			logrus.Errorln("writeTransaction err:", err)
 			panic("writeTransaction error")
 		}
-		if err := checkIfCompleteWithdrawalQueuedContained(txReceipt.Logs, queueWithdrawalsNotCompleted.WithdrawalRoot, s); err != nil {
+		if err := checkIfCompleteWithdrawalQueuedContained(txReceipt.Logs, queueWithdrawalsNotCompleted.WithdrawalRoot, pod.Address, withdrawal.Withdrawal.ScaledShares[0], s); err != nil {
 			logrus.Errorln("checkIfCompleteWithdrawalQueuedContained error:", err)
 			panic("checkIfCompleteWithdrawalQueuedContained")
 		}
