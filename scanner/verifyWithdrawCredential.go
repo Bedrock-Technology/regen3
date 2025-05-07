@@ -14,7 +14,8 @@ import (
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
 	"github.com/Bedrock-Technology/regen3/models"
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
-	"github.com/Layr-Labs/eigenpod-proofs-generation/cli/core"
+	eigenutils "github.com/Layr-Labs/eigenpod-proofs-generation/cli/core/utils"
+
 	"github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec"
@@ -231,7 +232,7 @@ func packVerifyWithdrawCredentialTx(proofs *eigenpodproofs.VerifyValidatorFields
 	for i, v := range proofs.ValidatorFieldsProofs {
 		validatorFieldsProofs[i] = v.ToByteSlice()
 	}
-	curValidatorFields := core.CastValidatorFields(proofs.ValidatorFields)
+	curValidatorFields := eigenutils.CastValidatorFields(proofs.ValidatorFields)
 	return eigenPodAbi.Pack("verifyWithdrawalCredentials", beaconTimestamp, stateRootProof, indices, validatorFieldsProofs, curValidatorFields)
 }
 

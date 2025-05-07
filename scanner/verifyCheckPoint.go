@@ -9,8 +9,7 @@ import (
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
 	"github.com/Bedrock-Technology/regen3/models"
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
-	"github.com/Layr-Labs/eigenpod-proofs-generation/cli/core"
-	"github.com/Layr-Labs/eigenpod-proofs-generation/cli/core/onchain"
+	eigenutils "github.com/Layr-Labs/eigenpod-proofs-generation/cli/core/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -63,10 +62,10 @@ func (s *VerifyCheckPointRun) JobRun() {
 		latestChunk := len(proofedSlice) - 1
 		balanceProofs := allProofChunks[latestChunk+1]
 		eigenAbi, _ := EigenPod.EigenPodMetaData.GetAbi()
-		input, _ := eigenAbi.Pack("verifyCheckpointProofs", onchain.BeaconChainProofsBalanceContainerProof{
+		input, _ := eigenAbi.Pack("verifyCheckpointProofs", EigenPod.BeaconChainProofsBalanceContainerProof{
 			BalanceContainerRoot: proof.ValidatorBalancesRootProof.ValidatorBalancesRoot,
 			Proof:                proof.ValidatorBalancesRootProof.Proof.ToByteSlice(),
-		}, core.CastBalanceProofs(balanceProofs))
+		}, eigenutils.CastBalanceProofs(balanceProofs))
 
 		realTx, err := s.scanner.sendRawTransaction(input, pod.Address, pod.PodIndex, TxVerifyCheckPoints)
 		if err != nil {
