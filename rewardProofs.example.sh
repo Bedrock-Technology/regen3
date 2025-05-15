@@ -3,6 +3,7 @@
 #./eigenlayer rewards claim --eth-rpc-url --network --earner-address --output-type json --output-file
 
 ETH_RPC_URL=""
+SIDE_CAR_URL="https://sidecar-rpc.eigenlayer.xyz/mainnet"
 NETWORK=""
 EIGEN_PATH="/home/ubuntu/go/bin"
 PROOF_OUT_PATH="."
@@ -14,5 +15,5 @@ for ((index = 0; index < ${#PODOWNERS[@]}; index++)); do
     pod="pod_$index"
     owner=${PODOWNERS[$index]}
     echo "generate $pod, owner:$owner"
-    $EIGEN_PATH/eigenlayer rewards claim --eth-rpc-url "$ETH_RPC_URL" --network "$NETWORK" --earner-address "$owner" --output-type json --output-file $PROOF_OUT_PATH/rewardProofs/${pod}.json --silent
+    $EIGEN_PATH/eigenlayer rewards claim --eth-rpc-url "$ETH_RPC_URL" --sidecar-http-rpc-url "$SIDE_CAR_URL" --network "$NETWORK" --earner-address "$owner" --output-type json --output-file $PROOF_OUT_PATH/rewardProofs/${pod}.json --silent
 done
