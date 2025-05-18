@@ -52,14 +52,17 @@ func (s *Scanner) processDepositPectra(beaconBlock *api.Response[*spec.Versioned
 		return err
 	}
 
-	logrus.Infof("find Deposit len(%d), slot[%d]", len(modelValidators), slot)
-	result := orm.Create(&modelValidators)
-	if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
-		logrus.Warnf("duplicated key, slot[%d],error:%v", slot, result.Error)
-		return nil
-	} else {
-		return result.Error
+	if len(modelValidators) != 0 {
+		logrus.Infof("find Deposit len(%d), slot[%d]", len(modelValidators), slot)
+		result := orm.Create(&modelValidators)
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			logrus.Warnf("duplicated key, slot[%d],error:%v", slot, result.Error)
+			return nil
+		} else {
+			return result.Error
+		}
 	}
+	return nil
 }
 
 func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
