@@ -44,11 +44,17 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 	var beaconBlockHeader *api.Response[*apiv1.BeaconBlockHeader]
 	var beaconBlockState *api.Response[*spec.VersionedBeaconState]
 	var blockTime uint64
+
+	err := v.scanner.updateValidatorIndex()
+	if err != nil {
+		logrus.Errorln("updateValidatorIndex error:", err)
+	}
+
 	for _, pod := range v.scanner.Pods {
 		if pod.IsCredential == 1 {
 			validators := make([]uint64, 0, v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize)
 			rest := v.scanner.DBEngine.Model(&models.Validator{}).Select("validator_index").
-				Where("pod_address = ?", pod.Address).
+				Where("pod_address = ?", pod.Address).Where("validator_index != ?", 0).
 				Where("credential_verified = ?", 0).Where("withdrawn_on_chain = ?", 0).
 				Where("withdrawn_on_pod = ?", 0).Where("voluntary_exit = ?", 0).Order("created_at asc").
 				Limit(v.scanner.Config.CheckVerifyWithdrawCredential.BatchSize).Find(&validators)
@@ -250,4 +256,34 @@ func updateValidatorCredential(db *gorm.DB, validators []uint64, podAddress stri
 	return db.Model(&models.Validator{}).
 		Where("validator_index in ?", validators).Where("pod_address = ?", podAddress).
 		Update("credential_verified", blockNumber).Error
+}
+
+func (s *Scanner) updateValidatorIndex() error {
+	pubKeys := []string{}
+	rest := s.DBEngine.Model(&models.Validator{}).Select("pub_key").Where("validator_index = ?", 0).Find(&pubKeys)
+	if rest.Error != nil {
+		return rest.Error
+	}
+
+	if len(pubKeys) == 0 {
+		logrus.Info("no need to update validator index")
+		return nil
+	}
+
+	logrus.Infof("need to update validator index, len(%d)", len(pubKeys))
+	stateResp, err := s.BeaconClient.ValidatorsByPubkeys(pubKeys)
+	if err != nil {
+		logrus.Errorln("call ValidatorState:", err)
+		return err
+	}
+
+	for _, v := range stateResp.Data {
+		rest := s.DBEngine.Model(&models.Validator{}).Where("pub_key = ?", v.Validator.PublicKey.String()).
+			Update("validator_index", uint64(v.Index))
+		if rest.Error != nil {
+			return rest.Error
+		}
+	}
+
+	return nil
 }

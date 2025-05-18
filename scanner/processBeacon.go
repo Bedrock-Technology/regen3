@@ -15,13 +15,51 @@ import (
 )
 
 func (s *Scanner) processBeacon(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
-	if err := s.processDeposit(beaconBlock, orm); err != nil {
+	if err := s.processDepositPectra(beaconBlock, orm); err != nil {
 		return err
 	}
 	if err := s.processVoluntaryExit(beaconBlock, orm); err != nil {
 		return err
 	}
 	return s.processWithdrawnOnChain(beaconBlock, orm)
+}
+
+func (s *Scanner) processDepositPectra(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {
+	excutionRequests, err := beaconBlock.Data.ExecutionRequests()
+	if err != nil {
+		return err
+	}
+	deposits := excutionRequests.Deposits
+
+	var modelValidators []models.Validator
+	for _, deposit := range deposits {
+		withdrawal := common.BytesToAddress(deposit.WithdrawalCredentials[12:]).String()
+		pubKey := fmt.Sprintf("%#x", deposit.Pubkey)
+		if _, exist := s.Pods[withdrawal]; exist {
+			modelValidators = append(modelValidators, models.Validator{
+				PubKey:             pubKey,
+				PodAddress:         withdrawal,
+				CredentialVerified: 0,
+				WithdrawnOnChain:   0,
+				WithdrawnOnPod:     0,
+				VoluntaryExit:      0,
+			})
+		}
+	}
+
+	slot, err := beaconBlock.Data.Slot()
+	if err != nil {
+		return err
+	}
+
+	logrus.Infof("find Deposit len(%d), slot[%d]", len(modelValidators), slot)
+	result := orm.Create(&modelValidators)
+	if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+		logrus.Warnf("duplicated key, slot[%d],error:%v", slot, result.Error)
+		return nil
+	} else {
+		return result.Error
+	}
 }
 
 func (s *Scanner) processDeposit(beaconBlock *api.Response[*spec.VersionedSignedBeaconBlock], orm *gorm.DB) error {

@@ -12,8 +12,8 @@ import (
 type Validator struct {
 	gorm.Model
 	PubKey             string `gorm:"index:idx_pubKey,unique;type:varchar(128);not null;default:''" json:"pubKey"`
-	PodAddress         string `gorm:"index:idx_validator,unique;type:varchar(128);not null;default:''" json:"podAddress"`
-	ValidatorIndex     uint64 `gorm:"index:idx_validator,unique;not null;default:0" json:"validatorIndex"`
+	PodAddress         string `gorm:"type:varchar(128);not null;default:''" json:"podAddress"`
+	ValidatorIndex     uint64 `gorm:"default:0" json:"validatorIndex"`
 	CredentialVerified uint64 `gorm:"not null;default:0" json:"credentialVerified"`
 	WithdrawnOnChain   uint64 `gorm:"not null;default:0" json:"withdrawnOnChain"`
 	WithdrawnOnPod     uint64 `gorm:"not null;default:0" json:"withdrawnOnPod"`

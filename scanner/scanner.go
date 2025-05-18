@@ -156,7 +156,7 @@ func (s *Scanner) scan() {
 	start := cursor.Slot
 	logrus.Infof("Scan [%d:%d)", start, end)
 
-	realEnd, err := s.scanSlotAndBlock(start, end, DbTransaction)
+	realEnd, err := s.ScanSlotAndBlock(start, end, DbTransaction)
 	if err != nil {
 		logrus.Errorf("scanSlotAndBlock [%d:%d),error:%v", start, end, err)
 		DbTransaction.Rollback()
@@ -178,7 +178,7 @@ func (s *Scanner) scan() {
 	s.BlockTimer.InvokeTimer(cursor.Slot)
 }
 
-func (s *Scanner) scanSlotAndBlock(start, end uint64, DbTrans *gorm.DB) (uint64, error) {
+func (s *Scanner) ScanSlotAndBlock(start, end uint64, DbTrans *gorm.DB) (uint64, error) {
 	for start < end {
 		logrus.Infof("Scan Slot[%d]", start)
 		slotBody, err := s.BeaconClient.SignedBeaconBlock(beaconClient.CTX, &api.SignedBeaconBlockOpts{

@@ -2,10 +2,14 @@ package beaconClient
 
 import (
 	"context"
+	"encoding/hex"
+	"strings"
 	"time"
 
 	"github.com/attestantio/go-eth2-client/api"
+	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/http"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/rs/zerolog"
 )
 
@@ -45,4 +49,30 @@ func (c *Client) GetLatestSlotNumber() (slotNumber uint64, err error) {
 		return 0, err
 	}
 	return uint64(header.Data.Header.Message.Slot - 2), nil
+}
+
+func mustParsePubKey(input string) *phase0.BLSPubKey {
+	pubKey, err := hex.DecodeString(strings.TrimPrefix(input, "0x"))
+	if err != nil {
+		panic("invalid public key")
+	}
+	if len(pubKey) != phase0.PublicKeyLength {
+		panic("invalid length public key")
+	}
+
+	var res phase0.BLSPubKey
+	copy(res[:], pubKey)
+
+	return &res
+}
+
+func (c *Client) ValidatorsByPubkeys(pubKeys []string) (*api.Response[map[phase0.ValidatorIndex]*apiv1.Validator], error) {
+	blsPubKeys := []phase0.BLSPubKey{}
+	for _, v := range pubKeys {
+		blsPubKeys = append(blsPubKeys, *mustParsePubKey(v))
+	}
+	return c.Validators(CTX, &api.ValidatorsOpts{
+		State:   "head",
+		PubKeys: blsPubKeys,
+	})
 }
