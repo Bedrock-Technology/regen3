@@ -195,6 +195,8 @@ func (s *Scanner) ScanSlotAndBlock(start, end uint64, DbTrans *gorm.DB) (uint64,
 				logrus.Errorf("error[%d]:%v", apiErr.StatusCode, err)
 				return start, err
 			}
+			logrus.Errorf("error:%v", err)
+			return start, err
 		}
 
 		if slotBody == nil || slotBody.Data == nil {
