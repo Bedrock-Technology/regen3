@@ -92,7 +92,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 
 		matched, finalized, withdrawn := s.scanner.checkIfCheckPointContained(txReceipt.Logs, len(balanceProofs), pod.Address)
 		if !matched {
-			logrus.Errorln("checkIfCheckPointContained err:", err)
+			logrus.Errorln("checkIfCheckPointContained")
 			panic("checkIfCheckPointContained error")
 		}
 		proofedSlice = append(proofedSlice, uint64(latestChunk+1))
@@ -123,7 +123,7 @@ func (s *Scanner) checkIfCheckPointContained(logs []*types.Log, needCheck int, p
 		if log.Address == common.HexToAddress(podAddress) {
 			e, err := egAbi.EventByID(log.Topics[0])
 			if err != nil {
-				return
+				panic("EventByID not found")
 			}
 			switch e.Name {
 			case "ValidatorCheckpointed":
@@ -131,8 +131,15 @@ func (s *Scanner) checkIfCheckPointContained(logs []*types.Log, needCheck int, p
 			case "CheckpointFinalized":
 				finalized = true
 			case "ValidatorWithdrawn":
-				ew, _ := eigenPod.ParseValidatorWithdrawn(*log)
-				withdrawnId = append(withdrawnId, ew.ValidatorIndex.Uint64())
+				ew, err := eigenPod.ParseValidatorWithdrawn(*log)
+				if err != nil {
+					panic("ParseValidatorWithdrawn error")
+				}
+				info, err := eigenPod.ValidatorPubkeyHashToInfo(&bind.CallOpts{}, ew.PubkeyHash)
+				if err != nil {
+					panic("ValidatorPubkeyHashToInfo error")
+				}
+				withdrawnId = append(withdrawnId, info.ValidatorIndex)
 			}
 		}
 	}

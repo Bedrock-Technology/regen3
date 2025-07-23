@@ -54,25 +54,38 @@ type BeaconChainProofsValidatorProof struct {
 	Proof           []byte
 }
 
-// IEigenPodCheckpoint is an auto generated low-level Go binding around an user-defined struct.
-type IEigenPodCheckpoint struct {
-	BeaconBlockRoot   [32]byte
-	ProofsRemaining   *big.Int
-	PodBalanceGwei    uint64
-	BalanceDeltasGwei *big.Int
+// IEigenPodTypesCheckpoint is an auto generated low-level Go binding around an user-defined struct.
+type IEigenPodTypesCheckpoint struct {
+	BeaconBlockRoot       [32]byte
+	ProofsRemaining       *big.Int
+	PodBalanceGwei        uint64
+	BalanceDeltasGwei     int64
+	PrevBeaconBalanceGwei uint64
 }
 
-// IEigenPodValidatorInfo is an auto generated low-level Go binding around an user-defined struct.
-type IEigenPodValidatorInfo struct {
+// IEigenPodTypesConsolidationRequest is an auto generated low-level Go binding around an user-defined struct.
+type IEigenPodTypesConsolidationRequest struct {
+	SrcPubkey    []byte
+	TargetPubkey []byte
+}
+
+// IEigenPodTypesValidatorInfo is an auto generated low-level Go binding around an user-defined struct.
+type IEigenPodTypesValidatorInfo struct {
 	ValidatorIndex      uint64
 	RestakedBalanceGwei uint64
 	LastCheckpointedAt  uint64
 	Status              uint8
 }
 
+// IEigenPodTypesWithdrawalRequest is an auto generated low-level Go binding around an user-defined struct.
+type IEigenPodTypesWithdrawalRequest struct {
+	Pubkey     []byte
+	AmountGwei uint64
+}
+
 // EigenPodMetaData contains all meta data concerning the EigenPod contract.
 var EigenPodMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"contractIETHPOSDeposit\",\"name\":\"_ethPOS\",\"type\":\"address\"},{\"internalType\":\"contractIEigenPodManager\",\"name\":\"_eigenPodManager\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"_GENESIS_TIME\",\"type\":\"uint64\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"beaconBlockRoot\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"validatorCount\",\"type\":\"uint256\"}],\"name\":\"CheckpointCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"int256\",\"name\":\"totalShareDeltaWei\",\"type\":\"int256\"}],\"name\":\"CheckpointFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"}],\"name\":\"EigenPodStaked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountReceived\",\"type\":\"uint256\"}],\"name\":\"NonBeaconChainETHReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"prevProofSubmitter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newProofSubmitter\",\"type\":\"address\"}],\"name\":\"ProofSubmitterUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RestakedBeaconChainETHWithdrawn\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint40\",\"name\":\"validatorIndex\",\"type\":\"uint40\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"balanceTimestamp\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"newValidatorBalanceGwei\",\"type\":\"uint64\"}],\"name\":\"ValidatorBalanceUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint40\",\"name\":\"validatorIndex\",\"type\":\"uint40\"}],\"name\":\"ValidatorCheckpointed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint40\",\"name\":\"validatorIndex\",\"type\":\"uint40\"}],\"name\":\"ValidatorRestaked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint40\",\"name\":\"validatorIndex\",\"type\":\"uint40\"}],\"name\":\"ValidatorWithdrawn\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"GENESIS_TIME\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"activeValidatorCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"checkpointBalanceExitedGwei\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentCheckpoint\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconBlockRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint24\",\"name\":\"proofsRemaining\",\"type\":\"uint24\"},{\"internalType\":\"uint64\",\"name\":\"podBalanceGwei\",\"type\":\"uint64\"},{\"internalType\":\"int128\",\"name\":\"balanceDeltasGwei\",\"type\":\"int128\"}],\"internalType\":\"structIEigenPod.Checkpoint\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentCheckpointTimestamp\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"eigenPodManager\",\"outputs\":[{\"internalType\":\"contractIEigenPodManager\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ethPOS\",\"outputs\":[{\"internalType\":\"contractIETHPOSDeposit\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"timestamp\",\"type\":\"uint64\"}],\"name\":\"getParentBlockRoot\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_podOwner\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastCheckpointTimestamp\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"podOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proofSubmitter\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIERC20[]\",\"name\":\"tokenList\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amountsToWithdraw\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"}],\"name\":\"recoverTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newProofSubmitter\",\"type\":\"address\"}],\"name\":\"setProofSubmitter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"depositDataRoot\",\"type\":\"bytes32\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"revertIfNoBalance\",\"type\":\"bool\"}],\"name\":\"startCheckpoint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validatorPubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"validatorPubkeyHashToInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"validatorIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"restakedBalanceGwei\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"lastCheckpointedAt\",\"type\":\"uint64\"},{\"internalType\":\"enumIEigenPod.VALIDATOR_STATUS\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structIEigenPod.ValidatorInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"validatorPubkey\",\"type\":\"bytes\"}],\"name\":\"validatorPubkeyToInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"validatorIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"restakedBalanceGwei\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"lastCheckpointedAt\",\"type\":\"uint64\"},{\"internalType\":\"enumIEigenPod.VALIDATOR_STATUS\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structIEigenPod.ValidatorInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"validatorPubkey\",\"type\":\"bytes\"}],\"name\":\"validatorStatus\",\"outputs\":[{\"internalType\":\"enumIEigenPod.VALIDATOR_STATUS\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"validatorStatus\",\"outputs\":[{\"internalType\":\"enumIEigenPod.VALIDATOR_STATUS\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"balanceContainerRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.BalanceContainerProof\",\"name\":\"balanceContainerProof\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"balanceRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.BalanceProof[]\",\"name\":\"proofs\",\"type\":\"tuple[]\"}],\"name\":\"verifyCheckpointProofs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"beaconTimestamp\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.StateRootProof\",\"name\":\"stateRootProof\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32[]\",\"name\":\"validatorFields\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.ValidatorProof\",\"name\":\"proof\",\"type\":\"tuple\"}],\"name\":\"verifyStaleBalance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"beaconTimestamp\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.StateRootProof\",\"name\":\"stateRootProof\",\"type\":\"tuple\"},{\"internalType\":\"uint40[]\",\"name\":\"validatorIndices\",\"type\":\"uint40[]\"},{\"internalType\":\"bytes[]\",\"name\":\"validatorFieldsProofs\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"validatorFields\",\"type\":\"bytes32[][]\"}],\"name\":\"verifyWithdrawalCredentials\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountWei\",\"type\":\"uint256\"}],\"name\":\"withdrawRestakedBeaconChainETH\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdrawableRestakedExecutionLayerGwei\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"contractIETHPOSDeposit\",\"name\":\"_ethPOS\",\"type\":\"address\"},{\"internalType\":\"contractIEigenPodManager\",\"name\":\"_eigenPodManager\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"_version\",\"type\":\"string\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"BeaconTimestampTooFarInPast\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CannotCheckpointTwiceInSingleBlock\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CheckpointAlreadyActive\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CredentialsAlreadyVerified\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CurrentlyPaused\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FeeQueryFailed\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ForkTimestampZero\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InputAddressZero\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InputArrayLengthMismatch\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InsufficientFunds\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InsufficientWithdrawableBalance\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidEIP4788Response\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidProof\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidProofLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidProofLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidPubKeyLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidShortString\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidValidatorFieldsLength\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"MsgValueNot32ETH\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NoActiveCheckpoint\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NoBalanceToCheckpoint\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"OnlyEigenPodManager\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"OnlyEigenPodOwner\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"OnlyEigenPodOwnerOrProofSubmitter\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"PredeployFailed\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"str\",\"type\":\"string\"}],\"name\":\"StringTooLong\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TimestampOutOfRange\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ValidatorInactiveOnBeaconChain\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ValidatorIsExitingBeaconChain\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ValidatorNotActiveInPod\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ValidatorNotSlashedOnBeaconChain\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"WithdrawalCredentialsNotForEigenPod\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"beaconBlockRoot\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"validatorCount\",\"type\":\"uint256\"}],\"name\":\"CheckpointCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"int256\",\"name\":\"totalShareDeltaWei\",\"type\":\"int256\"}],\"name\":\"CheckpointFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"sourcePubkeyHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"targetPubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"ConsolidationRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"EigenPodStaked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validatorPubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"ExitRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountReceived\",\"type\":\"uint256\"}],\"name\":\"NonBeaconChainETHReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"prevProofSubmitter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newProofSubmitter\",\"type\":\"address\"}],\"name\":\"ProofSubmitterUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RestakedBeaconChainETHWithdrawn\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validatorPubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"SwitchToCompoundingRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"balanceTimestamp\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"newValidatorBalanceGwei\",\"type\":\"uint64\"}],\"name\":\"ValidatorBalanceUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"ValidatorCheckpointed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"ValidatorRestaked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"checkpointTimestamp\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"ValidatorWithdrawn\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"validatorPubkeyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"withdrawalAmountGwei\",\"type\":\"uint64\"}],\"name\":\"WithdrawalRequested\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"activeValidatorCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"checkpointBalanceExitedGwei\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentCheckpoint\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconBlockRoot\",\"type\":\"bytes32\"},{\"internalType\":\"uint24\",\"name\":\"proofsRemaining\",\"type\":\"uint24\"},{\"internalType\":\"uint64\",\"name\":\"podBalanceGwei\",\"type\":\"uint64\"},{\"internalType\":\"int64\",\"name\":\"balanceDeltasGwei\",\"type\":\"int64\"},{\"internalType\":\"uint64\",\"name\":\"prevBeaconBalanceGwei\",\"type\":\"uint64\"}],\"internalType\":\"structIEigenPodTypes.Checkpoint\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentCheckpointTimestamp\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"eigenPodManager\",\"outputs\":[{\"internalType\":\"contractIEigenPodManager\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ethPOS\",\"outputs\":[{\"internalType\":\"contractIETHPOSDeposit\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getConsolidationRequestFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"timestamp\",\"type\":\"uint64\"}],\"name\":\"getParentBlockRoot\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getWithdrawalRequestFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_podOwner\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastCheckpointTimestamp\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"podOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proofSubmitter\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contractIERC20[]\",\"name\":\"tokenList\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amountsToWithdraw\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"}],\"name\":\"recoverTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"srcPubkey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"targetPubkey\",\"type\":\"bytes\"}],\"internalType\":\"structIEigenPodTypes.ConsolidationRequest[]\",\"name\":\"requests\",\"type\":\"tuple[]\"}],\"name\":\"requestConsolidation\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"amountGwei\",\"type\":\"uint64\"}],\"internalType\":\"structIEigenPodTypes.WithdrawalRequest[]\",\"name\":\"requests\",\"type\":\"tuple[]\"}],\"name\":\"requestWithdrawal\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newProofSubmitter\",\"type\":\"address\"}],\"name\":\"setProofSubmitter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"pubkey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"depositDataRoot\",\"type\":\"bytes32\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"revertIfNoBalance\",\"type\":\"bool\"}],\"name\":\"startCheckpoint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"validatorPubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"validatorPubkeyHashToInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"validatorIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"restakedBalanceGwei\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"lastCheckpointedAt\",\"type\":\"uint64\"},{\"internalType\":\"enumIEigenPodTypes.VALIDATOR_STATUS\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structIEigenPodTypes.ValidatorInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"validatorPubkey\",\"type\":\"bytes\"}],\"name\":\"validatorPubkeyToInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"validatorIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"restakedBalanceGwei\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"lastCheckpointedAt\",\"type\":\"uint64\"},{\"internalType\":\"enumIEigenPodTypes.VALIDATOR_STATUS\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structIEigenPodTypes.ValidatorInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"validatorPubkey\",\"type\":\"bytes\"}],\"name\":\"validatorStatus\",\"outputs\":[{\"internalType\":\"enumIEigenPodTypes.VALIDATOR_STATUS\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"}],\"name\":\"validatorStatus\",\"outputs\":[{\"internalType\":\"enumIEigenPodTypes.VALIDATOR_STATUS\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"balanceContainerRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.BalanceContainerProof\",\"name\":\"balanceContainerProof\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"pubkeyHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"balanceRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.BalanceProof[]\",\"name\":\"proofs\",\"type\":\"tuple[]\"}],\"name\":\"verifyCheckpointProofs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"beaconTimestamp\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.StateRootProof\",\"name\":\"stateRootProof\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32[]\",\"name\":\"validatorFields\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.ValidatorProof\",\"name\":\"proof\",\"type\":\"tuple\"}],\"name\":\"verifyStaleBalance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"beaconTimestamp\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"structBeaconChainProofs.StateRootProof\",\"name\":\"stateRootProof\",\"type\":\"tuple\"},{\"internalType\":\"uint40[]\",\"name\":\"validatorIndices\",\"type\":\"uint40[]\"},{\"internalType\":\"bytes[]\",\"name\":\"validatorFieldsProofs\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"validatorFields\",\"type\":\"bytes32[][]\"}],\"name\":\"verifyWithdrawalCredentials\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountWei\",\"type\":\"uint256\"}],\"name\":\"withdrawRestakedBeaconChainETH\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdrawableRestakedExecutionLayerGwei\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}]",
 }
 
 // EigenPodABI is the input ABI used to generate the binding from.
@@ -221,37 +234,6 @@ func (_EigenPod *EigenPodTransactorRaw) Transact(opts *bind.TransactOpts, method
 	return _EigenPod.Contract.contract.Transact(opts, method, params...)
 }
 
-// GENESISTIME is a free data retrieval call binding the contract method 0xf2882461.
-//
-// Solidity: function GENESIS_TIME() view returns(uint64)
-func (_EigenPod *EigenPodCaller) GENESISTIME(opts *bind.CallOpts) (uint64, error) {
-	var out []interface{}
-	err := _EigenPod.contract.Call(opts, &out, "GENESIS_TIME")
-
-	if err != nil {
-		return *new(uint64), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
-
-	return out0, err
-
-}
-
-// GENESISTIME is a free data retrieval call binding the contract method 0xf2882461.
-//
-// Solidity: function GENESIS_TIME() view returns(uint64)
-func (_EigenPod *EigenPodSession) GENESISTIME() (uint64, error) {
-	return _EigenPod.Contract.GENESISTIME(&_EigenPod.CallOpts)
-}
-
-// GENESISTIME is a free data retrieval call binding the contract method 0xf2882461.
-//
-// Solidity: function GENESIS_TIME() view returns(uint64)
-func (_EigenPod *EigenPodCallerSession) GENESISTIME() (uint64, error) {
-	return _EigenPod.Contract.GENESISTIME(&_EigenPod.CallOpts)
-}
-
 // ActiveValidatorCount is a free data retrieval call binding the contract method 0x2340e8d3.
 //
 // Solidity: function activeValidatorCount() view returns(uint256)
@@ -316,16 +298,16 @@ func (_EigenPod *EigenPodCallerSession) CheckpointBalanceExitedGwei(arg0 uint64)
 
 // CurrentCheckpoint is a free data retrieval call binding the contract method 0x47d28372.
 //
-// Solidity: function currentCheckpoint() view returns((bytes32,uint24,uint64,int128))
-func (_EigenPod *EigenPodCaller) CurrentCheckpoint(opts *bind.CallOpts) (IEigenPodCheckpoint, error) {
+// Solidity: function currentCheckpoint() view returns((bytes32,uint24,uint64,int64,uint64))
+func (_EigenPod *EigenPodCaller) CurrentCheckpoint(opts *bind.CallOpts) (IEigenPodTypesCheckpoint, error) {
 	var out []interface{}
 	err := _EigenPod.contract.Call(opts, &out, "currentCheckpoint")
 
 	if err != nil {
-		return *new(IEigenPodCheckpoint), err
+		return *new(IEigenPodTypesCheckpoint), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(IEigenPodCheckpoint)).(*IEigenPodCheckpoint)
+	out0 := *abi.ConvertType(out[0], new(IEigenPodTypesCheckpoint)).(*IEigenPodTypesCheckpoint)
 
 	return out0, err
 
@@ -333,15 +315,15 @@ func (_EigenPod *EigenPodCaller) CurrentCheckpoint(opts *bind.CallOpts) (IEigenP
 
 // CurrentCheckpoint is a free data retrieval call binding the contract method 0x47d28372.
 //
-// Solidity: function currentCheckpoint() view returns((bytes32,uint24,uint64,int128))
-func (_EigenPod *EigenPodSession) CurrentCheckpoint() (IEigenPodCheckpoint, error) {
+// Solidity: function currentCheckpoint() view returns((bytes32,uint24,uint64,int64,uint64))
+func (_EigenPod *EigenPodSession) CurrentCheckpoint() (IEigenPodTypesCheckpoint, error) {
 	return _EigenPod.Contract.CurrentCheckpoint(&_EigenPod.CallOpts)
 }
 
 // CurrentCheckpoint is a free data retrieval call binding the contract method 0x47d28372.
 //
-// Solidity: function currentCheckpoint() view returns((bytes32,uint24,uint64,int128))
-func (_EigenPod *EigenPodCallerSession) CurrentCheckpoint() (IEigenPodCheckpoint, error) {
+// Solidity: function currentCheckpoint() view returns((bytes32,uint24,uint64,int64,uint64))
+func (_EigenPod *EigenPodCallerSession) CurrentCheckpoint() (IEigenPodTypesCheckpoint, error) {
 	return _EigenPod.Contract.CurrentCheckpoint(&_EigenPod.CallOpts)
 }
 
@@ -438,6 +420,37 @@ func (_EigenPod *EigenPodCallerSession) EthPOS() (common.Address, error) {
 	return _EigenPod.Contract.EthPOS(&_EigenPod.CallOpts)
 }
 
+// GetConsolidationRequestFee is a free data retrieval call binding the contract method 0x1e515533.
+//
+// Solidity: function getConsolidationRequestFee() view returns(uint256)
+func (_EigenPod *EigenPodCaller) GetConsolidationRequestFee(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _EigenPod.contract.Call(opts, &out, "getConsolidationRequestFee")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetConsolidationRequestFee is a free data retrieval call binding the contract method 0x1e515533.
+//
+// Solidity: function getConsolidationRequestFee() view returns(uint256)
+func (_EigenPod *EigenPodSession) GetConsolidationRequestFee() (*big.Int, error) {
+	return _EigenPod.Contract.GetConsolidationRequestFee(&_EigenPod.CallOpts)
+}
+
+// GetConsolidationRequestFee is a free data retrieval call binding the contract method 0x1e515533.
+//
+// Solidity: function getConsolidationRequestFee() view returns(uint256)
+func (_EigenPod *EigenPodCallerSession) GetConsolidationRequestFee() (*big.Int, error) {
+	return _EigenPod.Contract.GetConsolidationRequestFee(&_EigenPod.CallOpts)
+}
+
 // GetParentBlockRoot is a free data retrieval call binding the contract method 0x6c0d2d5a.
 //
 // Solidity: function getParentBlockRoot(uint64 timestamp) view returns(bytes32)
@@ -467,6 +480,37 @@ func (_EigenPod *EigenPodSession) GetParentBlockRoot(timestamp uint64) ([32]byte
 // Solidity: function getParentBlockRoot(uint64 timestamp) view returns(bytes32)
 func (_EigenPod *EigenPodCallerSession) GetParentBlockRoot(timestamp uint64) ([32]byte, error) {
 	return _EigenPod.Contract.GetParentBlockRoot(&_EigenPod.CallOpts, timestamp)
+}
+
+// GetWithdrawalRequestFee is a free data retrieval call binding the contract method 0xc44e30dc.
+//
+// Solidity: function getWithdrawalRequestFee() view returns(uint256)
+func (_EigenPod *EigenPodCaller) GetWithdrawalRequestFee(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _EigenPod.contract.Call(opts, &out, "getWithdrawalRequestFee")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetWithdrawalRequestFee is a free data retrieval call binding the contract method 0xc44e30dc.
+//
+// Solidity: function getWithdrawalRequestFee() view returns(uint256)
+func (_EigenPod *EigenPodSession) GetWithdrawalRequestFee() (*big.Int, error) {
+	return _EigenPod.Contract.GetWithdrawalRequestFee(&_EigenPod.CallOpts)
+}
+
+// GetWithdrawalRequestFee is a free data retrieval call binding the contract method 0xc44e30dc.
+//
+// Solidity: function getWithdrawalRequestFee() view returns(uint256)
+func (_EigenPod *EigenPodCallerSession) GetWithdrawalRequestFee() (*big.Int, error) {
+	return _EigenPod.Contract.GetWithdrawalRequestFee(&_EigenPod.CallOpts)
 }
 
 // LastCheckpointTimestamp is a free data retrieval call binding the contract method 0xee94d67c.
@@ -565,15 +609,15 @@ func (_EigenPod *EigenPodCallerSession) ProofSubmitter() (common.Address, error)
 // ValidatorPubkeyHashToInfo is a free data retrieval call binding the contract method 0x6fcd0e53.
 //
 // Solidity: function validatorPubkeyHashToInfo(bytes32 validatorPubkeyHash) view returns((uint64,uint64,uint64,uint8))
-func (_EigenPod *EigenPodCaller) ValidatorPubkeyHashToInfo(opts *bind.CallOpts, validatorPubkeyHash [32]byte) (IEigenPodValidatorInfo, error) {
+func (_EigenPod *EigenPodCaller) ValidatorPubkeyHashToInfo(opts *bind.CallOpts, validatorPubkeyHash [32]byte) (IEigenPodTypesValidatorInfo, error) {
 	var out []interface{}
 	err := _EigenPod.contract.Call(opts, &out, "validatorPubkeyHashToInfo", validatorPubkeyHash)
 
 	if err != nil {
-		return *new(IEigenPodValidatorInfo), err
+		return *new(IEigenPodTypesValidatorInfo), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(IEigenPodValidatorInfo)).(*IEigenPodValidatorInfo)
+	out0 := *abi.ConvertType(out[0], new(IEigenPodTypesValidatorInfo)).(*IEigenPodTypesValidatorInfo)
 
 	return out0, err
 
@@ -582,29 +626,29 @@ func (_EigenPod *EigenPodCaller) ValidatorPubkeyHashToInfo(opts *bind.CallOpts, 
 // ValidatorPubkeyHashToInfo is a free data retrieval call binding the contract method 0x6fcd0e53.
 //
 // Solidity: function validatorPubkeyHashToInfo(bytes32 validatorPubkeyHash) view returns((uint64,uint64,uint64,uint8))
-func (_EigenPod *EigenPodSession) ValidatorPubkeyHashToInfo(validatorPubkeyHash [32]byte) (IEigenPodValidatorInfo, error) {
+func (_EigenPod *EigenPodSession) ValidatorPubkeyHashToInfo(validatorPubkeyHash [32]byte) (IEigenPodTypesValidatorInfo, error) {
 	return _EigenPod.Contract.ValidatorPubkeyHashToInfo(&_EigenPod.CallOpts, validatorPubkeyHash)
 }
 
 // ValidatorPubkeyHashToInfo is a free data retrieval call binding the contract method 0x6fcd0e53.
 //
 // Solidity: function validatorPubkeyHashToInfo(bytes32 validatorPubkeyHash) view returns((uint64,uint64,uint64,uint8))
-func (_EigenPod *EigenPodCallerSession) ValidatorPubkeyHashToInfo(validatorPubkeyHash [32]byte) (IEigenPodValidatorInfo, error) {
+func (_EigenPod *EigenPodCallerSession) ValidatorPubkeyHashToInfo(validatorPubkeyHash [32]byte) (IEigenPodTypesValidatorInfo, error) {
 	return _EigenPod.Contract.ValidatorPubkeyHashToInfo(&_EigenPod.CallOpts, validatorPubkeyHash)
 }
 
 // ValidatorPubkeyToInfo is a free data retrieval call binding the contract method 0xb522538a.
 //
 // Solidity: function validatorPubkeyToInfo(bytes validatorPubkey) view returns((uint64,uint64,uint64,uint8))
-func (_EigenPod *EigenPodCaller) ValidatorPubkeyToInfo(opts *bind.CallOpts, validatorPubkey []byte) (IEigenPodValidatorInfo, error) {
+func (_EigenPod *EigenPodCaller) ValidatorPubkeyToInfo(opts *bind.CallOpts, validatorPubkey []byte) (IEigenPodTypesValidatorInfo, error) {
 	var out []interface{}
 	err := _EigenPod.contract.Call(opts, &out, "validatorPubkeyToInfo", validatorPubkey)
 
 	if err != nil {
-		return *new(IEigenPodValidatorInfo), err
+		return *new(IEigenPodTypesValidatorInfo), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(IEigenPodValidatorInfo)).(*IEigenPodValidatorInfo)
+	out0 := *abi.ConvertType(out[0], new(IEigenPodTypesValidatorInfo)).(*IEigenPodTypesValidatorInfo)
 
 	return out0, err
 
@@ -613,14 +657,14 @@ func (_EigenPod *EigenPodCaller) ValidatorPubkeyToInfo(opts *bind.CallOpts, vali
 // ValidatorPubkeyToInfo is a free data retrieval call binding the contract method 0xb522538a.
 //
 // Solidity: function validatorPubkeyToInfo(bytes validatorPubkey) view returns((uint64,uint64,uint64,uint8))
-func (_EigenPod *EigenPodSession) ValidatorPubkeyToInfo(validatorPubkey []byte) (IEigenPodValidatorInfo, error) {
+func (_EigenPod *EigenPodSession) ValidatorPubkeyToInfo(validatorPubkey []byte) (IEigenPodTypesValidatorInfo, error) {
 	return _EigenPod.Contract.ValidatorPubkeyToInfo(&_EigenPod.CallOpts, validatorPubkey)
 }
 
 // ValidatorPubkeyToInfo is a free data retrieval call binding the contract method 0xb522538a.
 //
 // Solidity: function validatorPubkeyToInfo(bytes validatorPubkey) view returns((uint64,uint64,uint64,uint8))
-func (_EigenPod *EigenPodCallerSession) ValidatorPubkeyToInfo(validatorPubkey []byte) (IEigenPodValidatorInfo, error) {
+func (_EigenPod *EigenPodCallerSession) ValidatorPubkeyToInfo(validatorPubkey []byte) (IEigenPodTypesValidatorInfo, error) {
 	return _EigenPod.Contract.ValidatorPubkeyToInfo(&_EigenPod.CallOpts, validatorPubkey)
 }
 
@@ -684,6 +728,37 @@ func (_EigenPod *EigenPodSession) ValidatorStatus0(pubkeyHash [32]byte) (uint8, 
 // Solidity: function validatorStatus(bytes32 pubkeyHash) view returns(uint8)
 func (_EigenPod *EigenPodCallerSession) ValidatorStatus0(pubkeyHash [32]byte) (uint8, error) {
 	return _EigenPod.Contract.ValidatorStatus0(&_EigenPod.CallOpts, pubkeyHash)
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() view returns(string)
+func (_EigenPod *EigenPodCaller) Version(opts *bind.CallOpts) (string, error) {
+	var out []interface{}
+	err := _EigenPod.contract.Call(opts, &out, "version")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() view returns(string)
+func (_EigenPod *EigenPodSession) Version() (string, error) {
+	return _EigenPod.Contract.Version(&_EigenPod.CallOpts)
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() view returns(string)
+func (_EigenPod *EigenPodCallerSession) Version() (string, error) {
+	return _EigenPod.Contract.Version(&_EigenPod.CallOpts)
 }
 
 // WithdrawableRestakedExecutionLayerGwei is a free data retrieval call binding the contract method 0x3474aa16.
@@ -757,6 +832,48 @@ func (_EigenPod *EigenPodSession) RecoverTokens(tokenList []common.Address, amou
 // Solidity: function recoverTokens(address[] tokenList, uint256[] amountsToWithdraw, address recipient) returns()
 func (_EigenPod *EigenPodTransactorSession) RecoverTokens(tokenList []common.Address, amountsToWithdraw []*big.Int, recipient common.Address) (*types.Transaction, error) {
 	return _EigenPod.Contract.RecoverTokens(&_EigenPod.TransactOpts, tokenList, amountsToWithdraw, recipient)
+}
+
+// RequestConsolidation is a paid mutator transaction binding the contract method 0x6691954e.
+//
+// Solidity: function requestConsolidation((bytes,bytes)[] requests) payable returns()
+func (_EigenPod *EigenPodTransactor) RequestConsolidation(opts *bind.TransactOpts, requests []IEigenPodTypesConsolidationRequest) (*types.Transaction, error) {
+	return _EigenPod.contract.Transact(opts, "requestConsolidation", requests)
+}
+
+// RequestConsolidation is a paid mutator transaction binding the contract method 0x6691954e.
+//
+// Solidity: function requestConsolidation((bytes,bytes)[] requests) payable returns()
+func (_EigenPod *EigenPodSession) RequestConsolidation(requests []IEigenPodTypesConsolidationRequest) (*types.Transaction, error) {
+	return _EigenPod.Contract.RequestConsolidation(&_EigenPod.TransactOpts, requests)
+}
+
+// RequestConsolidation is a paid mutator transaction binding the contract method 0x6691954e.
+//
+// Solidity: function requestConsolidation((bytes,bytes)[] requests) payable returns()
+func (_EigenPod *EigenPodTransactorSession) RequestConsolidation(requests []IEigenPodTypesConsolidationRequest) (*types.Transaction, error) {
+	return _EigenPod.Contract.RequestConsolidation(&_EigenPod.TransactOpts, requests)
+}
+
+// RequestWithdrawal is a paid mutator transaction binding the contract method 0x3f5fa57a.
+//
+// Solidity: function requestWithdrawal((bytes,uint64)[] requests) payable returns()
+func (_EigenPod *EigenPodTransactor) RequestWithdrawal(opts *bind.TransactOpts, requests []IEigenPodTypesWithdrawalRequest) (*types.Transaction, error) {
+	return _EigenPod.contract.Transact(opts, "requestWithdrawal", requests)
+}
+
+// RequestWithdrawal is a paid mutator transaction binding the contract method 0x3f5fa57a.
+//
+// Solidity: function requestWithdrawal((bytes,uint64)[] requests) payable returns()
+func (_EigenPod *EigenPodSession) RequestWithdrawal(requests []IEigenPodTypesWithdrawalRequest) (*types.Transaction, error) {
+	return _EigenPod.Contract.RequestWithdrawal(&_EigenPod.TransactOpts, requests)
+}
+
+// RequestWithdrawal is a paid mutator transaction binding the contract method 0x3f5fa57a.
+//
+// Solidity: function requestWithdrawal((bytes,uint64)[] requests) payable returns()
+func (_EigenPod *EigenPodTransactorSession) RequestWithdrawal(requests []IEigenPodTypesWithdrawalRequest) (*types.Transaction, error) {
+	return _EigenPod.Contract.RequestWithdrawal(&_EigenPod.TransactOpts, requests)
 }
 
 // SetProofSubmitter is a paid mutator transaction binding the contract method 0xd06d5587.
@@ -1226,6 +1343,159 @@ func (_EigenPod *EigenPodFilterer) ParseCheckpointFinalized(log types.Log) (*Eig
 	return event, nil
 }
 
+// EigenPodConsolidationRequestedIterator is returned from FilterConsolidationRequested and is used to iterate over the raw logs and unpacked data for ConsolidationRequested events raised by the EigenPod contract.
+type EigenPodConsolidationRequestedIterator struct {
+	Event *EigenPodConsolidationRequested // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *EigenPodConsolidationRequestedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(EigenPodConsolidationRequested)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(EigenPodConsolidationRequested)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *EigenPodConsolidationRequestedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *EigenPodConsolidationRequestedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// EigenPodConsolidationRequested represents a ConsolidationRequested event raised by the EigenPod contract.
+type EigenPodConsolidationRequested struct {
+	SourcePubkeyHash [32]byte
+	TargetPubkeyHash [32]byte
+	Raw              types.Log // Blockchain specific contextual infos
+}
+
+// FilterConsolidationRequested is a free log retrieval operation binding the contract event 0x42f9c9db2ca443e9ec62f4588bd0c9b241065c02c2a8001ac164ae1282dc7b94.
+//
+// Solidity: event ConsolidationRequested(bytes32 indexed sourcePubkeyHash, bytes32 indexed targetPubkeyHash)
+func (_EigenPod *EigenPodFilterer) FilterConsolidationRequested(opts *bind.FilterOpts, sourcePubkeyHash [][32]byte, targetPubkeyHash [][32]byte) (*EigenPodConsolidationRequestedIterator, error) {
+
+	var sourcePubkeyHashRule []interface{}
+	for _, sourcePubkeyHashItem := range sourcePubkeyHash {
+		sourcePubkeyHashRule = append(sourcePubkeyHashRule, sourcePubkeyHashItem)
+	}
+	var targetPubkeyHashRule []interface{}
+	for _, targetPubkeyHashItem := range targetPubkeyHash {
+		targetPubkeyHashRule = append(targetPubkeyHashRule, targetPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ConsolidationRequested", sourcePubkeyHashRule, targetPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return &EigenPodConsolidationRequestedIterator{contract: _EigenPod.contract, event: "ConsolidationRequested", logs: logs, sub: sub}, nil
+}
+
+// WatchConsolidationRequested is a free log subscription operation binding the contract event 0x42f9c9db2ca443e9ec62f4588bd0c9b241065c02c2a8001ac164ae1282dc7b94.
+//
+// Solidity: event ConsolidationRequested(bytes32 indexed sourcePubkeyHash, bytes32 indexed targetPubkeyHash)
+func (_EigenPod *EigenPodFilterer) WatchConsolidationRequested(opts *bind.WatchOpts, sink chan<- *EigenPodConsolidationRequested, sourcePubkeyHash [][32]byte, targetPubkeyHash [][32]byte) (event.Subscription, error) {
+
+	var sourcePubkeyHashRule []interface{}
+	for _, sourcePubkeyHashItem := range sourcePubkeyHash {
+		sourcePubkeyHashRule = append(sourcePubkeyHashRule, sourcePubkeyHashItem)
+	}
+	var targetPubkeyHashRule []interface{}
+	for _, targetPubkeyHashItem := range targetPubkeyHash {
+		targetPubkeyHashRule = append(targetPubkeyHashRule, targetPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ConsolidationRequested", sourcePubkeyHashRule, targetPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(EigenPodConsolidationRequested)
+				if err := _EigenPod.contract.UnpackLog(event, "ConsolidationRequested", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseConsolidationRequested is a log parse operation binding the contract event 0x42f9c9db2ca443e9ec62f4588bd0c9b241065c02c2a8001ac164ae1282dc7b94.
+//
+// Solidity: event ConsolidationRequested(bytes32 indexed sourcePubkeyHash, bytes32 indexed targetPubkeyHash)
+func (_EigenPod *EigenPodFilterer) ParseConsolidationRequested(log types.Log) (*EigenPodConsolidationRequested, error) {
+	event := new(EigenPodConsolidationRequested)
+	if err := _EigenPod.contract.UnpackLog(event, "ConsolidationRequested", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // EigenPodEigenPodStakedIterator is returned from FilterEigenPodStaked and is used to iterate over the raw logs and unpacked data for EigenPodStaked events raised by the EigenPod contract.
 type EigenPodEigenPodStakedIterator struct {
 	Event *EigenPodEigenPodStaked // Event containing the contract specifics and raw log
@@ -1295,13 +1565,13 @@ func (it *EigenPodEigenPodStakedIterator) Close() error {
 
 // EigenPodEigenPodStaked represents a EigenPodStaked event raised by the EigenPod contract.
 type EigenPodEigenPodStaked struct {
-	Pubkey []byte
-	Raw    types.Log // Blockchain specific contextual infos
+	PubkeyHash [32]byte
+	Raw        types.Log // Blockchain specific contextual infos
 }
 
-// FilterEigenPodStaked is a free log retrieval operation binding the contract event 0x606865b7934a25d4aed43f6cdb426403353fa4b3009c4d228407474581b01e23.
+// FilterEigenPodStaked is a free log retrieval operation binding the contract event 0xa01003766d3cd97cf2ade5429690bf5d206be7fb01ef9d3a0089ecf67bc11219.
 //
-// Solidity: event EigenPodStaked(bytes pubkey)
+// Solidity: event EigenPodStaked(bytes32 pubkeyHash)
 func (_EigenPod *EigenPodFilterer) FilterEigenPodStaked(opts *bind.FilterOpts) (*EigenPodEigenPodStakedIterator, error) {
 
 	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "EigenPodStaked")
@@ -1311,9 +1581,9 @@ func (_EigenPod *EigenPodFilterer) FilterEigenPodStaked(opts *bind.FilterOpts) (
 	return &EigenPodEigenPodStakedIterator{contract: _EigenPod.contract, event: "EigenPodStaked", logs: logs, sub: sub}, nil
 }
 
-// WatchEigenPodStaked is a free log subscription operation binding the contract event 0x606865b7934a25d4aed43f6cdb426403353fa4b3009c4d228407474581b01e23.
+// WatchEigenPodStaked is a free log subscription operation binding the contract event 0xa01003766d3cd97cf2ade5429690bf5d206be7fb01ef9d3a0089ecf67bc11219.
 //
-// Solidity: event EigenPodStaked(bytes pubkey)
+// Solidity: event EigenPodStaked(bytes32 pubkeyHash)
 func (_EigenPod *EigenPodFilterer) WatchEigenPodStaked(opts *bind.WatchOpts, sink chan<- *EigenPodEigenPodStaked) (event.Subscription, error) {
 
 	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "EigenPodStaked")
@@ -1348,12 +1618,156 @@ func (_EigenPod *EigenPodFilterer) WatchEigenPodStaked(opts *bind.WatchOpts, sin
 	}), nil
 }
 
-// ParseEigenPodStaked is a log parse operation binding the contract event 0x606865b7934a25d4aed43f6cdb426403353fa4b3009c4d228407474581b01e23.
+// ParseEigenPodStaked is a log parse operation binding the contract event 0xa01003766d3cd97cf2ade5429690bf5d206be7fb01ef9d3a0089ecf67bc11219.
 //
-// Solidity: event EigenPodStaked(bytes pubkey)
+// Solidity: event EigenPodStaked(bytes32 pubkeyHash)
 func (_EigenPod *EigenPodFilterer) ParseEigenPodStaked(log types.Log) (*EigenPodEigenPodStaked, error) {
 	event := new(EigenPodEigenPodStaked)
 	if err := _EigenPod.contract.UnpackLog(event, "EigenPodStaked", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// EigenPodExitRequestedIterator is returned from FilterExitRequested and is used to iterate over the raw logs and unpacked data for ExitRequested events raised by the EigenPod contract.
+type EigenPodExitRequestedIterator struct {
+	Event *EigenPodExitRequested // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *EigenPodExitRequestedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(EigenPodExitRequested)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(EigenPodExitRequested)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *EigenPodExitRequestedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *EigenPodExitRequestedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// EigenPodExitRequested represents a ExitRequested event raised by the EigenPod contract.
+type EigenPodExitRequested struct {
+	ValidatorPubkeyHash [32]byte
+	Raw                 types.Log // Blockchain specific contextual infos
+}
+
+// FilterExitRequested is a free log retrieval operation binding the contract event 0x60d8ca014d4765a2b8b389e25714cb1cef83b574222911a01d90c1bd69d2d320.
+//
+// Solidity: event ExitRequested(bytes32 indexed validatorPubkeyHash)
+func (_EigenPod *EigenPodFilterer) FilterExitRequested(opts *bind.FilterOpts, validatorPubkeyHash [][32]byte) (*EigenPodExitRequestedIterator, error) {
+
+	var validatorPubkeyHashRule []interface{}
+	for _, validatorPubkeyHashItem := range validatorPubkeyHash {
+		validatorPubkeyHashRule = append(validatorPubkeyHashRule, validatorPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ExitRequested", validatorPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return &EigenPodExitRequestedIterator{contract: _EigenPod.contract, event: "ExitRequested", logs: logs, sub: sub}, nil
+}
+
+// WatchExitRequested is a free log subscription operation binding the contract event 0x60d8ca014d4765a2b8b389e25714cb1cef83b574222911a01d90c1bd69d2d320.
+//
+// Solidity: event ExitRequested(bytes32 indexed validatorPubkeyHash)
+func (_EigenPod *EigenPodFilterer) WatchExitRequested(opts *bind.WatchOpts, sink chan<- *EigenPodExitRequested, validatorPubkeyHash [][32]byte) (event.Subscription, error) {
+
+	var validatorPubkeyHashRule []interface{}
+	for _, validatorPubkeyHashItem := range validatorPubkeyHash {
+		validatorPubkeyHashRule = append(validatorPubkeyHashRule, validatorPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ExitRequested", validatorPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(EigenPodExitRequested)
+				if err := _EigenPod.contract.UnpackLog(event, "ExitRequested", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseExitRequested is a log parse operation binding the contract event 0x60d8ca014d4765a2b8b389e25714cb1cef83b574222911a01d90c1bd69d2d320.
+//
+// Solidity: event ExitRequested(bytes32 indexed validatorPubkeyHash)
+func (_EigenPod *EigenPodFilterer) ParseExitRequested(log types.Log) (*EigenPodExitRequested, error) {
+	event := new(EigenPodExitRequested)
+	if err := _EigenPod.contract.UnpackLog(event, "ExitRequested", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -1908,6 +2322,150 @@ func (_EigenPod *EigenPodFilterer) ParseRestakedBeaconChainETHWithdrawn(log type
 	return event, nil
 }
 
+// EigenPodSwitchToCompoundingRequestedIterator is returned from FilterSwitchToCompoundingRequested and is used to iterate over the raw logs and unpacked data for SwitchToCompoundingRequested events raised by the EigenPod contract.
+type EigenPodSwitchToCompoundingRequestedIterator struct {
+	Event *EigenPodSwitchToCompoundingRequested // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *EigenPodSwitchToCompoundingRequestedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(EigenPodSwitchToCompoundingRequested)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(EigenPodSwitchToCompoundingRequested)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *EigenPodSwitchToCompoundingRequestedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *EigenPodSwitchToCompoundingRequestedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// EigenPodSwitchToCompoundingRequested represents a SwitchToCompoundingRequested event raised by the EigenPod contract.
+type EigenPodSwitchToCompoundingRequested struct {
+	ValidatorPubkeyHash [32]byte
+	Raw                 types.Log // Blockchain specific contextual infos
+}
+
+// FilterSwitchToCompoundingRequested is a free log retrieval operation binding the contract event 0xc97b965b92ae7fd20095fe8eb7b99f81f95f8c4adffb22a19116d8eb2846b016.
+//
+// Solidity: event SwitchToCompoundingRequested(bytes32 indexed validatorPubkeyHash)
+func (_EigenPod *EigenPodFilterer) FilterSwitchToCompoundingRequested(opts *bind.FilterOpts, validatorPubkeyHash [][32]byte) (*EigenPodSwitchToCompoundingRequestedIterator, error) {
+
+	var validatorPubkeyHashRule []interface{}
+	for _, validatorPubkeyHashItem := range validatorPubkeyHash {
+		validatorPubkeyHashRule = append(validatorPubkeyHashRule, validatorPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "SwitchToCompoundingRequested", validatorPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return &EigenPodSwitchToCompoundingRequestedIterator{contract: _EigenPod.contract, event: "SwitchToCompoundingRequested", logs: logs, sub: sub}, nil
+}
+
+// WatchSwitchToCompoundingRequested is a free log subscription operation binding the contract event 0xc97b965b92ae7fd20095fe8eb7b99f81f95f8c4adffb22a19116d8eb2846b016.
+//
+// Solidity: event SwitchToCompoundingRequested(bytes32 indexed validatorPubkeyHash)
+func (_EigenPod *EigenPodFilterer) WatchSwitchToCompoundingRequested(opts *bind.WatchOpts, sink chan<- *EigenPodSwitchToCompoundingRequested, validatorPubkeyHash [][32]byte) (event.Subscription, error) {
+
+	var validatorPubkeyHashRule []interface{}
+	for _, validatorPubkeyHashItem := range validatorPubkeyHash {
+		validatorPubkeyHashRule = append(validatorPubkeyHashRule, validatorPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "SwitchToCompoundingRequested", validatorPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(EigenPodSwitchToCompoundingRequested)
+				if err := _EigenPod.contract.UnpackLog(event, "SwitchToCompoundingRequested", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSwitchToCompoundingRequested is a log parse operation binding the contract event 0xc97b965b92ae7fd20095fe8eb7b99f81f95f8c4adffb22a19116d8eb2846b016.
+//
+// Solidity: event SwitchToCompoundingRequested(bytes32 indexed validatorPubkeyHash)
+func (_EigenPod *EigenPodFilterer) ParseSwitchToCompoundingRequested(log types.Log) (*EigenPodSwitchToCompoundingRequested, error) {
+	event := new(EigenPodSwitchToCompoundingRequested)
+	if err := _EigenPod.contract.UnpackLog(event, "SwitchToCompoundingRequested", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // EigenPodValidatorBalanceUpdatedIterator is returned from FilterValidatorBalanceUpdated and is used to iterate over the raw logs and unpacked data for ValidatorBalanceUpdated events raised by the EigenPod contract.
 type EigenPodValidatorBalanceUpdatedIterator struct {
 	Event *EigenPodValidatorBalanceUpdated // Event containing the contract specifics and raw log
@@ -1977,15 +2535,15 @@ func (it *EigenPodValidatorBalanceUpdatedIterator) Close() error {
 
 // EigenPodValidatorBalanceUpdated represents a ValidatorBalanceUpdated event raised by the EigenPod contract.
 type EigenPodValidatorBalanceUpdated struct {
-	ValidatorIndex          *big.Int
+	PubkeyHash              [32]byte
 	BalanceTimestamp        uint64
 	NewValidatorBalanceGwei uint64
 	Raw                     types.Log // Blockchain specific contextual infos
 }
 
-// FilterValidatorBalanceUpdated is a free log retrieval operation binding the contract event 0x0e5fac175b83177cc047381e030d8fb3b42b37bd1c025e22c280facad62c32df.
+// FilterValidatorBalanceUpdated is a free log retrieval operation binding the contract event 0xcdae700d7241bc027168c53cf6f889763b0a2c88a65d77fc13a8a9fef0d8605f.
 //
-// Solidity: event ValidatorBalanceUpdated(uint40 validatorIndex, uint64 balanceTimestamp, uint64 newValidatorBalanceGwei)
+// Solidity: event ValidatorBalanceUpdated(bytes32 pubkeyHash, uint64 balanceTimestamp, uint64 newValidatorBalanceGwei)
 func (_EigenPod *EigenPodFilterer) FilterValidatorBalanceUpdated(opts *bind.FilterOpts) (*EigenPodValidatorBalanceUpdatedIterator, error) {
 
 	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ValidatorBalanceUpdated")
@@ -1995,9 +2553,9 @@ func (_EigenPod *EigenPodFilterer) FilterValidatorBalanceUpdated(opts *bind.Filt
 	return &EigenPodValidatorBalanceUpdatedIterator{contract: _EigenPod.contract, event: "ValidatorBalanceUpdated", logs: logs, sub: sub}, nil
 }
 
-// WatchValidatorBalanceUpdated is a free log subscription operation binding the contract event 0x0e5fac175b83177cc047381e030d8fb3b42b37bd1c025e22c280facad62c32df.
+// WatchValidatorBalanceUpdated is a free log subscription operation binding the contract event 0xcdae700d7241bc027168c53cf6f889763b0a2c88a65d77fc13a8a9fef0d8605f.
 //
-// Solidity: event ValidatorBalanceUpdated(uint40 validatorIndex, uint64 balanceTimestamp, uint64 newValidatorBalanceGwei)
+// Solidity: event ValidatorBalanceUpdated(bytes32 pubkeyHash, uint64 balanceTimestamp, uint64 newValidatorBalanceGwei)
 func (_EigenPod *EigenPodFilterer) WatchValidatorBalanceUpdated(opts *bind.WatchOpts, sink chan<- *EigenPodValidatorBalanceUpdated) (event.Subscription, error) {
 
 	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ValidatorBalanceUpdated")
@@ -2032,9 +2590,9 @@ func (_EigenPod *EigenPodFilterer) WatchValidatorBalanceUpdated(opts *bind.Watch
 	}), nil
 }
 
-// ParseValidatorBalanceUpdated is a log parse operation binding the contract event 0x0e5fac175b83177cc047381e030d8fb3b42b37bd1c025e22c280facad62c32df.
+// ParseValidatorBalanceUpdated is a log parse operation binding the contract event 0xcdae700d7241bc027168c53cf6f889763b0a2c88a65d77fc13a8a9fef0d8605f.
 //
-// Solidity: event ValidatorBalanceUpdated(uint40 validatorIndex, uint64 balanceTimestamp, uint64 newValidatorBalanceGwei)
+// Solidity: event ValidatorBalanceUpdated(bytes32 pubkeyHash, uint64 balanceTimestamp, uint64 newValidatorBalanceGwei)
 func (_EigenPod *EigenPodFilterer) ParseValidatorBalanceUpdated(log types.Log) (*EigenPodValidatorBalanceUpdated, error) {
 	event := new(EigenPodValidatorBalanceUpdated)
 	if err := _EigenPod.contract.UnpackLog(event, "ValidatorBalanceUpdated", log); err != nil {
@@ -2114,46 +2672,46 @@ func (it *EigenPodValidatorCheckpointedIterator) Close() error {
 // EigenPodValidatorCheckpointed represents a ValidatorCheckpointed event raised by the EigenPod contract.
 type EigenPodValidatorCheckpointed struct {
 	CheckpointTimestamp uint64
-	ValidatorIndex      *big.Int
+	PubkeyHash          [32]byte
 	Raw                 types.Log // Blockchain specific contextual infos
 }
 
-// FilterValidatorCheckpointed is a free log retrieval operation binding the contract event 0xa91c59033c3423e18b54d0acecebb4972f9ea95aedf5f4cae3b677b02eaf3a3f.
+// FilterValidatorCheckpointed is a free log retrieval operation binding the contract event 0xe4866335761a51dcaff766448ab0af6064291ee5dc94e68492bb9cd757c1e350.
 //
-// Solidity: event ValidatorCheckpointed(uint64 indexed checkpointTimestamp, uint40 indexed validatorIndex)
-func (_EigenPod *EigenPodFilterer) FilterValidatorCheckpointed(opts *bind.FilterOpts, checkpointTimestamp []uint64, validatorIndex []*big.Int) (*EigenPodValidatorCheckpointedIterator, error) {
+// Solidity: event ValidatorCheckpointed(uint64 indexed checkpointTimestamp, bytes32 indexed pubkeyHash)
+func (_EigenPod *EigenPodFilterer) FilterValidatorCheckpointed(opts *bind.FilterOpts, checkpointTimestamp []uint64, pubkeyHash [][32]byte) (*EigenPodValidatorCheckpointedIterator, error) {
 
 	var checkpointTimestampRule []interface{}
 	for _, checkpointTimestampItem := range checkpointTimestamp {
 		checkpointTimestampRule = append(checkpointTimestampRule, checkpointTimestampItem)
 	}
-	var validatorIndexRule []interface{}
-	for _, validatorIndexItem := range validatorIndex {
-		validatorIndexRule = append(validatorIndexRule, validatorIndexItem)
+	var pubkeyHashRule []interface{}
+	for _, pubkeyHashItem := range pubkeyHash {
+		pubkeyHashRule = append(pubkeyHashRule, pubkeyHashItem)
 	}
 
-	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ValidatorCheckpointed", checkpointTimestampRule, validatorIndexRule)
+	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ValidatorCheckpointed", checkpointTimestampRule, pubkeyHashRule)
 	if err != nil {
 		return nil, err
 	}
 	return &EigenPodValidatorCheckpointedIterator{contract: _EigenPod.contract, event: "ValidatorCheckpointed", logs: logs, sub: sub}, nil
 }
 
-// WatchValidatorCheckpointed is a free log subscription operation binding the contract event 0xa91c59033c3423e18b54d0acecebb4972f9ea95aedf5f4cae3b677b02eaf3a3f.
+// WatchValidatorCheckpointed is a free log subscription operation binding the contract event 0xe4866335761a51dcaff766448ab0af6064291ee5dc94e68492bb9cd757c1e350.
 //
-// Solidity: event ValidatorCheckpointed(uint64 indexed checkpointTimestamp, uint40 indexed validatorIndex)
-func (_EigenPod *EigenPodFilterer) WatchValidatorCheckpointed(opts *bind.WatchOpts, sink chan<- *EigenPodValidatorCheckpointed, checkpointTimestamp []uint64, validatorIndex []*big.Int) (event.Subscription, error) {
+// Solidity: event ValidatorCheckpointed(uint64 indexed checkpointTimestamp, bytes32 indexed pubkeyHash)
+func (_EigenPod *EigenPodFilterer) WatchValidatorCheckpointed(opts *bind.WatchOpts, sink chan<- *EigenPodValidatorCheckpointed, checkpointTimestamp []uint64, pubkeyHash [][32]byte) (event.Subscription, error) {
 
 	var checkpointTimestampRule []interface{}
 	for _, checkpointTimestampItem := range checkpointTimestamp {
 		checkpointTimestampRule = append(checkpointTimestampRule, checkpointTimestampItem)
 	}
-	var validatorIndexRule []interface{}
-	for _, validatorIndexItem := range validatorIndex {
-		validatorIndexRule = append(validatorIndexRule, validatorIndexItem)
+	var pubkeyHashRule []interface{}
+	for _, pubkeyHashItem := range pubkeyHash {
+		pubkeyHashRule = append(pubkeyHashRule, pubkeyHashItem)
 	}
 
-	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ValidatorCheckpointed", checkpointTimestampRule, validatorIndexRule)
+	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ValidatorCheckpointed", checkpointTimestampRule, pubkeyHashRule)
 	if err != nil {
 		return nil, err
 	}
@@ -2185,9 +2743,9 @@ func (_EigenPod *EigenPodFilterer) WatchValidatorCheckpointed(opts *bind.WatchOp
 	}), nil
 }
 
-// ParseValidatorCheckpointed is a log parse operation binding the contract event 0xa91c59033c3423e18b54d0acecebb4972f9ea95aedf5f4cae3b677b02eaf3a3f.
+// ParseValidatorCheckpointed is a log parse operation binding the contract event 0xe4866335761a51dcaff766448ab0af6064291ee5dc94e68492bb9cd757c1e350.
 //
-// Solidity: event ValidatorCheckpointed(uint64 indexed checkpointTimestamp, uint40 indexed validatorIndex)
+// Solidity: event ValidatorCheckpointed(uint64 indexed checkpointTimestamp, bytes32 indexed pubkeyHash)
 func (_EigenPod *EigenPodFilterer) ParseValidatorCheckpointed(log types.Log) (*EigenPodValidatorCheckpointed, error) {
 	event := new(EigenPodValidatorCheckpointed)
 	if err := _EigenPod.contract.UnpackLog(event, "ValidatorCheckpointed", log); err != nil {
@@ -2266,13 +2824,13 @@ func (it *EigenPodValidatorRestakedIterator) Close() error {
 
 // EigenPodValidatorRestaked represents a ValidatorRestaked event raised by the EigenPod contract.
 type EigenPodValidatorRestaked struct {
-	ValidatorIndex *big.Int
-	Raw            types.Log // Blockchain specific contextual infos
+	PubkeyHash [32]byte
+	Raw        types.Log // Blockchain specific contextual infos
 }
 
-// FilterValidatorRestaked is a free log retrieval operation binding the contract event 0x2d0800bbc377ea54a08c5db6a87aafff5e3e9c8fead0eda110e40e0c10441449.
+// FilterValidatorRestaked is a free log retrieval operation binding the contract event 0x101790c2993f6a4d962bd17c786126823ba1c4cf04ff4cccb2659d50fb20aee8.
 //
-// Solidity: event ValidatorRestaked(uint40 validatorIndex)
+// Solidity: event ValidatorRestaked(bytes32 pubkeyHash)
 func (_EigenPod *EigenPodFilterer) FilterValidatorRestaked(opts *bind.FilterOpts) (*EigenPodValidatorRestakedIterator, error) {
 
 	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ValidatorRestaked")
@@ -2282,9 +2840,9 @@ func (_EigenPod *EigenPodFilterer) FilterValidatorRestaked(opts *bind.FilterOpts
 	return &EigenPodValidatorRestakedIterator{contract: _EigenPod.contract, event: "ValidatorRestaked", logs: logs, sub: sub}, nil
 }
 
-// WatchValidatorRestaked is a free log subscription operation binding the contract event 0x2d0800bbc377ea54a08c5db6a87aafff5e3e9c8fead0eda110e40e0c10441449.
+// WatchValidatorRestaked is a free log subscription operation binding the contract event 0x101790c2993f6a4d962bd17c786126823ba1c4cf04ff4cccb2659d50fb20aee8.
 //
-// Solidity: event ValidatorRestaked(uint40 validatorIndex)
+// Solidity: event ValidatorRestaked(bytes32 pubkeyHash)
 func (_EigenPod *EigenPodFilterer) WatchValidatorRestaked(opts *bind.WatchOpts, sink chan<- *EigenPodValidatorRestaked) (event.Subscription, error) {
 
 	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ValidatorRestaked")
@@ -2319,9 +2877,9 @@ func (_EigenPod *EigenPodFilterer) WatchValidatorRestaked(opts *bind.WatchOpts, 
 	}), nil
 }
 
-// ParseValidatorRestaked is a log parse operation binding the contract event 0x2d0800bbc377ea54a08c5db6a87aafff5e3e9c8fead0eda110e40e0c10441449.
+// ParseValidatorRestaked is a log parse operation binding the contract event 0x101790c2993f6a4d962bd17c786126823ba1c4cf04ff4cccb2659d50fb20aee8.
 //
-// Solidity: event ValidatorRestaked(uint40 validatorIndex)
+// Solidity: event ValidatorRestaked(bytes32 pubkeyHash)
 func (_EigenPod *EigenPodFilterer) ParseValidatorRestaked(log types.Log) (*EigenPodValidatorRestaked, error) {
 	event := new(EigenPodValidatorRestaked)
 	if err := _EigenPod.contract.UnpackLog(event, "ValidatorRestaked", log); err != nil {
@@ -2401,46 +2959,46 @@ func (it *EigenPodValidatorWithdrawnIterator) Close() error {
 // EigenPodValidatorWithdrawn represents a ValidatorWithdrawn event raised by the EigenPod contract.
 type EigenPodValidatorWithdrawn struct {
 	CheckpointTimestamp uint64
-	ValidatorIndex      *big.Int
+	PubkeyHash          [32]byte
 	Raw                 types.Log // Blockchain specific contextual infos
 }
 
-// FilterValidatorWithdrawn is a free log retrieval operation binding the contract event 0x2a02361ffa66cf2c2da4682c2355a6adcaa9f6c227b6e6563e68480f9587626a.
+// FilterValidatorWithdrawn is a free log retrieval operation binding the contract event 0x5ce0aa04ae51d52da6e680fbe0336d2e2432f7c3dc2d4f3193204c57b9072107.
 //
-// Solidity: event ValidatorWithdrawn(uint64 indexed checkpointTimestamp, uint40 indexed validatorIndex)
-func (_EigenPod *EigenPodFilterer) FilterValidatorWithdrawn(opts *bind.FilterOpts, checkpointTimestamp []uint64, validatorIndex []*big.Int) (*EigenPodValidatorWithdrawnIterator, error) {
+// Solidity: event ValidatorWithdrawn(uint64 indexed checkpointTimestamp, bytes32 indexed pubkeyHash)
+func (_EigenPod *EigenPodFilterer) FilterValidatorWithdrawn(opts *bind.FilterOpts, checkpointTimestamp []uint64, pubkeyHash [][32]byte) (*EigenPodValidatorWithdrawnIterator, error) {
 
 	var checkpointTimestampRule []interface{}
 	for _, checkpointTimestampItem := range checkpointTimestamp {
 		checkpointTimestampRule = append(checkpointTimestampRule, checkpointTimestampItem)
 	}
-	var validatorIndexRule []interface{}
-	for _, validatorIndexItem := range validatorIndex {
-		validatorIndexRule = append(validatorIndexRule, validatorIndexItem)
+	var pubkeyHashRule []interface{}
+	for _, pubkeyHashItem := range pubkeyHash {
+		pubkeyHashRule = append(pubkeyHashRule, pubkeyHashItem)
 	}
 
-	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ValidatorWithdrawn", checkpointTimestampRule, validatorIndexRule)
+	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "ValidatorWithdrawn", checkpointTimestampRule, pubkeyHashRule)
 	if err != nil {
 		return nil, err
 	}
 	return &EigenPodValidatorWithdrawnIterator{contract: _EigenPod.contract, event: "ValidatorWithdrawn", logs: logs, sub: sub}, nil
 }
 
-// WatchValidatorWithdrawn is a free log subscription operation binding the contract event 0x2a02361ffa66cf2c2da4682c2355a6adcaa9f6c227b6e6563e68480f9587626a.
+// WatchValidatorWithdrawn is a free log subscription operation binding the contract event 0x5ce0aa04ae51d52da6e680fbe0336d2e2432f7c3dc2d4f3193204c57b9072107.
 //
-// Solidity: event ValidatorWithdrawn(uint64 indexed checkpointTimestamp, uint40 indexed validatorIndex)
-func (_EigenPod *EigenPodFilterer) WatchValidatorWithdrawn(opts *bind.WatchOpts, sink chan<- *EigenPodValidatorWithdrawn, checkpointTimestamp []uint64, validatorIndex []*big.Int) (event.Subscription, error) {
+// Solidity: event ValidatorWithdrawn(uint64 indexed checkpointTimestamp, bytes32 indexed pubkeyHash)
+func (_EigenPod *EigenPodFilterer) WatchValidatorWithdrawn(opts *bind.WatchOpts, sink chan<- *EigenPodValidatorWithdrawn, checkpointTimestamp []uint64, pubkeyHash [][32]byte) (event.Subscription, error) {
 
 	var checkpointTimestampRule []interface{}
 	for _, checkpointTimestampItem := range checkpointTimestamp {
 		checkpointTimestampRule = append(checkpointTimestampRule, checkpointTimestampItem)
 	}
-	var validatorIndexRule []interface{}
-	for _, validatorIndexItem := range validatorIndex {
-		validatorIndexRule = append(validatorIndexRule, validatorIndexItem)
+	var pubkeyHashRule []interface{}
+	for _, pubkeyHashItem := range pubkeyHash {
+		pubkeyHashRule = append(pubkeyHashRule, pubkeyHashItem)
 	}
 
-	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ValidatorWithdrawn", checkpointTimestampRule, validatorIndexRule)
+	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "ValidatorWithdrawn", checkpointTimestampRule, pubkeyHashRule)
 	if err != nil {
 		return nil, err
 	}
@@ -2472,12 +3030,157 @@ func (_EigenPod *EigenPodFilterer) WatchValidatorWithdrawn(opts *bind.WatchOpts,
 	}), nil
 }
 
-// ParseValidatorWithdrawn is a log parse operation binding the contract event 0x2a02361ffa66cf2c2da4682c2355a6adcaa9f6c227b6e6563e68480f9587626a.
+// ParseValidatorWithdrawn is a log parse operation binding the contract event 0x5ce0aa04ae51d52da6e680fbe0336d2e2432f7c3dc2d4f3193204c57b9072107.
 //
-// Solidity: event ValidatorWithdrawn(uint64 indexed checkpointTimestamp, uint40 indexed validatorIndex)
+// Solidity: event ValidatorWithdrawn(uint64 indexed checkpointTimestamp, bytes32 indexed pubkeyHash)
 func (_EigenPod *EigenPodFilterer) ParseValidatorWithdrawn(log types.Log) (*EigenPodValidatorWithdrawn, error) {
 	event := new(EigenPodValidatorWithdrawn)
 	if err := _EigenPod.contract.UnpackLog(event, "ValidatorWithdrawn", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// EigenPodWithdrawalRequestedIterator is returned from FilterWithdrawalRequested and is used to iterate over the raw logs and unpacked data for WithdrawalRequested events raised by the EigenPod contract.
+type EigenPodWithdrawalRequestedIterator struct {
+	Event *EigenPodWithdrawalRequested // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *EigenPodWithdrawalRequestedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(EigenPodWithdrawalRequested)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(EigenPodWithdrawalRequested)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *EigenPodWithdrawalRequestedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *EigenPodWithdrawalRequestedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// EigenPodWithdrawalRequested represents a WithdrawalRequested event raised by the EigenPod contract.
+type EigenPodWithdrawalRequested struct {
+	ValidatorPubkeyHash  [32]byte
+	WithdrawalAmountGwei uint64
+	Raw                  types.Log // Blockchain specific contextual infos
+}
+
+// FilterWithdrawalRequested is a free log retrieval operation binding the contract event 0x8b2737bb64ab2f2dc09552dfa1c250399e6a42c7ea9f0e1c658f5d65d708ec05.
+//
+// Solidity: event WithdrawalRequested(bytes32 indexed validatorPubkeyHash, uint64 withdrawalAmountGwei)
+func (_EigenPod *EigenPodFilterer) FilterWithdrawalRequested(opts *bind.FilterOpts, validatorPubkeyHash [][32]byte) (*EigenPodWithdrawalRequestedIterator, error) {
+
+	var validatorPubkeyHashRule []interface{}
+	for _, validatorPubkeyHashItem := range validatorPubkeyHash {
+		validatorPubkeyHashRule = append(validatorPubkeyHashRule, validatorPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.FilterLogs(opts, "WithdrawalRequested", validatorPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return &EigenPodWithdrawalRequestedIterator{contract: _EigenPod.contract, event: "WithdrawalRequested", logs: logs, sub: sub}, nil
+}
+
+// WatchWithdrawalRequested is a free log subscription operation binding the contract event 0x8b2737bb64ab2f2dc09552dfa1c250399e6a42c7ea9f0e1c658f5d65d708ec05.
+//
+// Solidity: event WithdrawalRequested(bytes32 indexed validatorPubkeyHash, uint64 withdrawalAmountGwei)
+func (_EigenPod *EigenPodFilterer) WatchWithdrawalRequested(opts *bind.WatchOpts, sink chan<- *EigenPodWithdrawalRequested, validatorPubkeyHash [][32]byte) (event.Subscription, error) {
+
+	var validatorPubkeyHashRule []interface{}
+	for _, validatorPubkeyHashItem := range validatorPubkeyHash {
+		validatorPubkeyHashRule = append(validatorPubkeyHashRule, validatorPubkeyHashItem)
+	}
+
+	logs, sub, err := _EigenPod.contract.WatchLogs(opts, "WithdrawalRequested", validatorPubkeyHashRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(EigenPodWithdrawalRequested)
+				if err := _EigenPod.contract.UnpackLog(event, "WithdrawalRequested", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseWithdrawalRequested is a log parse operation binding the contract event 0x8b2737bb64ab2f2dc09552dfa1c250399e6a42c7ea9f0e1c658f5d65d708ec05.
+//
+// Solidity: event WithdrawalRequested(bytes32 indexed validatorPubkeyHash, uint64 withdrawalAmountGwei)
+func (_EigenPod *EigenPodFilterer) ParseWithdrawalRequested(log types.Log) (*EigenPodWithdrawalRequested, error) {
+	event := new(EigenPodWithdrawalRequested)
+	if err := _EigenPod.contract.UnpackLog(event, "WithdrawalRequested", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

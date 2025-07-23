@@ -93,9 +93,9 @@ func (s *Scanner) sendQueueWithdrawals(shares *big.Int, pod models.Pod) error {
 	dm, _ := DelegationManager.DelegationManagerMetaData.GetAbi()
 	params := []DelegationManager.IDelegationManagerTypesQueuedWithdrawalParams{
 		{
-			Strategies:    []common.Address{common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0")},
-			DepositShares: []*big.Int{shares},
-			Withdrawer:    common.HexToAddress(pod.Owner),
+			Strategies:           []common.Address{common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0")},
+			DepositShares:        []*big.Int{shares},
+			DeprecatedWithdrawer: common.HexToAddress(pod.Owner),
 		},
 	}
 	data, err := dm.Pack("queueWithdrawals", params)

@@ -12,13 +12,179 @@
         "type": "address"
       },
       {
-        "internalType": "uint64",
-        "name": "_GENESIS_TIME",
-        "type": "uint64"
+        "internalType": "string",
+        "name": "_version",
+        "type": "string"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "BeaconTimestampTooFarInPast",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CannotCheckpointTwiceInSingleBlock",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CheckpointAlreadyActive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CredentialsAlreadyVerified",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CurrentlyPaused",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "FeeQueryFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ForkTimestampZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InputAddressZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InputArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InsufficientFunds",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InsufficientWithdrawableBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidEIP4788Response",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidProof",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidProofLength",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidProofLength",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidPubKeyLength",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidShortString",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidValidatorFieldsLength",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MsgValueNot32ETH",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoActiveCheckpoint",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoBalanceToCheckpoint",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyEigenPodManager",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyEigenPodOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyEigenPodOwnerOrProofSubmitter",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PredeployFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "str",
+        "type": "string"
+      }
+    ],
+    "name": "StringTooLong",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TimestampOutOfRange",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorInactiveOnBeaconChain",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorIsExitingBeaconChain",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorNotActiveInPod",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorNotSlashedOnBeaconChain",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WithdrawalCredentialsNotForEigenPod",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -68,13 +234,45 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "sourcePubkeyHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "targetPubkeyHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConsolidationRequested",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
-        "internalType": "bytes",
-        "name": "pubkey",
-        "type": "bytes"
+        "internalType": "bytes32",
+        "name": "pubkeyHash",
+        "type": "bytes32"
       }
     ],
     "name": "EigenPodStaked",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "validatorPubkeyHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ExitRequested",
     "type": "event"
   },
   {
@@ -145,10 +343,23 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "validatorPubkeyHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SwitchToCompoundingRequested",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
-        "internalType": "uint40",
-        "name": "validatorIndex",
-        "type": "uint40"
+        "internalType": "bytes32",
+        "name": "pubkeyHash",
+        "type": "bytes32"
       },
       {
         "indexed": false,
@@ -177,9 +388,9 @@
       },
       {
         "indexed": true,
-        "internalType": "uint40",
-        "name": "validatorIndex",
-        "type": "uint40"
+        "internalType": "bytes32",
+        "name": "pubkeyHash",
+        "type": "bytes32"
       }
     ],
     "name": "ValidatorCheckpointed",
@@ -190,9 +401,9 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint40",
-        "name": "validatorIndex",
-        "type": "uint40"
+        "internalType": "bytes32",
+        "name": "pubkeyHash",
+        "type": "bytes32"
       }
     ],
     "name": "ValidatorRestaked",
@@ -209,33 +420,35 @@
       },
       {
         "indexed": true,
-        "internalType": "uint40",
-        "name": "validatorIndex",
-        "type": "uint40"
+        "internalType": "bytes32",
+        "name": "pubkeyHash",
+        "type": "bytes32"
       }
     ],
     "name": "ValidatorWithdrawn",
     "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
-
-    ],
-    "name": "GENESIS_TIME",
-    "outputs": [
       {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "validatorPubkeyHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
         "internalType": "uint64",
-        "name": "",
+        "name": "withdrawalAmountGwei",
         "type": "uint64"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "WithdrawalRequested",
+    "type": "event"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "activeValidatorCount",
     "outputs": [
       {
@@ -267,9 +480,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "currentCheckpoint",
     "outputs": [
       {
@@ -290,12 +501,17 @@
             "type": "uint64"
           },
           {
-            "internalType": "int128",
+            "internalType": "int64",
             "name": "balanceDeltasGwei",
-            "type": "int128"
+            "type": "int64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "prevBeaconBalanceGwei",
+            "type": "uint64"
           }
         ],
-        "internalType": "struct IEigenPod.Checkpoint",
+        "internalType": "struct IEigenPodTypes.Checkpoint",
         "name": "",
         "type": "tuple"
       }
@@ -304,9 +520,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "currentCheckpointTimestamp",
     "outputs": [
       {
@@ -319,9 +533,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "eigenPodManager",
     "outputs": [
       {
@@ -334,15 +546,26 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "ethPOS",
     "outputs": [
       {
         "internalType": "contract IETHPOSDeposit",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getConsolidationRequestFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -368,6 +591,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getWithdrawalRequestFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -376,16 +612,12 @@
       }
     ],
     "name": "initialize",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "lastCheckpointTimestamp",
     "outputs": [
       {
@@ -398,9 +630,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "podOwner",
     "outputs": [
       {
@@ -413,9 +643,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "proofSubmitter",
     "outputs": [
       {
@@ -446,10 +674,58 @@
       }
     ],
     "name": "recoverTokens",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "srcPubkey",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "targetPubkey",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct IEigenPodTypes.ConsolidationRequest[]",
+        "name": "requests",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "requestConsolidation",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "pubkey",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint64",
+            "name": "amountGwei",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct IEigenPodTypes.WithdrawalRequest[]",
+        "name": "requests",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "requestWithdrawal",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -461,9 +737,7 @@
       }
     ],
     "name": "setProofSubmitter",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -486,9 +760,7 @@
       }
     ],
     "name": "stake",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "payable",
     "type": "function"
   },
@@ -501,9 +773,7 @@
       }
     ],
     "name": "startCheckpoint",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -535,12 +805,12 @@
             "type": "uint64"
           },
           {
-            "internalType": "enum IEigenPod.VALIDATOR_STATUS",
+            "internalType": "enum IEigenPodTypes.VALIDATOR_STATUS",
             "name": "status",
             "type": "uint8"
           }
         ],
-        "internalType": "struct IEigenPod.ValidatorInfo",
+        "internalType": "struct IEigenPodTypes.ValidatorInfo",
         "name": "",
         "type": "tuple"
       }
@@ -576,12 +846,12 @@
             "type": "uint64"
           },
           {
-            "internalType": "enum IEigenPod.VALIDATOR_STATUS",
+            "internalType": "enum IEigenPodTypes.VALIDATOR_STATUS",
             "name": "status",
             "type": "uint8"
           }
         ],
-        "internalType": "struct IEigenPod.ValidatorInfo",
+        "internalType": "struct IEigenPodTypes.ValidatorInfo",
         "name": "",
         "type": "tuple"
       }
@@ -600,7 +870,7 @@
     "name": "validatorStatus",
     "outputs": [
       {
-        "internalType": "enum IEigenPod.VALIDATOR_STATUS",
+        "internalType": "enum IEigenPodTypes.VALIDATOR_STATUS",
         "name": "",
         "type": "uint8"
       }
@@ -619,7 +889,7 @@
     "name": "validatorStatus",
     "outputs": [
       {
-        "internalType": "enum IEigenPod.VALIDATOR_STATUS",
+        "internalType": "enum IEigenPodTypes.VALIDATOR_STATUS",
         "name": "",
         "type": "uint8"
       }
@@ -670,9 +940,7 @@
       }
     ],
     "name": "verifyCheckpointProofs",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -719,9 +987,7 @@
       }
     ],
     "name": "verifyStaleBalance",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -766,10 +1032,21 @@
       }
     ],
     "name": "verifyWithdrawalCredentials",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -786,16 +1063,12 @@
       }
     ],
     "name": "withdrawRestakedBeaconChainETH",
-    "outputs": [
-
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-
-    ],
+    "inputs": [],
     "name": "withdrawableRestakedExecutionLayerGwei",
     "outputs": [
       {

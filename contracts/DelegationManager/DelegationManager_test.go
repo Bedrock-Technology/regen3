@@ -171,25 +171,25 @@ func TestDelegationManagerTransactor_CompleteQueuedWithdrawals(t *testing.T) {
 }
 
 func TestDelegationManagerTransactor_DelegateTo(t *testing.T) {
-	transOpts := getTransOpts("HOLESKY_ACCOUNT_0")
-	operator := common.HexToAddress("0xA275A0a402874Addd807C479487182431D42E397")
-	isswe := ISignatureUtilsSignatureWithExpiry{
-		Signature: []byte{},
-		Expiry:    big.NewInt(0),
-	}
-	approverSalt := [32]byte{0}
-	tx, err := contract.DelegateTo(transOpts, operator,
-		isswe, approverSalt)
-	if err != nil {
-		t.Error("CompleteQueuedWithdrawals err:", err)
-		return
-	}
-	txReceipt, err := bind.WaitMined(context.Background(), provider, tx)
-	if err != nil {
-		t.Error("mine err:", err)
-		return
-	}
-	t.Log("txReceipt:", txReceipt.TxHash.String())
+	// transOpts := getTransOpts("HOLESKY_ACCOUNT_0")
+	// operator := common.HexToAddress("0xA275A0a402874Addd807C479487182431D42E397")
+	// isswe := ISignatureUtilsSignatureWithExpiry{
+	// 	Signature: []byte{},
+	// 	Expiry:    big.NewInt(0),
+	// }
+	// approverSalt := [32]byte{0}
+	// tx, err := contract.DelegateTo(transOpts, operator,
+	// 	isswe, approverSalt)
+	// if err != nil {
+	// 	t.Error("CompleteQueuedWithdrawals err:", err)
+	// 	return
+	// }
+	// txReceipt, err := bind.WaitMined(context.Background(), provider, tx)
+	// if err != nil {
+	// 	t.Error("mine err:", err)
+	// 	return
+	// }
+	// t.Log("txReceipt:", txReceipt.TxHash.String())
 }
 
 func TestDelegationManagerCaller_DelegatedTo(t *testing.T) {
@@ -280,13 +280,13 @@ func TestNewDelegationManager_FilterLogs(t *testing.T) {
 				return
 			}
 			t.Log("osi:", osi)
-		case "OwnershipTransferred":
-			ot, err := contract.ParseOwnershipTransferred(log)
-			if err != nil {
-				t.Error("ParseOwnershipTransferred err:", err)
-				return
-			}
-			t.Log("ot:", ot)
+		// case "OwnershipTransferred":
+		// 	ot, err := contract.ParseOwnershipTransferred(log)
+		// 	if err != nil {
+		// 		t.Error("ParseOwnershipTransferred err:", err)
+		// 		return
+		// 	}
+		// 	t.Log("ot:", ot)
 		case "StakerForceUndelegated":
 			sfu, err := contract.ParseStakerForceUndelegated(log)
 			if err != nil {

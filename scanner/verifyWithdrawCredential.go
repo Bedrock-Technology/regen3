@@ -202,7 +202,11 @@ func checkIfEventContained(logs []*types.Log, needCheck []uint64, podAddress str
 			}
 			if e.Name == "ValidatorRestaked" {
 				ew, _ := contract.ParseValidatorRestaked(*log)
-				validatorContains = append(validatorContains, ew.ValidatorIndex.Uint64())
+				info, err := contract.ValidatorPubkeyHashToInfo(&bind.CallOpts{}, ew.PubkeyHash)
+				if err != nil {
+					return err
+				}
+				validatorContains = append(validatorContains, info.ValidatorIndex)
 			}
 		}
 	}

@@ -30,191 +30,155 @@
                 "internalType": "uint32",
                 "name": "_MIN_WITHDRAWAL_DELAY",
                 "type": "uint32"
+            },
+            {
+                "internalType": "string",
+                "name": "_version",
+                "type": "string"
             }
         ],
         "stateMutability": "nonpayable",
         "type": "constructor"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "ActivelyDelegated",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "CallerCannotUndelegate",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "CurrentlyPaused",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "FullySlashed",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "InputAddressZero",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "InputArrayLengthMismatch",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "InputArrayLengthZero",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
+        "name": "InvalidDepositScalingFactor",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "InvalidNewPausedStatus",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "InvalidPermissions",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
+        "name": "InvalidShortString",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "InvalidSignature",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "InvalidSnapshotOrdering",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "NotActivelyDelegated",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OnlyAllocationManager",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OnlyEigenPodManager",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OnlyPauser",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OnlyStrategyManagerOrEigenPodManager",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OnlyUnpauser",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OperatorNotRegistered",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "OperatorsCannotUndelegate",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "SaltSpent",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "SignatureExpired",
         "type": "error"
     },
     {
         "inputs": [
-
+            {
+                "internalType": "string",
+                "name": "str",
+                "type": "string"
+            }
         ],
+        "name": "StringTooLong",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "WithdrawalDelayNotElapsed",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
-        "name": "WithdrawalExceedsMax",
-        "type": "error"
-    },
-    {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "WithdrawalNotQueued",
         "type": "error"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "WithdrawerNotCaller",
-        "type": "error"
-    },
-    {
-        "inputs": [
-
-        ],
-        "name": "WithdrawerNotStaker",
         "type": "error"
     },
     {
@@ -323,31 +287,6 @@
             },
             {
                 "indexed": false,
-                "internalType": "contract IStrategy",
-                "name": "strategy",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
-            }
-        ],
-        "name": "OperatorSharesBurned",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "operator",
-                "type": "address"
-            },
-            {
-                "indexed": false,
                 "internalType": "address",
                 "name": "staker",
                 "type": "address"
@@ -405,17 +344,23 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "previousOwner",
+                "name": "operator",
                 "type": "address"
             },
             {
-                "indexed": true,
-                "internalType": "address",
-                "name": "newOwner",
+                "indexed": false,
+                "internalType": "contract IStrategy",
+                "name": "strategy",
                 "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "totalSlashedShares",
+                "type": "uint256"
             }
         ],
-        "name": "OwnershipTransferred",
+        "name": "OperatorSharesSlashed",
         "type": "event"
     },
     {
@@ -589,9 +534,7 @@
         "type": "event"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "DELEGATION_APPROVAL_TYPEHASH",
         "outputs": [
             {
@@ -604,9 +547,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "allocationManager",
         "outputs": [
             {
@@ -619,9 +560,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "beaconChainETHStrategy",
         "outputs": [
             {
@@ -631,36 +570,6 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "operator",
-                "type": "address"
-            },
-            {
-                "internalType": "contract IStrategy",
-                "name": "strategy",
-                "type": "address"
-            },
-            {
-                "internalType": "uint64",
-                "name": "prevMaxMagnitude",
-                "type": "uint64"
-            },
-            {
-                "internalType": "uint64",
-                "name": "newMaxMagnitude",
-                "type": "uint64"
-            }
-        ],
-        "name": "burnOperatorShares",
-        "outputs": [
-
-        ],
-        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -814,9 +723,7 @@
             }
         ],
         "name": "completeQueuedWithdrawal",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -876,9 +783,7 @@
             }
         ],
         "name": "completeQueuedWithdrawals",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -949,9 +854,7 @@
             }
         ],
         "name": "decreaseDelegatedShares",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -975,7 +878,7 @@
                         "type": "uint256"
                     }
                 ],
-                "internalType": "struct ISignatureUtils.SignatureWithExpiry",
+                "internalType": "struct ISignatureUtilsMixinTypes.SignatureWithExpiry",
                 "name": "approverSignatureAndExpiry",
                 "type": "tuple"
             },
@@ -986,9 +889,7 @@
             }
         ],
         "name": "delegateTo",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -1079,9 +980,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "domainSeparator",
         "outputs": [
             {
@@ -1094,9 +993,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "eigenPodManager",
         "outputs": [
             {
@@ -1175,6 +1072,86 @@
                 "internalType": "uint256[][]",
                 "name": "",
                 "type": "uint256[][]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "withdrawalRoot",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getQueuedWithdrawal",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "staker",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "delegatedTo",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "withdrawer",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nonce",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "startBlock",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "contract IStrategy[]",
+                        "name": "strategies",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256[]",
+                        "name": "scaledShares",
+                        "type": "uint256[]"
+                    }
+                ],
+                "internalType": "struct IDelegationManagerTypes.Withdrawal",
+                "name": "withdrawal",
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "shares",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "staker",
+                "type": "address"
+            }
+        ],
+        "name": "getQueuedWithdrawalRoots",
+        "outputs": [
+            {
+                "internalType": "bytes32[]",
+                "name": "",
+                "type": "bytes32[]"
             }
         ],
         "stateMutability": "view",
@@ -1318,19 +1295,12 @@
             }
         ],
         "name": "increaseDelegatedShares",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
         "inputs": [
-            {
-                "internalType": "address",
-                "name": "initialOwner",
-                "type": "address"
-            },
             {
                 "internalType": "uint256",
                 "name": "initialPausedStatus",
@@ -1338,9 +1308,7 @@
             }
         ],
         "name": "initialize",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -1383,9 +1351,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "minWithdrawalDelayBlocks",
         "outputs": [
             {
@@ -1411,9 +1377,7 @@
             }
         ],
         "name": "modifyOperatorDetails",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -1443,21 +1407,6 @@
     },
     {
         "inputs": [
-
-        ],
-        "name": "owner",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
             {
                 "internalType": "uint256",
                 "name": "newPausedStatus",
@@ -1465,20 +1414,14 @@
             }
         ],
         "name": "pause",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "pauseAll",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -1502,9 +1445,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "paused",
         "outputs": [
             {
@@ -1517,9 +1458,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "pauserRegistry",
         "outputs": [
             {
@@ -1551,9 +1490,7 @@
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "permissionController",
         "outputs": [
             {
@@ -1581,7 +1518,7 @@
                     },
                     {
                         "internalType": "address",
-                        "name": "withdrawer",
+                        "name": "__deprecated_withdrawer",
                         "type": "address"
                     }
                 ],
@@ -1612,29 +1549,46 @@
         "name": "queuedWithdrawals",
         "outputs": [
             {
-                "internalType": "address",
-                "name": "staker",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "delegatedTo",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "withdrawer",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "nonce",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint32",
-                "name": "startBlock",
-                "type": "uint32"
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "staker",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "delegatedTo",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "withdrawer",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "nonce",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "startBlock",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "contract IStrategy[]",
+                        "name": "strategies",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256[]",
+                        "name": "scaledShares",
+                        "type": "uint256[]"
+                    }
+                ],
+                "internalType": "struct IDelegationManagerTypes.Withdrawal",
+                "name": "withdrawal",
+                "type": "tuple"
             }
         ],
         "stateMutability": "view",
@@ -1660,7 +1614,7 @@
                         "type": "uint256"
                     }
                 ],
-                "internalType": "struct ISignatureUtils.SignatureWithExpiry",
+                "internalType": "struct ISignatureUtilsMixinTypes.SignatureWithExpiry",
                 "name": "newOperatorApproverSig",
                 "type": "tuple"
             },
@@ -1700,27 +1654,68 @@
             }
         ],
         "name": "registerAsOperator",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
         "inputs": [
-
+            {
+                "internalType": "address",
+                "name": "operator",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "avs",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "id",
+                        "type": "uint32"
+                    }
+                ],
+                "internalType": "struct OperatorSet",
+                "name": "operatorSet",
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint256",
+                "name": "slashId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "contract IStrategy",
+                "name": "strategy",
+                "type": "address"
+            },
+            {
+                "internalType": "uint64",
+                "name": "prevMaxMagnitude",
+                "type": "uint64"
+            },
+            {
+                "internalType": "uint64",
+                "name": "newMaxMagnitude",
+                "type": "uint64"
+            }
         ],
-        "name": "renounceOwnership",
+        "name": "slashOperatorShares",
         "outputs": [
-
+            {
+                "internalType": "uint256",
+                "name": "totalDepositSharesToSlash",
+                "type": "uint256"
+            }
         ],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "inputs": [
-
-        ],
+        "inputs": [],
         "name": "strategyManager",
         "outputs": [
             {
@@ -1730,21 +1725,6 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "newOwner",
-                "type": "address"
-            }
-        ],
-        "name": "transferOwnership",
-        "outputs": [
-
-        ],
-        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -1775,9 +1755,7 @@
             }
         ],
         "name": "unpause",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -1795,10 +1773,21 @@
             }
         ],
         "name": "updateOperatorMetadataURI",
-        "outputs": [
-
-        ],
+        "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "version",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     }
 ]

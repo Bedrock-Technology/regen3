@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -205,4 +207,48 @@ func TestGetCurrentCheckPoint(t *testing.T) {
 	}
 	jsonBytes, _ := json.Marshal(cp)
 	t.Log("cp:", string(jsonBytes))
+}
+
+func TestPodCheckPoint(t *testing.T) {
+	t.Log("url:", RpcHost)
+	txReceipt, err := provider.TransactionReceipt(context.Background(), common.HexToHash("0xa13e0e1d20a27620e088d2f7d4ef782e523795feec5a10da87fb98ff60e3a0d2"))
+	if err != nil {
+		t.Log("err:", err)
+		return
+	}
+	matched, finalized, withdrawn := checkIfCheckPointContained(txReceipt.Logs, 16, "0xd11CC8B57e37441b4980D3f8de6C4001437f55ac")
+	t.Log("matched:", matched)
+	t.Log("fin:", finalized)
+	t.Log("withdrawn:", withdrawn)
+}
+
+func checkIfCheckPointContained(logs []*types.Log, needCheck int, podAddress string) (matched, finalized bool, withdrawnId []uint64) {
+	egAbi, _ := EigenPodMetaData.GetAbi()
+	eigenPod, _ := NewEigenPod(common.HexToAddress(podAddress), provider)
+	validatorContains := 0
+	for _, log := range logs {
+		if log.Address == common.HexToAddress(podAddress) {
+			e, err := egAbi.EventByID(log.Topics[0])
+			if err != nil {
+				fmt.Println("EventByID:", err)
+				return
+			}
+			switch e.Name {
+			case "ValidatorCheckpointed":
+				validatorContains++
+			case "CheckpointFinalized":
+				finalized = true
+			case "ValidatorWithdrawn":
+				ew, _ := eigenPod.ParseValidatorWithdrawn(*log)
+				info, err := eigenPod.ValidatorPubkeyHashToInfo(&bind.CallOpts{}, ew.PubkeyHash)
+				if err != nil {
+					fmt.Println("ValidatorPubkeyHashToInfo:", err)
+					return
+				}
+				withdrawnId = append(withdrawnId, info.ValidatorIndex)
+			}
+		}
+	}
+	matched = needCheck == validatorContains
+	return
 }
