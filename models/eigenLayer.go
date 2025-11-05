@@ -28,6 +28,7 @@ type Pod struct {
 	DelegateTo   string `gorm:"type:varchar(128);not null;default:''" json:"delegateTo"`
 	PodIndex     uint64 `gorm:"not null;default:0" json:"podIndex"`
 	IsCredential uint8  `gorm:"not null;default:0" json:"isCredential"`
+	Restaking    string `gorm:"type:varchar(128);not null;default:''" json:"restaking"`
 }
 
 // CheckPoint created during scan eth chain and get event of CheckpointCreated. ValidatorCheckpointed will change UnProofed,

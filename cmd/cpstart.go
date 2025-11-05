@@ -49,6 +49,11 @@ to quickly create a Cobra application.`,
 			fmt.Println(err)
 			return
 		}
+		restaking := cmd.Flag("restaking").Value.String()
+		if restaking == "" {
+			fmt.Println("restaking nil")
+			return
+		}
 		sigs := make(chan os.Signal, 1)
 		quit := make(chan struct{}, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP)
@@ -80,7 +85,7 @@ to quickly create a Cobra application.`,
 			return
 		}
 		// send startCheckPoint
-		timestamp, err := scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
+		timestamp, err := scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, restaking)
 		if err != nil {
 			logrus.Errorf("send checkpoint pod %v error:%v", pod.Address, err)
 			panic("send checkpoint err")
@@ -116,5 +121,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// cpstartCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	cpstartCmd.PersistentFlags().StringP("podIndex", "p", "", "pod")
+	cpstartCmd.PersistentFlags().StringP("podIndex", "p", "", "pod index")
+	cpstartCmd.PersistentFlags().StringP("restaking", "r", "", "restaking contract")
 }

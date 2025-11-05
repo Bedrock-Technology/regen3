@@ -38,6 +38,7 @@ to quickly create a Cobra application.`,
 			return
 		}
 		podIndex := cmd.Flag("podIndex").Value.String()
+		restaking := cmd.Flag("restaking").Value.String()
 		sigs := make(chan os.Signal, 1)
 		quit := make(chan struct{}, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP)
@@ -67,20 +68,20 @@ to quickly create a Cobra application.`,
 			// force confirm
 			fmt.Printf("claimReward pods:%v, press YES to continue\n", podIndexes)
 			confirm := ""
-			fmt.Scanln(&confirm)
+			_, _ = fmt.Scanln(&confirm)
 			if confirm != "YES" {
 				return
 			}
-			sc.ClaimRewardWithProof(proofs, podIndexes)
+			sc.ClaimRewardWithProof(proofs, restaking, podIndexes)
 		} else {
 			// force confirm
 			fmt.Println("claimReward all pods with filter, press YES to continue")
 			confirm := ""
-			fmt.Scanln(&confirm)
+			_, _ = fmt.Scanln(&confirm)
 			if confirm != "YES" {
 				return
 			}
-			sc.ClaimReward()
+			sc.ClaimReward(restaking)
 		}
 	},
 }
@@ -97,5 +98,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// delegateToCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	claimRewardCmd.PersistentFlags().StringP("podIndex", "p", "", "pod")
+	claimRewardCmd.PersistentFlags().StringP("podIndex", "p", "", "podIndex")
+	claimRewardCmd.PersistentFlags().StringP("restaking", "r", "", "restaking contract address")
 }

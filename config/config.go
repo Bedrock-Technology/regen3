@@ -8,7 +8,9 @@ import (
 
 type Addresses struct {
 	stakingContract                string
+	stakingPectraContract          string
 	restakingContract              string
+	restakingPectraContract        string
 	eigenDelegationManagerContract string
 	rewardCoordinator              string
 	eigenToken                     string
@@ -30,8 +32,19 @@ var HoleskyAddresses = Addresses{
 	eigenToken:                     "0xdeeeeE2b48C121e6728ed95c860e296177849932",
 }
 
+var HoodiAddresses = Addresses{
+	stakingContract:                "0xd8B81B8950981EFbA4c00Eed567f903580A6649c",
+	restakingContract:              "0xdF1925B7A0f56a3ED7f74bE2a813Ae8bbA756e59",
+	eigenDelegationManagerContract: "0x867837a9722C512e0862d8c2E15b8bE220E8b87d",
+	rewardCoordinator:              "0x29e8572678e0c272350aa0b4B8f304E47EBcd5e7",
+	eigenToken:                     "0x8ae2520954db7D80D66835cB71E692835bbA45bf",
+	stakingPectraContract:          "0x83ED17AAe050335E3d459EF7867672f166d25995",
+	restakingPectraContract:        "0x4940eE4f0Ff6dAb57Db44Cd71683Aab0ae9cf2c4",
+}
+
 const (
 	HoleskyMinWithdrawalDelayBlocks = 3600 // half day
+	HoodiMinWithdrawalDelayBlocks   = 3600 // half day
 	MainnetMinWithdrawalDelayBlocks = 100803
 )
 
@@ -47,6 +60,8 @@ type Config struct {
 	SlackUrl                       string    `yaml:"slackUrl"`
 	RestakingContract              string    `yaml:"-"`
 	StakingContract                string    `yaml:"-"`
+	RestakingPectraContract        string    `yaml:"-"`
+	StakingPectraContract          string    `yaml:"-"`
 	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 	CheckStartCheckPoint           TimerSpec `yaml:"checkStartCheckPoint"`
@@ -110,6 +125,19 @@ func LoadConfig(path string) (config *Config) {
 		config.CheckPointThreshold = 1 * 32e9
 		config.Pod0CheckPointThreshold = 20 * 32e9
 		config.EigenTokenThreshold = 500 * 1e9
+	case "hoodi":
+		config.StakingContract = HoodiAddresses.stakingContract
+		config.StakingPectraContract = HoleskyAddresses.stakingPectraContract
+		config.RestakingContract = HoodiAddresses.restakingContract
+		config.RestakingPectraContract = HoodiAddresses.restakingPectraContract
+		config.EigenDelegationManagerContract = HoodiAddresses.eigenDelegationManagerContract
+		config.RewardCoordinator = HoodiAddresses.rewardCoordinator
+		config.EigenToken = HoodiAddresses.eigenToken
+		config.MinWithdrawalDelayBlocks = HoodiMinWithdrawalDelayBlocks
+		config.ChainId = 560048
+		config.CheckPointThreshold = 1e9
+		config.Pod0CheckPointThreshold = 1e9
+		config.EigenTokenThreshold = 1_000 * 1e9
 	default:
 		panic("invalid network")
 	}

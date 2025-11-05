@@ -20,14 +20,14 @@ import (
 
 const RewardProofDir = "./rewardProofs"
 
-func (s *Scanner) claimRewardByPod(podIndex int64, proof *Restaking.IRewardsCoordinatorRewardsMerkleClaim) error {
+func (s *Scanner) claimRewardByPod(podIndex int64, restaking string, proof *Restaking.IRewardsCoordinatorRewardsMerkleClaim) error {
 	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
 	input, err := restakingAbi.Pack("processClaim", big.NewInt(podIndex), proof)
 	if err != nil {
 		logrus.Errorln("Pack err:", err)
 		return err
 	}
-	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract, uint64(podIndex), TxDelegateTo)
+	realTx, err := s.sendRawTransaction(input, restaking, uint64(podIndex), TxDelegateTo)
 	if err != nil {
 		return err
 	}
@@ -52,9 +52,9 @@ func (s *Scanner) claimRewardByPod(podIndex int64, proof *Restaking.IRewardsCoor
 	return nil
 }
 
-func (s *Scanner) ClaimRewardWithProof(proofs []*Restaking.IRewardsCoordinatorRewardsMerkleClaim, podIndexes []int64) {
+func (s *Scanner) ClaimRewardWithProof(proofs []*Restaking.IRewardsCoordinatorRewardsMerkleClaim, restaking string, podIndexes []int64) {
 	for k, v := range proofs {
-		err := s.claimRewardByPod(podIndexes[k], v)
+		err := s.claimRewardByPod(podIndexes[k], restaking, v)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("%s pod[%d] error:%v", TxClaimReward, podIndexes[k], errBaseFeeTooHigh)
@@ -75,7 +75,7 @@ func (s *Scanner) ClaimRewardWithProof(proofs []*Restaking.IRewardsCoordinatorRe
 	}
 }
 
-func (s *Scanner) ClaimReward() {
+func (s *Scanner) ClaimReward(restaking string) {
 	proofFiles := GetAllProofFile(RewardProofDir)
 	if len(proofFiles) == 0 {
 		logrus.Infoln("empty claimProof")
@@ -95,7 +95,7 @@ func (s *Scanner) ClaimReward() {
 	proofs, podIndexes = FilterProofs(proofs, podIndexes, s)
 
 	for k, v := range proofs {
-		err := s.claimRewardByPod(podIndexes[k], v)
+		err := s.claimRewardByPod(podIndexes[k], restaking, v)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("%s pod[%d] error:%v", TxClaimReward, podIndexes[k], errBaseFeeTooHigh)

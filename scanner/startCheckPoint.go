@@ -48,7 +48,7 @@ func (s *StartCheckPointRun) JobRun() {
 			continue
 		}
 		// send startCheckPoint
-		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address)
+		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, pod.Restaking)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("%s pod[%d] error:%v", TxStartCheckPoints, pod.PodIndex, errBaseFeeTooHigh)
@@ -77,13 +77,13 @@ func (s *StartCheckPointRun) JobRun() {
 	}
 }
 
-func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress string) (timestamp uint64, err error) {
+func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string) (timestamp uint64, err error) {
 	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
 	input, err := restakingAbi.Pack("startCheckPoint", podId, true)
 	if err != nil {
 		return 0, err
 	}
-	realTx, err := s.sendRawTransaction(input, s.Config.RestakingContract, podId.Uint64(), TxStartCheckPoints)
+	realTx, err := s.sendRawTransaction(input, restaking, podId.Uint64(), TxStartCheckPoints)
 	if err != nil {
 		return 0, err
 	}
