@@ -272,7 +272,7 @@ func (s *StartCheckPointRun) checkSharesLessThan(podOwner, podAddress, restaking
 	}
 	var validators []models.Validator
 	rest := s.scanner.DBEngine.Model(&models.Validator{}).Where("pod_address = ?", podAddress).
-		Where("credential_verified != ?", 0).Where("withdrawn_on_chain = ?", 0).Where("withdrawn_on_chain = ?", 0).
+		Where("credential_verified != ?", 0).Where("withdrawn_on_chain = ?", 0).Where("withdrawn_on_pod = ?", 0).
 		Find(&validators)
 	if rest.Error != nil {
 		logrus.Errorln("Get validators error:", rest.Error)
