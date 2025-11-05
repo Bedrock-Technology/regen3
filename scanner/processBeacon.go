@@ -7,6 +7,7 @@ import (
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/models"
 	"github.com/attestantio/go-eth2-client/api"
+	v1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethereum/go-ethereum/common"
@@ -175,7 +176,18 @@ func (s *Scanner) processWithdrawnOnChain(beaconBlock *api.Response[*spec.Versio
 
 	if len(validators) != 0 {
 		slot, _ := beaconBlock.Data.Slot()
-		if err := orm.Model(&models.Validator{}).Where("validator_index in ?", validators).
+		//get validator status
+		validatorsFromBeacon, err := s.BeaconClient.ValidatorsByIndex(validators)
+		if err != nil {
+			return err
+		}
+		validatorNotActive := []int64{}
+		for _, v := range validatorsFromBeacon.Data {
+			if v.Status != v1.ValidatorStateActiveOngoing {
+				validatorNotActive = append(validatorNotActive, int64(v.Index))
+			}
+		}
+		if err := orm.Model(&models.Validator{}).Where("validator_index in ?", validatorNotActive).
 			Update("withdrawn_on_chain", uint64(slot)).Error; err != nil {
 			return err
 		}

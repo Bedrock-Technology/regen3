@@ -12,12 +12,14 @@ import (
 
 	"github.com/Bedrock-Technology/regen3/beaconClient"
 	"github.com/Bedrock-Technology/regen3/contracts/EigenPod"
+	"github.com/Bedrock-Technology/regen3/contracts/PodManager"
 	"github.com/Bedrock-Technology/regen3/contracts/Restaking"
 	"github.com/Bedrock-Technology/regen3/models"
 	eigenpodproofs "github.com/Layr-Labs/eigenpod-proofs-generation"
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
@@ -41,10 +43,10 @@ func (s *StartCheckPointRun) JobRun() {
 	for _, pod := range s.scanner.Pods {
 		// condition
 		if active, err := s.scanner.hasActiveCheckPoint(pod.Address); err != nil || active {
-			logrus.Infof("pod[%d] has active checkpoint or err %v", pod.PodIndex, err)
+			logrus.Infof("pod[%d][%s] has active checkpoint or err %v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), err)
 			continue
 		}
-		if !s.NeedDoCheckPoint(pod.Address, pod.PodIndex) {
+		if !s.NeedDoCheckPoint(pod.Address, pod.Owner, pod.Restaking, pod.PodIndex) {
 			continue
 		}
 		// send startCheckPoint
@@ -192,7 +194,7 @@ func (s *Scanner) FillProofs(podAddress string, timestamp uint64) ([]byte, error
 	return json.Marshal(proof)
 }
 
-func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64) bool {
+func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress, podOwner, restaking string, podIndex uint64) bool {
 	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.scanner.EthClient)
 	executionLayerGwei, err := eigenPod.WithdrawableRestakedExecutionLayerGwei(nil)
 	if err != nil {
@@ -205,35 +207,34 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress string, podIndex uint64
 		return false
 	}
 	podBalanceGwei := podBalance.Div(podBalance, big.NewInt(1e9)).Uint64()
-	logrus.Infof("pod[%d], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
+	logrus.Infof("pod[%d][%s], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
+		s.scanner.restakingVersion(restaking),
 		decimal.NewFromUint64(podBalanceGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
 		s.getCheckPointThreshold(podIndex))
 
-	if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
-		(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
-		return s.ifCheckPointDuration(podAddress, podIndex)
+	switch s.scanner.restakingVersion(restaking) {
+	case "N":
+		if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
+			(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
+			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
+		}
+	case "P":
+		if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
+			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
+		}
+		if s.checkSharesLessThan(podOwner, podAddress, restaking, podIndex) {
+			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
+		}
+	default:
+		return false
 	}
-	// // get pod's active validator num
-	// var activeCount int64
-	// rest := s.scanner.DBEngine.Model(&models.Validator{}).Where("pod_address = ?", podAddress).Where("voluntary_exit = ?", 0).Count(&activeCount)
-	// if rest.Error != nil {
-	// 	logrus.Errorln("Get activeCount error:", rest.Error)
-	// 	return false
-	// }
-	// // no validator
-	// if activeCount <= 5 {
-	// 	logrus.Infof("podIndex %d, have activeCount %d", podIndex, activeCount)
-	// 	if podBalanceGwei-executionLayerGwei >= 32e9 {
-	// 		return s.ifCheckPointDuration(podAddress, podIndex)
-	// 	}
-	// 	logrus.Infof("podIndex %d, No balance", podIndex)
-	// }
+
 	return false
 }
 
-func (s *StartCheckPointRun) ifCheckPointDuration(podAddress string, podIndex uint64) bool {
+func (s *StartCheckPointRun) ifCheckPointDuration(podAddress string, podIndex uint64, restaking string) bool {
 	if s.scanner.Config.Network != "mainnet" {
 		logrus.Infof("not mainnet:%v", s.scanner.Config.Network)
 		return true
@@ -249,7 +250,7 @@ func (s *StartCheckPointRun) ifCheckPointDuration(podAddress string, podIndex ui
 	}
 	now := time.Now().UTC()
 	if now.Sub(latestCp[0].UpdatedAt) < 24*time.Hour {
-		logrus.Warnf("pod[%d], latest cp at %v", podIndex, latestCp[0].UpdatedAt)
+		logrus.Warnf("pod[%d][%s], latest cp at %v", podIndex, s.scanner.restakingVersion(restaking), latestCp[0].UpdatedAt)
 		return false
 	}
 	return true
@@ -260,4 +261,44 @@ func (s *StartCheckPointRun) getCheckPointThreshold(podIndex uint64) string {
 		return decimal.NewFromUint64(s.scanner.Config.Pod0CheckPointThreshold).Mul(decimal.New(1, -9)).String()
 	}
 	return decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)).String()
+}
+
+func (s *StartCheckPointRun) checkSharesLessThan(podOwner, podAddress, restaking string, podIndex uint64) bool {
+	eigenPodManager, _ := PodManager.NewPodManager(common.HexToAddress(s.scanner.Config.EigenPodManager), s.scanner.EthClient)
+	shares, err := eigenPodManager.StakerDepositShares(nil, common.HexToAddress(podOwner), common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0"))
+	if err != nil {
+		logrus.Errorln("Get Staker Shares error:", err)
+		return false
+	}
+	var validators []models.Validator
+	rest := s.scanner.DBEngine.Model(&models.Validator{}).Where("pod_address = ?", podAddress).
+		Where("credential_verified != ?", 0).Where("withdrawn_on_chain = ?", 0).Where("withdrawn_on_chain = ?", 0).
+		Find(&validators)
+	if rest.Error != nil {
+		logrus.Errorln("Get validators error:", rest.Error)
+		return false
+	}
+	chunks := lo.Chunk(validators, 100)
+	totalBalance := uint64(0)
+	for _, v := range chunks {
+		pubKeys := lo.Map(v, func(item models.Validator, index int) string {
+			return item.PubKey
+		})
+		validators, err := s.scanner.BeaconClient.ValidatorsByPubkeys(pubKeys)
+		if err != nil {
+			logrus.Errorln("ValidatorsByPubkeys error:", err)
+			return false
+		}
+		for _, validator := range validators.Data {
+			totalBalance = totalBalance + uint64(validator.Balance)
+		}
+	}
+	sharesGwei := shares.Div(shares, big.NewInt(1e9)).Uint64()
+	logrus.Infof("pod[%d][%s], depositShares:%d, totalBalance:%d, minus:%d, threshold:%d", podIndex,
+		s.scanner.restakingVersion(restaking),
+		decimal.NewFromUint64(sharesGwei).Mul(decimal.New(1, -9)),
+		decimal.NewFromUint64(totalBalance).Mul(decimal.New(1, -9)),
+		decimal.NewFromInt(int64(totalBalance-sharesGwei)).Mul(decimal.New(1, -9)),
+		decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
+	return sharesGwei+s.scanner.Config.CheckPointThreshold < totalBalance
 }

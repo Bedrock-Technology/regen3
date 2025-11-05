@@ -1,4 +1,5 @@
 ## go install github.com/ethereum/go-ethereum/cmd/abigen@latest
+
 ## abigen version 1.14.7-stable
 
 abigen --abi ./contracts/DelegationManager/DelegationManager.json \
@@ -12,3 +13,6 @@ abigen --abi ./contracts/Restaking/Restaking.json \
 
 abigen --abi ./contracts/Staking/Staking.json \
 --pkg Staking --out ./contracts/Staking/Staking.go
+
+abigen --abi ./contracts/PodManager/PodManager.json \
+--pkg PodManager --out ./contracts/PodManager/PodManager.go

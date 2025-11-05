@@ -137,6 +137,15 @@ func (s *Scanner) baseFeeBiggerThan() (bool, error) {
 	return header.BaseFee.Cmp(big.NewInt(10e9)) > 0, nil
 }
 
+func (s *Scanner) restakingVersion(address string) string {
+	if s.Config.RestakingContract == address {
+		return "N"
+	} else if s.Config.RestakingPectraContract == address {
+		return "P"
+	}
+	return "K"
+}
+
 var (
 	errBaseFeeTooHigh      = errors.New("base fee too high")
 	errTxReceiptStatusFail = errors.New("tx status fail")

@@ -63,14 +63,14 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 				return
 			}
 			if len(validators) != 0 {
-				logrus.Infof("pod[%d], need do TxVerifyWithdrawalCredentials", pod.PodIndex)
+				logrus.Infof("pod[%d][%s], need do TxVerifyWithdrawalCredentials", pod.PodIndex, v.scanner.restakingVersion(pod.Restaking))
 				canVerify, err := canValidatorVerifyCredential(v.scanner, validators)
 				if err != nil || len(canVerify) == 0 {
-					logrus.Infof("pod[%d], VerifyWithdrawalCredentials need delay", pod.PodIndex)
+					logrus.Infof("pod[%d][%s], VerifyWithdrawalCredentials need delay", pod.PodIndex, v.scanner.restakingVersion(pod.Restaking))
 					continue
 				}
 				if bigger, err1 := v.scanner.baseFeeBiggerThan(); err1 != nil || bigger {
-					logrus.Warnf("pod[%d], VerifyWithdrawalCredentials baseFeeBiggerThan", pod.PodIndex)
+					logrus.Warnf("pod[%d][%s], VerifyWithdrawalCredentials baseFeeBiggerThan", pod.PodIndex, v.scanner.restakingVersion(pod.Restaking))
 					return
 				}
 				proofs, err := getValidatorProof(pod.Address, v.scanner, canVerify, &beaconBlockHeader, &beaconBlockState, &blockTime)
@@ -97,14 +97,14 @@ func (v *VerifyWithdrawCredentialRun) JobRun() {
 					logrus.Errorf("sendRawTransaction pod %v error:%v", pod.Address, err)
 					panic("sendRawTransaction error")
 				}
-				logrus.Infof("waiting %s pod[%d] tx:%s", TxVerifyWithdrawalCredentials, pod.PodIndex, realTx.Hash())
+				logrus.Infof("waiting %s pod[%d][%s] tx:%s", TxVerifyWithdrawalCredentials, pod.PodIndex, v.scanner.restakingVersion(pod.Restaking), realTx.Hash())
 				txReceipt, err := bind.WaitMined(context.Background(), v.scanner.EthClient, realTx)
 				if err != nil {
-					logrus.Errorf("waiting %s pod[%d] error:%v", TxVerifyWithdrawalCredentials, pod.PodIndex, err)
+					logrus.Errorf("waiting %s pod[%d][%s] error:%v", TxVerifyWithdrawalCredentials, pod.PodIndex, v.scanner.restakingVersion(pod.Restaking), err)
 					panic("waiting error")
 				}
-				logrus.WithField("Report", "true").Infof("%s pod[%d] vcount[%d] tx:%s", TxVerifyWithdrawalCredentials,
-					pod.PodIndex, len(canVerify), txReceipt.TxHash)
+				logrus.WithField("Report", "true").Infof("%s pod[%d][%s] vcount[%d] tx:%s", TxVerifyWithdrawalCredentials,
+					pod.PodIndex, v.scanner.restakingVersion(pod.Restaking), len(canVerify), txReceipt.TxHash)
 				if err := writeTransaction(v.scanner.DBEngine, txReceipt, TxVerifyWithdrawalCredentials); err != nil {
 					logrus.Errorln("writeTransaction err:", err)
 					panic("writeTransaction error")

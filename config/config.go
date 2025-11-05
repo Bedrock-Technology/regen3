@@ -14,6 +14,7 @@ type Addresses struct {
 	eigenDelegationManagerContract string
 	rewardCoordinator              string
 	eigenToken                     string
+	eigenPodManager                string
 }
 
 var MainnetAddresses = Addresses{
@@ -22,6 +23,7 @@ var MainnetAddresses = Addresses{
 	eigenDelegationManagerContract: "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A",
 	rewardCoordinator:              "0x7750d328b314EfFa365A0402CcfD489B80B0adda",
 	eigenToken:                     "0xec53bF9167f50cDEB3Ae105f56099aaaB9061F83",
+	eigenPodManager:                "0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338	",
 }
 
 var HoleskyAddresses = Addresses{
@@ -30,6 +32,7 @@ var HoleskyAddresses = Addresses{
 	eigenDelegationManagerContract: "0xA44151489861Fe9e3055d95adC98FbD462B948e7",
 	rewardCoordinator:              "0xAcc1fb458a1317E886dB376Fc8141540537E68fE",
 	eigenToken:                     "0xdeeeeE2b48C121e6728ed95c860e296177849932",
+	eigenPodManager:                "0x30770d7E3e71112d7A6b7259542D1f680a70e315",
 }
 
 var HoodiAddresses = Addresses{
@@ -40,6 +43,7 @@ var HoodiAddresses = Addresses{
 	eigenToken:                     "0x8ae2520954db7D80D66835cB71E692835bbA45bf",
 	stakingPectraContract:          "0x83ED17AAe050335E3d459EF7867672f166d25995",
 	restakingPectraContract:        "0x4940eE4f0Ff6dAb57Db44Cd71683Aab0ae9cf2c4",
+	eigenPodManager:                "0xcd1442415Fc5C29Aa848A49d2e232720BE07976c",
 }
 
 const (
@@ -62,6 +66,7 @@ type Config struct {
 	StakingContract                string    `yaml:"-"`
 	RestakingPectraContract        string    `yaml:"-"`
 	StakingPectraContract          string    `yaml:"-"`
+	EigenPodManager                string    `yaml:"-"`
 	KeyAgent                       KeyAgent  `yaml:"keyAgent"`
 	CheckVerifyWithdrawCredential  TimerSpec `yaml:"checkVerifyWithdrawCredential"`
 	CheckStartCheckPoint           TimerSpec `yaml:"checkStartCheckPoint"`
@@ -108,6 +113,7 @@ func LoadConfig(path string) (config *Config) {
 		config.RestakingContract = HoleskyAddresses.restakingContract
 		config.EigenDelegationManagerContract = HoleskyAddresses.eigenDelegationManagerContract
 		config.RewardCoordinator = HoleskyAddresses.rewardCoordinator
+		config.EigenPodManager = HoleskyAddresses.eigenPodManager
 		config.EigenToken = HoleskyAddresses.eigenToken
 		config.MinWithdrawalDelayBlocks = HoleskyMinWithdrawalDelayBlocks
 		config.ChainId = 17000
@@ -117,6 +123,7 @@ func LoadConfig(path string) (config *Config) {
 	case "mainnet":
 		config.StakingContract = MainnetAddresses.stakingContract
 		config.RestakingContract = MainnetAddresses.restakingContract
+		config.EigenPodManager = MainnetAddresses.eigenPodManager
 		config.EigenDelegationManagerContract = MainnetAddresses.eigenDelegationManagerContract
 		config.RewardCoordinator = MainnetAddresses.rewardCoordinator
 		config.EigenToken = MainnetAddresses.eigenToken
@@ -130,6 +137,7 @@ func LoadConfig(path string) (config *Config) {
 		config.StakingPectraContract = HoleskyAddresses.stakingPectraContract
 		config.RestakingContract = HoodiAddresses.restakingContract
 		config.RestakingPectraContract = HoodiAddresses.restakingPectraContract
+		config.EigenPodManager = HoodiAddresses.eigenPodManager
 		config.EigenDelegationManagerContract = HoodiAddresses.eigenDelegationManagerContract
 		config.RewardCoordinator = HoodiAddresses.rewardCoordinator
 		config.EigenToken = HoodiAddresses.eigenToken

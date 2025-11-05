@@ -35,7 +35,7 @@ func (s *VerifyCheckPointRun) JobRun() {
 		eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(pod.Address), s.scanner.EthClient)
 		currentTimestamp, err := eigenPod.CurrentCheckpointTimestamp(nil)
 		if err != nil || currentTimestamp == 0 {
-			logrus.Infof("pod[%d] no need verify checkpoint", pod.PodIndex)
+			logrus.Infof("pod[%d][%s] no need verify checkpoint", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking))
 			continue
 		}
 
@@ -43,10 +43,10 @@ func (s *VerifyCheckPointRun) JobRun() {
 		rest := s.scanner.DBEngine.Model(&models.CheckPoint{}).Where("pod = ?", pod.Address).
 			Where("checkpoint_finalized = ?", 0).Where("proofs != ''").Find(&checkPointInDb)
 		if rest.Error != nil || len(checkPointInDb) != 1 || currentTimestamp != checkPointInDb[0].CheckpointTimestamp {
-			logrus.Errorf("pod[%d] checkpoint error", pod.PodIndex)
+			logrus.Errorf("pod[%d][%s] checkpoint error", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking))
 			panic("checkpoint error")
 		}
-		logrus.Infof("pod[%d] need verify checkPoint", pod.PodIndex)
+		logrus.Infof("pod[%d][%s] need verify checkPoint", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking))
 		proof := eigenpodproofs.VerifyCheckpointProofsCallParams{}
 		if err = json.Unmarshal([]byte(checkPointInDb[0].Proofs), &proof); err != nil {
 			logrus.Errorln("json.Unmarshal proofs error", err)
@@ -70,20 +70,20 @@ func (s *VerifyCheckPointRun) JobRun() {
 		realTx, err := s.scanner.sendRawTransaction(input, pod.Address, pod.PodIndex, TxVerifyCheckPoints)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
-				logrus.Warnf("sendRawTransaction pod[%d] error:%v", pod.PodIndex, errBaseFeeTooHigh)
+				logrus.Warnf("sendRawTransaction pod[%d][%s] error:%v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), errBaseFeeTooHigh)
 				return
 			}
-			logrus.Errorf("send VerifyCheckPointRun pod[%d] error:%v", pod.PodIndex, err)
+			logrus.Errorf("send VerifyCheckPointRun pod[%d][%s] error:%v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), err)
 			panic("VerifyCheckPointRun error")
 		}
-		logrus.Infof("waiting %s pod[%d] tx:%s", TxVerifyCheckPoints, pod.PodIndex, realTx.Hash())
+		logrus.Infof("waiting %s pod[%d][%s] tx:%s", TxVerifyCheckPoints, pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), realTx.Hash().String())
 		txReceipt, err := bind.WaitMined(context.Background(), s.scanner.EthClient, realTx)
 		if err != nil {
 			logrus.Errorf("wait sendVerifyCheckPointRun pod %v error:%v", pod.Address, err)
 			panic("waiting error")
 		}
-		logrus.WithField("Report", "true").Infof("%s pod[%d] vcount[%d] %d/%d tx:%s", TxVerifyCheckPoints,
-			pod.PodIndex, len(balanceProofs), latestChunk+2, len(allProofChunks), txReceipt.TxHash)
+		logrus.WithField("Report", "true").Infof("%s pod[%d][%s] vcount[%d] %d/%d tx:%s", TxVerifyCheckPoints,
+			pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), len(balanceProofs), latestChunk+2, len(allProofChunks), txReceipt.TxHash.String())
 
 		if err = writeTransaction(s.scanner.DBEngine, txReceipt, TxVerifyCheckPoints); err != nil {
 			logrus.Errorln("writeTransaction err:", err)
@@ -105,8 +105,8 @@ func (s *VerifyCheckPointRun) JobRun() {
 				panic("proofedSlice != allProofChunks")
 			}
 		}
-		logrus.Infof("pod[%d] timestamp:%d, finalized:%v, withdrawn:%v", pod.PodIndex, checkPointInDb[0].CheckpointTimestamp,
-			finalized, withdrawn)
+		logrus.Infof("pod[%d][%s] timestamp:%d, finalized:%v, withdrawn:%v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking),
+			checkPointInDb[0].CheckpointTimestamp, finalized, withdrawn)
 		if err := updateCheckPoint(s.scanner.DBEngine, proofedSlice, finalizedBlock, txReceipt.BlockNumber.Uint64(), pod.Address,
 			checkPointInDb[0].CheckpointTimestamp, withdrawn); err != nil {
 			panic("updateCheckPoint")

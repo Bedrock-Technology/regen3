@@ -76,3 +76,14 @@ func (c *Client) ValidatorsByPubkeys(pubKeys []string) (*api.Response[map[phase0
 		PubKeys: blsPubKeys,
 	})
 }
+
+func (c *Client) ValidatorsByIndex(index []uint64) (*api.Response[map[phase0.ValidatorIndex]*apiv1.Validator], error) {
+	validatorIndex := []phase0.ValidatorIndex{}
+	for _, v := range index {
+		validatorIndex = append(validatorIndex, phase0.ValidatorIndex(v))
+	}
+	return c.Validators(CTX, &api.ValidatorsOpts{
+		State:   "head",
+		Indices: validatorIndex,
+	})
+}
