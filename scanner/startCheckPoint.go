@@ -294,7 +294,7 @@ func (s *StartCheckPointRun) checkSharesLessThan(podOwner, podAddress, restaking
 		}
 	}
 	sharesGwei := shares.Div(shares, big.NewInt(1e9)).Uint64()
-	logrus.Infof("pod[%d][%s], depositShares:%d, totalBalance:%d, minus:%d, threshold:%d", podIndex,
+	logrus.Infof("pod[%d][%s], depositShares:%s, totalBalance:%s, minus:%s, threshold:%s", podIndex,
 		s.scanner.restakingVersion(restaking),
 		decimal.NewFromUint64(sharesGwei).Mul(decimal.New(1, -9)),
 		decimal.NewFromUint64(totalBalance).Mul(decimal.New(1, -9)),
