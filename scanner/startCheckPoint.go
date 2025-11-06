@@ -290,7 +290,7 @@ func (s *StartCheckPointRun) checkSharesLessThan(podOwner, podAddress, restaking
 			return false
 		}
 		for _, validator := range validators.Data {
-			totalBalance = totalBalance + uint64(validator.Balance)
+			totalBalance = totalBalance + uint64(validator.Validator.EffectiveBalance)
 		}
 	}
 	sharesGwei := shares.Div(shares, big.NewInt(1e9)).Uint64()
