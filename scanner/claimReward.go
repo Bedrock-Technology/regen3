@@ -37,7 +37,7 @@ func (s *Scanner) claimRewardByPod(podIndex int64, restaking string, proof *Rest
 		logrus.Errorf("waiting claimReward index %v error:%v", podIndex, err)
 		panic("waiting error")
 	}
-	logrus.WithField("Report", "true").Infof("pod[%d] %s tx:%s", podIndex, TxClaimReward, txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("%s pod[%d][%s] tx:%s", TxClaimReward, podIndex, s.restakingVersion(restaking), txReceipt.TxHash)
 	if err := writeTransaction(s.DBEngine, txReceipt, TxClaimReward); err != nil {
 		logrus.Errorf("writeTransaction err:%v", err)
 		return err
@@ -57,10 +57,10 @@ func (s *Scanner) ClaimRewardWithProof(proofs []*Restaking.IRewardsCoordinatorRe
 		err := s.claimRewardByPod(podIndexes[k], restaking, v)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
-				logrus.Warnf("%s pod[%d] error:%v", TxClaimReward, podIndexes[k], errBaseFeeTooHigh)
+				logrus.Warnf("%s pod[%d][%s] error:%v", TxClaimReward, podIndexes[k], s.restakingVersion(restaking), errBaseFeeTooHigh)
 				return
 			}
-			logrus.Errorf("send claimRewardByPod pod[%d] error:%v", podIndexes[k], err)
+			logrus.Errorf("send claimRewardByPod pod[%d][%s] error:%v", podIndexes[k], s.restakingVersion(restaking), err)
 			panic("claimReward err")
 		}
 		// delete file
@@ -98,10 +98,10 @@ func (s *Scanner) ClaimReward(restaking string) {
 		err := s.claimRewardByPod(podIndexes[k], restaking, v)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
-				logrus.Warnf("%s pod[%d] error:%v", TxClaimReward, podIndexes[k], errBaseFeeTooHigh)
+				logrus.Warnf("%s pod[%d][%s] error:%v", TxClaimReward, podIndexes[k], s.restakingVersion(restaking), errBaseFeeTooHigh)
 				return
 			}
-			logrus.Errorf("send claimRewardByPod pod[%d] error:%v", podIndexes[k], err)
+			logrus.Errorf("send claimRewardByPod pod[%d][%s] error:%v", podIndexes[k], s.restakingVersion(restaking), err)
 			panic("claimReward err")
 		}
 		// delete file

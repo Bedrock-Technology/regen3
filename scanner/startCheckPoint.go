@@ -53,17 +53,17 @@ func (s *StartCheckPointRun) JobRun() {
 		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, pod.Restaking)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
-				logrus.Warnf("%s pod[%d] error:%v", TxStartCheckPoints, pod.PodIndex, errBaseFeeTooHigh)
+				logrus.Warnf("%s pod[%d][%s] error:%v", TxStartCheckPoints, pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), errBaseFeeTooHigh)
 				return
 			}
-			logrus.Errorf("send checkpoint pod[%d] error:%v", pod.PodIndex, err)
+			logrus.Errorf("%s pod[%d][%s] error:%v", TxStartCheckPoints, pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), err)
 			panic("send checkpoint err")
 		}
 		if timestamp != 0 {
-			logrus.Infof("need do FillProofs pod[%d] timestamp:%v", pod.PodIndex, timestamp)
+			logrus.Infof("need do FillProofs pod[%d][%s] timestamp:%v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), timestamp)
 			proofs, err := s.scanner.FillProofs(pod.Address, timestamp)
 			if err != nil {
-				logrus.Errorf("FillProofs pod[%d] timestamp:%v", pod.PodIndex, timestamp)
+				logrus.Errorf("FillProofs pod[%d][%s] timestamp:%v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), timestamp)
 				panic("FillProofs")
 			}
 			// write to db
@@ -71,7 +71,7 @@ func (s *StartCheckPointRun) JobRun() {
 				Where("checkpoint_timestamp = ?", timestamp).Where("checkpoint_finalized = ?", 0).
 				Update("proofs", string(proofs))
 			if rest.Error != nil {
-				logrus.Errorf("update pod[%d] timestamp:%v", pod.PodIndex, timestamp)
+				logrus.Errorf("update pod[%d][%s] timestamp:%v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), timestamp)
 				panic("update")
 			}
 		}
@@ -94,7 +94,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string) (
 		logrus.Errorf("waiting SendCheckPoint podId %v, error:%v", podId.Uint64(), err)
 		return 0, err
 	}
-	logrus.WithField("Report", "true").Infof("%s pod[%d] tx:%s", TxStartCheckPoints, podId.Uint64(), txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("%s pod[%d][%s] tx:%s", TxStartCheckPoints, podId.Uint64(), s.restakingVersion(restaking), txReceipt.TxHash)
 	// write to db
 	err = writeTransaction(s.DBEngine, txReceipt, TxStartCheckPoints)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string) (
 				timestamp = r.CheckpointTimestamp
 				if checkPoint.ProofsRemaining.Uint64() == 0 { // empty checkpoint
 					cp.CheckpointFinalized = txReceipt.BlockNumber.Uint64()
-					logrus.Infof("CheckpointFinalized, pod[%d] timestamp:%d", podId.Uint64(), timestamp)
+					logrus.Infof("CheckpointFinalized, pod[%d][%s] timestamp:%d", podId.Uint64(), s.restakingVersion(restaking), timestamp)
 					timestamp = 0
 				}
 				if result := s.DBEngine.Create(&cp); result.Error != nil {
