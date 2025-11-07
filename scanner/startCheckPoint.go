@@ -207,20 +207,26 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress, podOwner, restaking st
 		return false
 	}
 	podBalanceGwei := podBalance.Div(podBalance, big.NewInt(1e9)).Uint64()
-	logrus.Infof("pod[%d][%s], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
-		s.scanner.restakingVersion(restaking),
-		decimal.NewFromUint64(podBalanceGwei).Mul(decimal.New(1, -9)),
-		decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
-		decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
-		s.getCheckPointThreshold(podIndex))
 
 	switch s.scanner.restakingVersion(restaking) {
 	case "N":
+		logrus.Infof("pod[%d][%s], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
+			"N",
+			decimal.NewFromUint64(podBalanceGwei).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
+			s.getCheckPointThreshold(podIndex))
 		if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
 			(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
 			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
 		}
 	case "P":
+		logrus.Infof("pod[%d][%s], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
+			"P",
+			decimal.NewFromUint64(podBalanceGwei).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(executionLayerGwei).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
+			decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
 		if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
 			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
 		}
