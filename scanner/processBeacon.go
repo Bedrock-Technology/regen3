@@ -188,7 +188,10 @@ func (s *Scanner) processWithdrawnOnChain(beaconBlock *api.Response[*spec.Versio
 			}
 		}
 		if err := orm.Model(&models.Validator{}).Where("validator_index in ?", validatorNotActive).
-			Update("withdrawn_on_chain", uint64(slot)).Error; err != nil {
+			Updates(map[string]interface{}{
+				"withdrawn_on_chain": uint64(slot),
+				"voluntary_exit":     gorm.Expr("CASE WHEN voluntary_exit = 0 THEN ? ELSE voluntary_exit END", uint64(slot)),
+			}).Error; err != nil {
 			return err
 		}
 		logrus.Infof("find WithdrawnOnChain len(%d), slot[%d]", len(validators), slot)

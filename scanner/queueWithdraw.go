@@ -61,11 +61,11 @@ func (v *QueueWithdrawRun) JobRun() {
 			logrus.Errorf("Get pod[%d][%s] WithdrawableRestakedExecutionLayerGwei: %v", pod.PodIndex, v.scanner.restakingVersion(pod.Restaking), err)
 			return
 		}
-		queueGwei := shares - sumUncompleteGwei
+		queueGwei := int64(shares) - int64(sumUncompleteGwei)
 		logrus.Infof("pod[%d][%s] shares:%s, sumUncompleteGwei:%s, minus:%s", pod.PodIndex, v.scanner.restakingVersion(pod.Restaking),
 			decimal.NewFromUint64(shares).Mul(decimal.New(1, -9)),
 			decimal.NewFromUint64(sumUncompleteGwei).Mul(decimal.New(1, -9)),
-			decimal.NewFromUint64(queueGwei).Mul(decimal.New(1, -9)))
+			decimal.NewFromInt(queueGwei).Mul(decimal.New(1, -9)))
 		if queueGwei > 0 {
 			sharesWei := big.NewInt(0).Mul(big.NewInt(int64(queueGwei)), big.NewInt(1e9))
 			err := v.scanner.sendQueueWithdrawals(sharesWei, pod)
