@@ -54,6 +54,8 @@ to quickly create a Cobra application.`,
 			fmt.Println("restaking nil")
 			return
 		}
+		revertIfNoBalance, _ := cmd.PersistentFlags().GetBool("revertIfNoBalance")
+
 		sigs := make(chan os.Signal, 1)
 		quit := make(chan struct{}, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP)
@@ -77,15 +79,15 @@ to quickly create a Cobra application.`,
 			return
 		}
 		// force confirm
-		fmt.Printf("podIndex: %v, podOwner:%v, podAddress:%v press YES to continue\n",
-			podIndexInt, pod.Owner, pod.Address)
+		fmt.Printf("podIndex: %v, podOwner:%v, podAddress:%v, revertIfNoBalance:%v press YES to continue\n",
+			podIndexInt, pod.Owner, pod.Address, revertIfNoBalance)
 		confirm := ""
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			return
 		}
 		// send startCheckPoint
-		timestamp, err := scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, restaking)
+		timestamp, err := scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, restaking, revertIfNoBalance)
 		if err != nil {
 			logrus.Errorf("send checkpoint pod %v error:%v", pod.Address, err)
 			panic("send checkpoint err")
@@ -123,4 +125,5 @@ func init() {
 	// cpstartCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	cpstartCmd.PersistentFlags().StringP("podIndex", "p", "", "pod index")
 	cpstartCmd.PersistentFlags().StringP("restaking", "r", "", "restaking contract")
+	cpstartCmd.PersistentFlags().BoolP("revertIfNoBalance", "i", true, "revertIfNoBalance")
 }
