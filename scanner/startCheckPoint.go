@@ -96,7 +96,7 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string, r
 		return 0, err
 	}
 	logrus.WithField("Report", "true").Infof("%s pod[%d][%s] withdrawal[%v] tx:%s", TxStartCheckPoints, podId.Uint64(),
-		s.restakingVersion(restaking), !revertIfNoBalance, txReceipt.TxHash)
+		s.restakingVersion(restaking), revertIfNoBalance, txReceipt.TxHash)
 	// write to db
 	err = writeTransaction(s.DBEngine, txReceipt, TxStartCheckPoints)
 	if err != nil {
