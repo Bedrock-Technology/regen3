@@ -81,7 +81,7 @@ func (s *StartCheckPointRun) JobRun() {
 
 func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string) (timestamp uint64, err error) {
 	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
-	input, err := restakingAbi.Pack("startCheckPoint", podId, true)
+	input, err := restakingAbi.Pack("startCheckPoint", podId, false)
 	if err != nil {
 		return 0, err
 	}
