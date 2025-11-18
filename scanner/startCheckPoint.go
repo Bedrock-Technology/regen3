@@ -46,11 +46,12 @@ func (s *StartCheckPointRun) JobRun() {
 			logrus.Infof("pod[%d][%s] has active checkpoint or err %v", pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), err)
 			continue
 		}
-		if !s.NeedDoCheckPoint(pod.Address, pod.Owner, pod.Restaking, pod.PodIndex) {
+		needDo, revertIfNoBalance := s.NeedDoCheckPoint(pod.Address, pod.Owner, pod.Restaking, pod.PodIndex)
+		if !needDo {
 			continue
 		}
 		// send startCheckPoint
-		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, pod.Restaking)
+		timestamp, err := s.scanner.SendCheckPoint(big.NewInt(int64(pod.PodIndex)), pod.Address, pod.Restaking, revertIfNoBalance)
 		if err != nil {
 			if errors.Is(err, errBaseFeeTooHigh) {
 				logrus.Warnf("%s pod[%d][%s] error:%v", TxStartCheckPoints, pod.PodIndex, s.scanner.restakingVersion(pod.Restaking), errBaseFeeTooHigh)
@@ -79,9 +80,9 @@ func (s *StartCheckPointRun) JobRun() {
 	}
 }
 
-func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string) (timestamp uint64, err error) {
+func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string, revertIfNoBalance bool) (timestamp uint64, err error) {
 	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
-	input, err := restakingAbi.Pack("startCheckPoint", podId, false)
+	input, err := restakingAbi.Pack("startCheckPoint", podId, revertIfNoBalance)
 	if err != nil {
 		return 0, err
 	}
@@ -94,7 +95,8 @@ func (s *Scanner) SendCheckPoint(podId *big.Int, podAddress, restaking string) (
 		logrus.Errorf("waiting SendCheckPoint podId %v, error:%v", podId.Uint64(), err)
 		return 0, err
 	}
-	logrus.WithField("Report", "true").Infof("%s pod[%d][%s] tx:%s", TxStartCheckPoints, podId.Uint64(), s.restakingVersion(restaking), txReceipt.TxHash)
+	logrus.WithField("Report", "true").Infof("%s pod[%d][%s] withdrawal[%v] tx:%s", TxStartCheckPoints, podId.Uint64(),
+		s.restakingVersion(restaking), !revertIfNoBalance, txReceipt.TxHash)
 	// write to db
 	err = writeTransaction(s.DBEngine, txReceipt, TxStartCheckPoints)
 	if err != nil {
@@ -194,17 +196,17 @@ func (s *Scanner) FillProofs(podAddress string, timestamp uint64) ([]byte, error
 	return json.Marshal(proof)
 }
 
-func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress, podOwner, restaking string, podIndex uint64) bool {
+func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress, podOwner, restaking string, podIndex uint64) (bool, bool) {
 	eigenPod, _ := EigenPod.NewEigenPod(common.HexToAddress(podAddress), s.scanner.EthClient)
 	executionLayerGwei, err := eigenPod.WithdrawableRestakedExecutionLayerGwei(nil)
 	if err != nil {
 		logrus.Errorln("WithdrawableRestakedExecutionLayerGwei error:", err)
-		return false
+		return false, true
 	}
 	podBalance, err := s.scanner.EthClient.BalanceAt(context.Background(), common.HexToAddress(podAddress), nil)
 	if err != nil {
 		logrus.Errorln("BalanceAt error:", err)
-		return false
+		return false, true
 	}
 	podBalanceGwei := podBalance.Div(podBalance, big.NewInt(1e9)).Uint64()
 
@@ -218,7 +220,7 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress, podOwner, restaking st
 			s.getCheckPointThreshold(podIndex))
 		if (podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold && podIndex != 0) ||
 			(podBalanceGwei-executionLayerGwei >= s.scanner.Config.Pod0CheckPointThreshold && podIndex == 0) {
-			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
+			return s.ifCheckPointDuration(podAddress, podIndex, restaking), true
 		}
 	case "P":
 		logrus.Infof("pod[%d][%s], podBalanceGwei:%s, executionLayerGwei:%s, minus:%s, threshold:%s", podIndex,
@@ -228,16 +230,16 @@ func (s *StartCheckPointRun) NeedDoCheckPoint(podAddress, podOwner, restaking st
 			decimal.NewFromUint64(podBalanceGwei-executionLayerGwei).Mul(decimal.New(1, -9)),
 			decimal.NewFromUint64(s.scanner.Config.CheckPointThreshold).Mul(decimal.New(1, -9)))
 		if podBalanceGwei-executionLayerGwei >= s.scanner.Config.CheckPointThreshold {
-			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
+			return s.ifCheckPointDuration(podAddress, podIndex, restaking), false
 		}
 		if s.checkSharesLessThan(podOwner, podAddress, restaking, podIndex) {
-			return s.ifCheckPointDuration(podAddress, podIndex, restaking)
+			return s.ifCheckPointDuration(podAddress, podIndex, restaking), false
 		}
 	default:
-		return false
+		return false, true
 	}
 
-	return false
+	return false, true
 }
 
 func (s *StartCheckPointRun) ifCheckPointDuration(podAddress string, podIndex uint64, restaking string) bool {
