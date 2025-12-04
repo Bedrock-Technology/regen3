@@ -23,6 +23,8 @@ var MainnetAddresses = Addresses{
 	eigenDelegationManagerContract: "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A",
 	rewardCoordinator:              "0x7750d328b314EfFa365A0402CcfD489B80B0adda",
 	eigenToken:                     "0xec53bF9167f50cDEB3Ae105f56099aaaB9061F83",
+	stakingPectraContract:          "0xE0240d05Ae9eF703E2b71F3f4Eb326ea1888DEa3",
+	restakingPectraContract:        "0xB290BEDD4302dc7160467C59692387073B69EC47",
 	eigenPodManager:                "0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338	",
 }
 
@@ -122,7 +124,9 @@ func LoadConfig(path string) (config *Config) {
 		config.EigenTokenThreshold = 1_000 * 1e9
 	case "mainnet":
 		config.StakingContract = MainnetAddresses.stakingContract
+		config.StakingPectraContract = MainnetAddresses.stakingPectraContract
 		config.RestakingContract = MainnetAddresses.restakingContract
+		config.RestakingPectraContract = MainnetAddresses.restakingPectraContract
 		config.EigenPodManager = MainnetAddresses.eigenPodManager
 		config.EigenDelegationManagerContract = MainnetAddresses.eigenDelegationManagerContract
 		config.RewardCoordinator = MainnetAddresses.rewardCoordinator
