@@ -275,8 +275,7 @@ func (s *StartCheckPointRun) checkSharesLessThan(podOwner, podAddress, restaking
 	eigenPodManager, _ := PodManager.NewPodManager(common.HexToAddress(s.scanner.Config.EigenPodManager), s.scanner.EthClient)
 	shares, err := eigenPodManager.StakerDepositShares(nil, common.HexToAddress(podOwner), common.HexToAddress("0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0"))
 	if err != nil {
-		id, _ := s.scanner.EthClient.ChainID(context.Background())
-		logrus.Errorf("Get %s,podOwner %s, chain:%d, Staker Shares error:%v", s.scanner.Config.EigenPodManager, podOwner, id, err)
+		logrus.Errorf("StakerDepositShares error:%v", err)
 		return false
 	}
 	var validators []models.Validator

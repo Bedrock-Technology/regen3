@@ -25,7 +25,7 @@ var MainnetAddresses = Addresses{
 	eigenToken:                     "0xec53bF9167f50cDEB3Ae105f56099aaaB9061F83",
 	stakingPectraContract:          "0xE0240d05Ae9eF703E2b71F3f4Eb326ea1888DEa3",
 	restakingPectraContract:        "0xB290BEDD4302dc7160467C59692387073B69EC47",
-	eigenPodManager:                "0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338	",
+	eigenPodManager:                "0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338",
 }
 
 var HoleskyAddresses = Addresses{
