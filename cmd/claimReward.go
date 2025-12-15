@@ -56,7 +56,7 @@ to quickly create a Cobra application.`,
 		}()
 		sc := scanner.New(config, quit)
 
-		if podIndex != "" {
+		if podIndex != "" && restaking != "" {
 			podIndexInt, err := strconv.ParseInt(podIndex, 0, 64)
 			if err != nil {
 				fmt.Println(err)
