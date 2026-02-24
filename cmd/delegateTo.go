@@ -38,13 +38,13 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return
 		}
-		podIndex := cmd.Flag("podIndex").Value.String()
+		podId := cmd.Flag("podId").Value.String()
 		operator := cmd.Flag("operator").Value.String()
-		if podIndex == "" || operator == "" {
-			fmt.Println("podIndex or operator nil")
+		if podId == "" || operator == "" {
+			fmt.Println("podId or operator nil")
 			return
 		}
-		podIndexInt, err := strconv.ParseInt(podIndex, 0, 64)
+		podIdInt, err := strconv.ParseInt(podId, 0, 64)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -66,20 +66,20 @@ to quickly create a Cobra application.`,
 		}()
 		scanner := scanner.New(config, quit)
 		var pod models.Pod
-		rest := scanner.DBEngine.First(&pod, "pod_index = ?", podIndex)
+		rest := scanner.DBEngine.First(&pod, "id = ?", podId)
 		if rest.Error != nil {
 			logrus.Errorln("Get Pod Error", rest.Error)
 			return
 		}
 		// force confirm
-		fmt.Printf("podIndex: %v, podOwner:%v, podAddress:%v, operator: %s press YES to continue\n",
-			podIndexInt, pod.Owner, pod.Address, operator)
+		fmt.Printf("podId: %v, podOwner:%v, podAddress:%v, operator: %s press YES to continue\n",
+			podIdInt, pod.Owner, pod.Address, operator)
 		confirm := ""
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			return
 		}
-		scanner.DelegateTo(podIndexInt, operator)
+		scanner.DelegateTo(podIdInt, operator, pod.Restaking)
 	},
 }
 
@@ -95,6 +95,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// delegateToCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	delegateToCmd.PersistentFlags().StringP("podIndex", "p", "", "pod")
+	delegateToCmd.PersistentFlags().StringP("podId", "p", "", "pod")
 	delegateToCmd.PersistentFlags().StringP("operator", "o", "", "operator")
 }
