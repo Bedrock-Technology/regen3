@@ -28,7 +28,7 @@ func (s *Scanner) DelegateTo(podId, podIndex int64, operator, restakingContract 
 		return
 	}
 
-	input, err := restakingAbi.Pack("callDelegationManager", big.NewInt(podId), output)
+	input, err := restakingAbi.Pack("callDelegationManager", big.NewInt(podIndex), output)
 	if err != nil {
 		logrus.Errorln("Pack err:", err)
 		return
