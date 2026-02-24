@@ -35,7 +35,7 @@ func (s *Scanner) DelegateTo(podId, podIndex int64, operator, restakingContract 
 	}
 	realTx, err := s.sendRawTransaction(input, restakingContract, uint64(podIndex), TxDelegateTo)
 	if err != nil {
-		logrus.Errorf("delegateTo pod %v error:%v", podId, err)
+		logrus.Errorf("delegateTo pod %v, podIndex %v error:%v", podId, podIndex, err)
 		return
 	}
 	logrus.Infoln("waiting delegateTo tx:", realTx.Hash())
