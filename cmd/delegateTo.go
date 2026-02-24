@@ -79,7 +79,7 @@ to quickly create a Cobra application.`,
 		if confirm != "YES" {
 			return
 		}
-		scanner.DelegateTo(podIdInt, operator, pod.Restaking)
+		scanner.DelegateTo(podIdInt, int64(pod.PodIndex), operator, pod.Restaking)
 	},
 }
 

@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *Scanner) DelegateTo(podId int64, operator, restakingContract string) {
+func (s *Scanner) DelegateTo(podId, podIndex int64, operator, restakingContract string) {
 	restakingAbi, _ := Restaking.RestakingMetaData.GetAbi()
 	isswe := DelegationManager.ISignatureUtilsMixinTypesSignatureWithExpiry{
 		Signature: []byte{},
@@ -33,7 +33,7 @@ func (s *Scanner) DelegateTo(podId int64, operator, restakingContract string) {
 		logrus.Errorln("Pack err:", err)
 		return
 	}
-	realTx, err := s.sendRawTransaction(input, restakingContract, uint64(podId), TxDelegateTo)
+	realTx, err := s.sendRawTransaction(input, restakingContract, uint64(podIndex), TxDelegateTo)
 	if err != nil {
 		logrus.Errorf("delegateTo pod %v error:%v", podId, err)
 		return
