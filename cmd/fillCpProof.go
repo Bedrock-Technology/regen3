@@ -38,12 +38,12 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return
 		}
-		podIndex := cmd.Flag("podIndex").Value.String()
-		if podIndex == "" {
-			fmt.Println("podIndex nil")
+		podId := cmd.Flag("podId").Value.String()
+		if podId == "" {
+			fmt.Println("podId nil")
 			return
 		}
-		podIndexInt, err := strconv.ParseInt(podIndex, 0, 64)
+		podIdInt, err := strconv.ParseInt(podId, 0, 64)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -75,14 +75,14 @@ to quickly create a Cobra application.`,
 		}()
 		scanner := scanner.New(config, quit)
 		var pod models.Pod
-		rest := scanner.DBEngine.First(&pod, "pod_index = ?", podIndex)
+		rest := scanner.DBEngine.First(&pod, "id = ?", podId)
 		if rest.Error != nil {
 			logrus.Errorln("Get Pod Error", rest.Error)
 			return
 		}
 		// force confirm
-		fmt.Printf("podIndex: %v, podAddress:%v, timestamp: %v press YES to continue\n",
-			podIndexInt, pod.Address, timestampInt)
+		fmt.Printf("podId: %v, podAddress:%v, timestamp: %v press YES to continue\n",
+			podIdInt, pod.Address, timestampInt)
 		confirm := ""
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
@@ -117,6 +117,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// cpstartCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	fillCpProofCmd.PersistentFlags().StringP("podIndex", "p", "", "pod")
+	fillCpProofCmd.PersistentFlags().StringP("podId", "p", "", "pod")
 	fillCpProofCmd.PersistentFlags().StringP("timestamp", "t", "", "timestamp")
 }
