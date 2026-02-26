@@ -95,7 +95,7 @@ func (s *Scanner) sendRawTransaction(input []byte, toAddress string, podIndex ui
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
 	if err != nil {
 		logrus.Warnf("SuggestGasTipCap error:%v", err)
-		// return nil, errBaseFeeTooHigh
+		gasTipCap = big.NewInt(0)
 	}
 	if gasTipCap.Cmp(big.NewInt(1e9)) > 0 {
 		gasTipCap = big.NewInt(1e9)
