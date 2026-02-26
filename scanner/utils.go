@@ -84,6 +84,7 @@ func maxBaseFee(podIndex uint64, transType string) int64 {
 func (s *Scanner) sendRawTransaction(input []byte, toAddress string, podIndex uint64, transType string) (*types.Transaction, error) {
 	header, err := s.EthClient.HeaderByNumber(context.Background(), nil)
 	if err != nil {
+		logrus.Warnf("HeaderByNumber error:%v", err)
 		return nil, errBaseFeeTooHigh
 	}
 	maxBaseFee := maxBaseFee(podIndex, transType)
@@ -93,6 +94,7 @@ func (s *Scanner) sendRawTransaction(input []byte, toAddress string, podIndex ui
 	}
 	gasTipCap, err := s.EthClient.SuggestGasTipCap(context.Background())
 	if err != nil {
+		logrus.Warnf("SuggestGasTipCap error:%v", err)
 		return nil, errBaseFeeTooHigh
 	}
 	if gasTipCap.Cmp(big.NewInt(1e9)) > 0 {
