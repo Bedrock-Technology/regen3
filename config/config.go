@@ -134,7 +134,7 @@ func LoadConfig(path string) (config *Config) {
 		config.MinWithdrawalDelayBlocks = MainnetMinWithdrawalDelayBlocks
 		config.ChainId = 1
 		config.CheckPointThreshold = 1 * 32e9
-		config.Pod0CheckPointThreshold = 20 * 32e9
+		config.Pod0CheckPointThreshold = 1 * 32e9
 		config.EigenTokenThreshold = 500 * 1e9
 	case "hoodi":
 		config.StakingContract = HoodiAddresses.stakingContract
